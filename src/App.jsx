@@ -4,7 +4,8 @@ import Dashboard from './components/Dashboard';
 import Flashcards from './components/Flashcards';
 import month1Data from './data/month1.json';
 import month2Data from './data/month2.json';
-import { ChevronRight, ChevronLeft, BookOpen, Globe, Info, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw } from 'lucide-react';
+import month3Data from './data/month3.json';
+import { ChevronRight, ChevronLeft, BookOpen, Globe, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw } from 'lucide-react';
 import { getStorage, setStorage, StorageKeys } from './utils/storage';
 
 const ReadingChallenge = () => {
@@ -16,7 +17,8 @@ const ReadingChallenge = () => {
     const [isTeleprompterActive, setIsTeleprompterActive] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [isScrolling, setIsScrolling] = useState(false);
-    const [scrollSpeed, setScrollSpeed] = useState(1);
+    const [scrollSpeed, setScrollSpeed] = useState(0.8);
+    const scrollSpeedRef = useRef(0.8);
     const [fontSize, setFontSize] = useState(48);
     const [countdown, setCountdown] = useState(null);
     const [isControlsExpanded, setIsControlsExpanded] = useState(false);
@@ -24,6 +26,8 @@ const ReadingChallenge = () => {
     const [progress, setProgress] = useState(null);
     const [showDashboard, setShowDashboard] = useState(false);
     const [showFlashcards, setShowFlashcards] = useState(false);
+    const [practicedDays, setPracticedDays] = useState({});
+    const [triggerPracticeTooltip, setTriggerPracticeTooltip] = useState(false);
     const scrollContainerRef = useRef(null);
     const animationFrameRef = useRef(null);
     const practiceStartTimeRef = useRef(null);
@@ -39,29 +43,51 @@ const ReadingChallenge = () => {
         return () => clearTimeout(timer);
     }, [countdown]);
 
+    // Update ref when scrollSpeed changes
     useEffect(() => {
-        const smoothScroll = () => {
-            if (scrollContainerRef.current && isScrolling && isTeleprompterActive && countdown === null) {
-                scrollContainerRef.current.scrollTop += scrollSpeed * 0.5;
-                const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-                if (scrollTop + clientHeight >= scrollHeight - 1) {
-                    setIsScrolling(false);
-                } else {
-                    animationFrameRef.current = requestAnimationFrame(smoothScroll);
-                }
-            }
-        };
+        scrollSpeedRef.current = scrollSpeed;
+    }, [scrollSpeed]);
 
+    useEffect(() => {
+        let intervalId = null;
+        
         if (isScrolling && isTeleprompterActive && countdown === null) {
-            animationFrameRef.current = requestAnimationFrame(smoothScroll);
+            // Use interval-based scrolling for reliable speed control
+            // Update every 16ms (~60fps) for smooth scrolling
+            intervalId = setInterval(() => {
+                if (scrollContainerRef.current && isScrolling && isTeleprompterActive) {
+                    const currentSpeed = scrollSpeedRef.current;
+                    
+                    // Speed in pixels per interval (16ms)
+                    // Speed 0.3 = 0.6px per 16ms = ~36px/sec (very slow)
+                    // Speed 0.5 = 1.0px per 16ms = ~60px/sec (slow)
+                    // Speed 0.8 = 1.6px per 16ms = ~96px/sec (normal)
+                    // Speed 1.5 = 3.0px per 16ms = ~180px/sec (fast)
+                    // Speed 2.0 = 4.0px per 16ms = ~240px/sec (very fast)
+                    // Use multiplier of 2.0 to ensure even slowest speeds produce visible scrolling
+                    const scrollAmount = currentSpeed * 2.0;
+                    
+                    if (scrollContainerRef.current && scrollAmount > 0) {
+                        const container = scrollContainerRef.current;
+                        container.scrollTop += scrollAmount;
+                        
+                        const { scrollTop, scrollHeight, clientHeight } = container;
+                        if (scrollTop + clientHeight >= scrollHeight - 1) {
+                            setIsScrolling(false);
+                        }
+                    }
+                }
+            }, 16); // ~60fps
         }
 
         return () => {
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
         };
-    }, [isScrolling, isTeleprompterActive, scrollSpeed, countdown]);
+    }, [isScrolling, isTeleprompterActive, countdown]);
 
-    const allMonthsData = { 1: month1Data, 2: month2Data };
+    const allMonthsData = { 1: month1Data, 2: month2Data, 3: month3Data };
     const activeData = allMonthsData[currentMonth]?.find(d => d.day === currentDay) || null;
 
     // Load statistics and progress on mount
@@ -86,6 +112,10 @@ const ReadingChallenge = () => {
             monthProgress: {}
         });
         setProgress(prog);
+        
+        // Load practiced days (days where Practice button was clicked)
+        const practiced = getStorage(StorageKeys.PRACTICED_DAYS, {});
+        setPracticedDays(practiced);
 
         // Handle URL path for sharing (format: /m1-day1 for month 1, day 1)
         const pathname = window.location.pathname;
@@ -99,19 +129,19 @@ const ReadingChallenge = () => {
         if (newFormatMatch) {
             const monthParam = parseInt(newFormatMatch[1]);
             const dayParam = parseInt(newFormatMatch[2]);
-            if (monthParam && monthParam >= 1 && monthParam <= 12) setCurrentMonth(monthParam);
+            if (monthParam && monthParam >= 1 && monthParam <= 3) setCurrentMonth(monthParam);
             if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
         } else if (simpleMatch) {
             // Backward compatibility with old simple format
             const monthParam = parseInt(simpleMatch[1]);
             const dayParam = parseInt(simpleMatch[2]);
-            if (monthParam && monthParam >= 1 && monthParam <= 12) setCurrentMonth(monthParam);
+            if (monthParam && monthParam >= 1 && monthParam <= 3) setCurrentMonth(monthParam);
             if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
         } else if (fullMatch) {
             // Backward compatibility with old full format
             const monthParam = parseInt(fullMatch[1]);
             const dayParam = parseInt(fullMatch[2]);
-            if (monthParam && monthParam >= 1 && monthParam <= 12) setCurrentMonth(monthParam);
+            if (monthParam && monthParam >= 1 && monthParam <= 3) setCurrentMonth(monthParam);
             if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
         } else {
             // Fallback: Check for old query parameter format for backward compatibility
@@ -220,7 +250,42 @@ const ReadingChallenge = () => {
         }
     }, [currentMonth, currentDay]);
 
-    const handleNext = () => { if (currentDay < 30) setCurrentDay(currentDay + 1); };
+    const isDayPracticed = (month, day) => {
+        const dayKey = `${month}-${day}`;
+        return practicedDays[dayKey] === true;
+    };
+    
+    const handleDayClick = (day) => {
+        const isLocked = day > 1 && !isDayPracticed(currentMonth, day - 1);
+        if (isLocked) {
+            // On mobile, close the menu and show tooltip
+            if (isMobileMenuOpen) {
+                setIsMobileMenuClosing(true);
+                setTimeout(() => {
+                    setIsMobileMenuOpen(false);
+                    setIsMobileMenuClosing(false);
+                    // Trigger tooltip after menu closes
+                    setTimeout(() => {
+                        setTriggerPracticeTooltip(true);
+                        setTimeout(() => setTriggerPracticeTooltip(false), 100);
+                    }, 300);
+                }, 300);
+            } else {
+                // On desktop, just trigger tooltip
+                setTriggerPracticeTooltip(true);
+                setTimeout(() => setTriggerPracticeTooltip(false), 100);
+            }
+            return;
+        }
+        setCurrentDay(day);
+    };
+    
+    const handleNext = () => { 
+        // Check if current day is practiced before allowing next
+        if (currentDay < 30 && isDayPracticed(currentMonth, currentDay)) {
+            setCurrentDay(currentDay + 1);
+        }
+    };
     const handlePrev = () => { if (currentDay > 1) setCurrentDay(currentDay - 1); };
     const changeMonth = (month) => {
         setCurrentMonth(month);
@@ -286,30 +351,66 @@ const ReadingChallenge = () => {
         const wrapText = (context, text, x, y, maxWidth, lineHeight) => {
             const words = text.split(' ');
             let line = '';
+            let currentY = y;
             for (let n = 0; n < words.length; n++) {
                 const testLine = line + words[n] + ' ';
                 const metrics = context.measureText(testLine);
                 if (metrics.width > maxWidth && n > 0) {
-                    context.fillText(line, x, y);
+                    context.fillText(line, x, currentY);
                     line = words[n] + ' ';
-                    y += lineHeight;
+                    currentY += lineHeight;
                 } else {
                     line = testLine;
                 }
             }
-            context.fillText(line, x, y);
+            context.fillText(line, x, currentY);
+            return currentY + lineHeight;
         }
-        wrapText(ctx, activeData.text, innerMargin, yPos, innerWidth, 55);
+        yPos = wrapText(ctx, activeData.text, innerMargin, yPos, innerWidth, 55);
+        
+        // Add practice note text
+        yPos += 40; // Add spacing after main text
+        ctx.font = 'italic 28px Arial, sans-serif';
+        ctx.fillStyle = '#666666';
+        const practiceNote = `This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.`;
         const footerY = canvas.height - innerMargin - 20;
+        const maxNoteY = footerY - 100; // Leave space for footer
+        
+        // Wrap and draw practice note, ensuring it doesn't exceed boundaries
+        const wrapTextWithLimit = (context, text, x, y, maxWidth, lineHeight, maxY) => {
+            const words = text.split(' ');
+            let line = '';
+            let currentY = y;
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = context.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    if (currentY + lineHeight > maxY) break; // Stop if would exceed boundary
+                    context.fillText(line, x, currentY);
+                    line = words[n] + ' ';
+                    currentY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            if (currentY + lineHeight <= maxY) {
+                context.fillText(line, x, currentY);
+                return currentY + lineHeight;
+            }
+            return currentY;
+        }
+        wrapTextWithLimit(ctx, practiceNote, innerMargin, yPos, innerWidth, 40, maxNoteY);
+        
+        const finalFooterY = canvas.height - innerMargin - 20;
         ctx.fillStyle = accentColor;
-        ctx.fillRect(innerMargin, footerY - 50, 60, 6);
+        ctx.fillRect(innerMargin, finalFooterY - 50, 60, 6);
         ctx.font = 'bold 24px Arial, sans-serif';
         ctx.fillStyle = '#000000';
-        ctx.fillText('ENGLISH FLUENCY JOURNEY', innerMargin, footerY);
+        ctx.fillText('ENGLISH FLUENCY JOURNEY', innerMargin, finalFooterY);
         ctx.font = 'normal 24px Arial, sans-serif';
         ctx.fillStyle = '#666666';
         ctx.textAlign = 'right';
-        ctx.fillText('By Zayn', canvas.width - innerMargin, footerY);
+        ctx.fillText('By Zayn', canvas.width - innerMargin, finalFooterY);
         const link = document.createElement('a');
         link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
         link.href = canvas.toDataURL('image/jpeg', 0.9);
@@ -324,6 +425,15 @@ const ReadingChallenge = () => {
             setIsScrolling(false);
             setCountdown(null);
         } else {
+            // Mark this day as practiced when Practice button is clicked
+            const dayKey = `${currentMonth}-${currentDay}`;
+            const practiced = getStorage(StorageKeys.PRACTICED_DAYS, {});
+            if (!practiced[dayKey]) {
+                practiced[dayKey] = true;
+                setStorage(StorageKeys.PRACTICED_DAYS, practiced);
+                setPracticedDays(practiced);
+            }
+            
             practiceStartTimeRef.current = Date.now();
             setIsTeleprompterActive(true);
             // Center the title when teleprompter opens
@@ -396,19 +506,94 @@ const ReadingChallenge = () => {
                         <div className={`overflow-hidden transition-all duration-300 ${isControlsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                             <div className="px-4 pb-4 flex flex-col md:flex-row items-start md:items-center gap-4">
                                 <div className="flex flex-col gap-2 w-full md:w-56 bg-zinc-800/50 rounded-lg p-3">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-center justify-between mb-2">
                                         <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Speed</span>
                                         <span className="text-sm text-zinc-200 font-mono font-bold bg-red-500/20 px-2 py-0.5 rounded">{scrollSpeed.toFixed(1)}x</span>
                                     </div>
+                                    {/* Speed Presets */}
+                                    <div className="flex gap-1.5 mb-2">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const newSpeed = 0.3;
+                                                setScrollSpeed(newSpeed);
+                                                scrollSpeedRef.current = newSpeed;
+                                            }}
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
+                                                Math.abs(scrollSpeed - 0.3) < 0.05
+                                                    ? 'bg-red-500 text-white' 
+                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                            }`}
+                                        >
+                                            Very Slow
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const newSpeed = 0.5;
+                                                setScrollSpeed(newSpeed);
+                                                scrollSpeedRef.current = newSpeed;
+                                            }}
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
+                                                Math.abs(scrollSpeed - 0.5) < 0.05
+                                                    ? 'bg-red-500 text-white' 
+                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                            }`}
+                                        >
+                                            Slow
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const newSpeed = 0.8;
+                                                setScrollSpeed(newSpeed);
+                                                scrollSpeedRef.current = newSpeed;
+                                            }}
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
+                                                Math.abs(scrollSpeed - 0.8) < 0.05
+                                                    ? 'bg-red-500 text-white' 
+                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                            }`}
+                                        >
+                                            Normal
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const newSpeed = 1.5;
+                                                setScrollSpeed(newSpeed);
+                                                scrollSpeedRef.current = newSpeed;
+                                            }}
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
+                                                Math.abs(scrollSpeed - 1.5) < 0.05
+                                                    ? 'bg-red-500 text-white' 
+                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                            }`}
+                                        >
+                                            Fast
+                                        </button>
+                                    </div>
                                     <input 
                                         type="range" 
-                                        min="0.5" 
-                                        max="10" 
-                                        step="0.5" 
+                                        min="0.3" 
+                                        max="2" 
+                                        step="0.05" 
                                         value={scrollSpeed} 
                                         onChange={(e) => setScrollSpeed(parseFloat(e.target.value))} 
                                         className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors" 
                                     />
+                                    <div className="flex justify-between text-xs text-zinc-400 mt-1">
+                                        <span>Slowest</span>
+                                        <span>Fastest</span>
+                                    </div>
                                 </div>
                                 <div className="flex flex-col gap-2 w-full md:w-56 bg-zinc-800/50 rounded-lg p-3">
                                     <div className="flex items-center justify-between">
@@ -538,22 +723,67 @@ const ReadingChallenge = () => {
                                     <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
                                         <Calendar size={16} className="text-[#880000]" /> Month Selector
                                     </h3>
-                                    <div className="flex bg-slate-100 p-1 rounded-lg">
-                                        <button 
+                                <div className="flex bg-slate-100 p-1 rounded-lg">
+                                    <button 
+                                        onClick={() => {
+                                            changeMonth(1);
+                                        }} 
+                                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Month 1
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            changeMonth(2);
+                                        }} 
+                                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Month 2
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            changeMonth(3);
+                                        }} 
+                                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Month 3
+                                    </button>
+                                </div>
+                                </div>
+
+                                {/* Dashboard & Flashcards Buttons */}
+                                <div className="mb-6">
+                                    <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                                        <Trophy size={16} className="text-[#880000]" /> Quick Actions
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
                                             onClick={() => {
-                                                changeMonth(1);
-                                            }} 
-                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                                setShowDashboard(true);
+                                                setIsMobileMenuClosing(true);
+                                                setTimeout(() => {
+                                                    setIsMobileMenuOpen(false);
+                                                    setIsMobileMenuClosing(false);
+                                                }, 300);
+                                            }}
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
                                         >
-                                            Month 1
+                                            <BarChart3 size={16} />
+                                            <span>Dashboard</span>
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => {
-                                                changeMonth(2);
-                                            }} 
-                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                                setShowFlashcards(true);
+                                                setIsMobileMenuClosing(true);
+                                                setTimeout(() => {
+                                                    setIsMobileMenuOpen(false);
+                                                    setIsMobileMenuClosing(false);
+                                                }, 300);
+                                            }}
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
                                         >
-                                            Month 2
+                                            <RotateCw size={16} />
+                                            <span>Flashcards</span>
                                         </button>
                                     </div>
                                 </div>
@@ -564,17 +794,28 @@ const ReadingChallenge = () => {
                                         <Square size={16} className="text-[#880000]" /> Day Selector
                                     </h3>
                                     <div className="grid grid-cols-5 gap-2">
-                                        {allMonthsData[currentMonth].map((d) => (
-                                            <button 
-                                                key={d.day} 
-                                                onClick={() => {
-                                                    setCurrentDay(d.day);
-                                                }} 
-                                                className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day ? 'bg-[#880000] text-white shadow-md transform scale-105' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                                            >
-                                                {d.day}
-                                            </button>
-                                        ))}
+                                        {allMonthsData[currentMonth].map((d) => {
+                                            const isPracticed = isDayPracticed(currentMonth, d.day);
+                                            const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
+                                            return (
+                                                <button 
+                                                    key={d.day} 
+                                                    onClick={() => handleDayClick(d.day)} 
+                                                    className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${
+                                                        currentDay === d.day 
+                                                            ? 'bg-[#880000] text-white shadow-md transform scale-105' 
+                                                            : isPracticed 
+                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300' 
+                                                                : isLocked
+                                                                    ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
+                                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                    }`}
+                                                    title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
+                                                >
+                                                    {d.day}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -626,6 +867,51 @@ const ReadingChallenge = () => {
                                             >
                                                 Month 2
                                             </button>
+                                            <button 
+                                                onClick={() => {
+                                                    changeMonth(3);
+                                                }} 
+                                                className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                            >
+                                                Month 3
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Dashboard & Flashcards Buttons */}
+                                    <div className="mb-6">
+                                        <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                                            <Trophy size={16} className="text-[#880000]" /> Quick Actions
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setShowDashboard(true);
+                                                    setIsMobileMenuClosing(true);
+                                                    setTimeout(() => {
+                                                        setIsMobileMenuOpen(false);
+                                                        setIsMobileMenuClosing(false);
+                                                    }, 300);
+                                                }}
+                                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
+                                            >
+                                                <BarChart3 size={16} />
+                                                <span>Dashboard</span>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setShowFlashcards(true);
+                                                    setIsMobileMenuClosing(true);
+                                                    setTimeout(() => {
+                                                        setIsMobileMenuOpen(false);
+                                                        setIsMobileMenuClosing(false);
+                                                    }, 300);
+                                                }}
+                                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
+                                            >
+                                                <RotateCw size={16} />
+                                                <span>Flashcards</span>
+                                            </button>
                                         </div>
                                     </div>
 
@@ -635,17 +921,28 @@ const ReadingChallenge = () => {
                                             <Square size={16} className="text-[#880000]" /> Day Selector
                                         </h3>
                                         <div className="grid grid-cols-5 gap-2">
-                                            {allMonthsData[currentMonth].map((d) => (
-                                                <button 
-                                                    key={d.day} 
-                                                    onClick={() => {
-                                                        setCurrentDay(d.day);
-                                                    }} 
-                                                    className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day ? 'bg-[#880000] text-white shadow-md transform scale-105' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                                                >
-                                                    {d.day}
-                                                </button>
-                                            ))}
+                                            {allMonthsData[currentMonth].map((d) => {
+                                                const isPracticed = isDayPracticed(currentMonth, d.day);
+                                                const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
+                                                return (
+                                                    <button 
+                                                        key={d.day} 
+                                                        onClick={() => handleDayClick(d.day)} 
+                                                        className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${
+                                                            currentDay === d.day 
+                                                                ? 'bg-[#880000] text-white shadow-md transform scale-105' 
+                                                                : isPracticed 
+                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300' 
+                                                                    : isLocked
+                                                                        ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
+                                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                        }`}
+                                                        title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
+                                                    >
+                                                        {d.day}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>
@@ -666,14 +963,34 @@ const ReadingChallenge = () => {
                                 <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
                                     <button onClick={() => changeMonth(1)} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Month 1</button>
                                     <button onClick={() => changeMonth(2)} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Month 2</button>
+                                    <button onClick={() => changeMonth(3)} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Month 3</button>
                                 </div>
                                 <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
                                     <Square size={16} className="text-[#880000]" /> Day Selector
                                 </h3>
                                 <div className="grid grid-cols-5 gap-2">
-                                    {allMonthsData[currentMonth].map((d) => (
-                                        <button key={d.day} onClick={() => setCurrentDay(d.day)} className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day ? 'bg-[#880000] text-white shadow-md transform scale-105' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>{d.day}</button>
-                                    ))}
+                                    {allMonthsData[currentMonth].map((d) => {
+                                        const isPracticed = isDayPracticed(currentMonth, d.day);
+                                        const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
+                                        return (
+                                            <button 
+                                                key={d.day} 
+                                                onClick={() => handleDayClick(d.day)} 
+                                                className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${
+                                                    currentDay === d.day 
+                                                        ? 'bg-[#880000] text-white shadow-md transform scale-105' 
+                                                        : isPracticed 
+                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300' 
+                                                            : isLocked
+                                                                ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
+                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                }`}
+                                                title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
+                                            >
+                                                {d.day}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -690,8 +1007,11 @@ const ReadingChallenge = () => {
                                     onToggleTeleprompter={toggleTeleprompter} 
                                     onPrev={handlePrev} 
                                     onNext={handleNext}
+                                    isDayPracticed={isDayPracticed}
+                                    practicedDays={practicedDays}
                                     statistics={statistics}
                                     progress={progress}
+                                    triggerPracticeTooltip={triggerPracticeTooltip}
                                 />
                                 <div className="mt-4 md:mt-6 text-center flex flex-col items-center pb-4">
                                     <p className="text-sm md:text-base lg:text-lg text-slate-500 italic max-w-2xl">"This is my practice today about <span className="text-[#880000] font-semibold">{activeData.title}</span>, cannot wait to improve my English with the next training."</p>
@@ -721,6 +1041,7 @@ const ReadingChallenge = () => {
                 {showFlashcards && (
                     <Flashcards onClose={() => setShowFlashcards(false)} />
                 )}
+                
             </div>
         </>
     );

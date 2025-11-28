@@ -14,7 +14,10 @@ const ReadingCard = ({
     onPrev,
     onNext,
     statistics,
-    progress
+    progress,
+    isDayPracticed,
+    practicedDays,
+    triggerPracticeTooltip
 }) => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [highlightIndex, setHighlightIndex] = useState(-1);
@@ -27,6 +30,26 @@ const ReadingCard = ({
     const [wordDefinition, setWordDefinition] = useState(null);
     const [savedWords, setSavedWords] = useState([]);
     const [isDefinitionClosing, setIsDefinitionClosing] = useState(false);
+    const [showPracticeTooltip, setShowPracticeTooltip] = useState(false);
+    const [isPracticeTooltipClosing, setIsPracticeTooltipClosing] = useState(false);
+    const practiceButtonRef = useRef(null);
+    
+    // Watch for tooltip trigger from parent
+    useEffect(() => {
+        if (triggerPracticeTooltip) {
+            setIsPracticeTooltipClosing(false);
+            setShowPracticeTooltip(true);
+            // Auto-hide after 4 seconds
+            const timer = setTimeout(() => {
+                setIsPracticeTooltipClosing(true);
+                setTimeout(() => {
+                    setShowPracticeTooltip(false);
+                    setIsPracticeTooltipClosing(false);
+                }, 300);
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [triggerPracticeTooltip]);
     const utteranceRef = useRef(null);
     const selectedVoiceNameRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -123,6 +146,7 @@ const ReadingCard = ({
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
             }
+            boundaryEventFiredRef.current = false;
         };
 
         stopSpeech();
@@ -345,6 +369,7 @@ const ReadingCard = ({
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
             }
+            boundaryEventFiredRef.current = false;
             // Ensure selected voice is preserved after stopping
             if (selectedVoiceNameRef.current && !selectedVoice) {
                 const foundVoice = voices.find(v => v.name === selectedVoiceNameRef.current);
@@ -421,7 +446,7 @@ const ReadingCard = ({
             setHighlightIndex(-1);
             currentWordIndex = -1;
             boundaryEventFiredRef.current = false;
-
+            
             // Fallback: Timer-based highlighting for Chrome
             // Start timer-based highlighting, but boundary events will take over if available
             let wordIndex = 0;
@@ -430,17 +455,12 @@ const ReadingCard = ({
                 if (boundaryEventFiredRef.current) {
                     return;
                 }
-                
                 // Check if still speaking using speechSynthesis API
                 if (wordIndex < words.length && (window.speechSynthesis.speaking || isSpeakingRef.current)) {
                     setHighlightIndex(wordIndex);
                     currentWordIndex = wordIndex;
-                    
                     const timing = wordTimings[wordIndex];
-                    const nextDelay = wordIndex === 0 
-                        ? Math.max(100, timing.startTime) 
-                        : timing.duration;
-                    
+                    const nextDelay = wordIndex === 0 ? Math.max(100, timing.startTime) : timing.duration;
                     highlightTimerRef.current = setTimeout(() => {
                         wordIndex++;
                         if (wordIndex < words.length) {
@@ -456,7 +476,6 @@ const ReadingCard = ({
                     setHighlightIndex(-1);
                 }
             };
-            
             // Start highlighting after a small initial delay
             highlightTimerRef.current = setTimeout(() => {
                 if (isSpeakingRef.current && !boundaryEventFiredRef.current) {
@@ -464,6 +483,7 @@ const ReadingCard = ({
                 }
             }, 100);
         };
+
 
         utterance.onend = () => {
             setIsSpeaking(false);
@@ -507,11 +527,11 @@ const ReadingCard = ({
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#880000] overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#880000] overflow-visible">
             {/* Card Header */}
-            <div className="bg-[#880000]/5 p-4 md:p-6 lg:p-8 border-b border-slate-100">
+            <div className="bg-[#880000]/5 p-4 md:p-6 lg:p-8 border-b border-slate-100 overflow-visible">
                 {/* Row 1: Metadata and Action Buttons */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3 mb-3 md:mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3 mb-3 md:mb-4 relative">
                     {/* Metadata */}
                     <div className="flex items-center justify-between sm:justify-start gap-2 text-[#880000] font-bold text-xs md:text-sm uppercase tracking-wide w-full sm:w-auto">
                         <span className="bg-[#880000]/10 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm">Month {currentMonth} - Day {activeData.day}</span>
@@ -538,13 +558,103 @@ const ReadingCard = ({
                         >
                             {copied ? <Check size={12} className="md:w-4 md:h-4" /> : <Copy size={12} className="md:w-4 md:h-4" />}
                         </button>
-                            <button
-                                onClick={onToggleTeleprompter}
-                                className="flex items-center justify-center gap-1 md:gap-1.5 bg-[#880000] hover:bg-[#770000] text-white px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-red-900/20 text-[10px] md:text-xs lg:text-sm whitespace-nowrap flex-1 sm:flex-initial"
-                            >
-                                <Mic size={12} className="md:w-4 md:h-4" />
-                                <span>Practice</span>
-                            </button>
+                            <div className="relative flex-1 sm:flex-initial z-10">
+                                <button
+                                    ref={practiceButtonRef}
+                                    onClick={onToggleTeleprompter}
+                                    onMouseEnter={() => {
+                                        setIsPracticeTooltipClosing(false);
+                                        setShowPracticeTooltip(true);
+                                    }}
+                                    onMouseLeave={() => {
+                                        setIsPracticeTooltipClosing(true);
+                                        setTimeout(() => {
+                                            setShowPracticeTooltip(false);
+                                            setIsPracticeTooltipClosing(false);
+                                        }, 300);
+                                    }}
+                                    onTouchStart={() => {
+                                        setIsPracticeTooltipClosing(false);
+                                        setShowPracticeTooltip(true);
+                                        setTimeout(() => {
+                                            setIsPracticeTooltipClosing(true);
+                                            setTimeout(() => {
+                                                setShowPracticeTooltip(false);
+                                                setIsPracticeTooltipClosing(false);
+                                            }, 300);
+                                        }, 3000);
+                                    }}
+                                    className="relative flex items-center justify-center gap-1 md:gap-1.5 bg-[#880000] hover:bg-[#770000] text-white px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-red-900/20 text-[10px] md:text-xs lg:text-sm whitespace-nowrap w-full overflow-visible shine-effect"
+                                >
+                                    <Mic size={12} className="md:w-4 md:h-4" />
+                                    <span>Practice</span>
+                                </button>
+                            </div>
+                            
+                            {/* Floating Practice Tooltip Menu */}
+                            {showPracticeTooltip && practiceButtonRef.current && (
+                                <div 
+                                    className={`fixed z-[9999] bg-white rounded-lg shadow-2xl border border-slate-200 p-4 max-w-[280px] md:max-w-[320px] ${isPracticeTooltipClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
+                                    style={{
+                                        top: (() => {
+                                            const rect = practiceButtonRef.current.getBoundingClientRect();
+                                            // Position below button with 12px gap
+                                            return `${rect.bottom + 12}px`;
+                                        })(),
+                                        left: (() => {
+                                            const rect = practiceButtonRef.current.getBoundingClientRect();
+                                            const tooltipWidth = 280; // max-w-[280px]
+                                            const leftPos = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                                            return `${Math.max(16, Math.min(leftPos, window.innerWidth - tooltipWidth - 16))}px`;
+                                        })()
+                                    }}
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-base md:text-lg text-slate-800 mb-2">Practice Required</h3>
+                                            <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-3">
+                                                Practice first then you can see the next day reading challenge
+                                            </p>
+                                            <p className="text-sm md:text-base font-semibold text-[#880000]">
+                                                Press the button to practice
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setIsPracticeTooltipClosing(true);
+                                                setTimeout(() => {
+                                                    setShowPracticeTooltip(false);
+                                                    setIsPracticeTooltipClosing(false);
+                                                }, 300);
+                                            }}
+                                            className="text-slate-400 hover:text-slate-600 ml-2 flex-shrink-0"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                    {/* Arrow pointing up to button (comic bubble style) */}
+                                    <div 
+                                        className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
+                                        style={{
+                                            left: (() => {
+                                                if (!practiceButtonRef.current) return '50%';
+                                                const rect = practiceButtonRef.current.getBoundingClientRect();
+                                                const tooltipRect = { width: 280 };
+                                                const tooltipLeft = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                                                const adjustedLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipRect.width - 16));
+                                                const buttonCenter = rect.left + (rect.width / 2);
+                                                const relativePos = buttonCenter - adjustedLeft;
+                                                return `${relativePos}px`;
+                                            })()
+                                        }}
+                                    >
+                                        {/* Outer border arrow */}
+                                        <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-transparent border-b-slate-200 absolute bottom-0 left-1/2 transform -translate-x-1/2"></div>
+                                        {/* Inner white arrow */}
+                                        <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-transparent border-b-white absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[-1px]"></div>
+                                    </div>
+                                </div>
+                            )}
                              <button
                                  onClick={async () => {
                                      const imageUrl = await generateShareImage(currentMonth, currentDay, statistics, progress, activeData);
@@ -761,8 +871,9 @@ const ReadingCard = ({
 
                 <button
                     onClick={onNext}
-                    disabled={currentDay === 30}
-                    className="flex items-center gap-2 text-slate-500 hover:text-[#880000] disabled:opacity-30 disabled:hover:text-slate-500 font-semibold px-4 py-2"
+                    disabled={currentDay === 30 || (isDayPracticed && !isDayPracticed(currentMonth, currentDay))}
+                    className="flex items-center gap-2 text-slate-500 hover:text-[#880000] disabled:opacity-30 disabled:hover:text-slate-500 disabled:cursor-not-allowed font-semibold px-4 py-2"
+                    title={isDayPracticed && !isDayPracticed(currentMonth, currentDay) ? 'Practice this day first' : ''}
                 >
                     Next <ChevronRight size={20} />
                 </button>
