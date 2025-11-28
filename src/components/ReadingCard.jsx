@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2 } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
-import { shareToSocial, generateShareImage } from '../utils/socialShare';
+import { shareToSocial, generateShareImage, generateShareLink } from '../utils/socialShare';
 
 const ReadingCard = ({
     activeData,
@@ -31,12 +31,22 @@ const ReadingCard = ({
     const selectedVoiceNameRef = useRef(null);
     const typingTimeoutRef = useRef(null);
     const wordPositionRef = useRef(null);
+    const highlightTimerRef = useRef(null);
+    const isSpeakingRef = useRef(false);
+    const boundaryEventFiredRef = useRef(false);
 
     // Load available voices
+    // Note: Chrome has fewer TTS voices than Edge because:
+    // - Edge uses Windows SAPI5 voices directly (access to all Windows TTS voices)
+    // - Chrome uses its own TTS engine (more limited, typically 2-4 English voices)
+    // - Chrome may require user interaction to load voices (lazy loading)
+    // To get more voices in Chrome: Install additional Windows voices via Settings > Time & Language > Speech
     useEffect(() => {
         const loadVoices = () => {
+            // Get all English voices
             const availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
             setVoices(availableVoices);
+            
             if (availableVoices.length > 0) {
                 // If we have a selected voice name, try to find it again
                 if (selectedVoiceNameRef.current) {
@@ -52,9 +62,10 @@ const ReadingCard = ({
                 }
                 // Only set default if we don't have a selected voice name yet
                 if (!selectedVoiceNameRef.current) {
-                    // Prefer Google US English or Microsoft Zira, otherwise first available
+                    // Prefer voices in this order: Google US English, Microsoft Zira, Microsoft David, or first available
                     const preferred = availableVoices.find(v => v.name.includes('Google US English')) ||
                         availableVoices.find(v => v.name.includes('Zira')) ||
+                        availableVoices.find(v => v.name.includes('David')) ||
                         availableVoices[0];
                     setSelectedVoice(preferred);
                     selectedVoiceNameRef.current = preferred?.name || null;
@@ -62,27 +73,36 @@ const ReadingCard = ({
             }
         };
 
+        // Initial load - Chrome may return empty array initially
         loadVoices();
+        
+        // Chrome sometimes needs multiple attempts or user interaction to load voices
+        // Try loading again after a short delay
+        const delayedLoad = setTimeout(() => {
+            loadVoices();
+        }, 100);
+        
         const handleVoicesChanged = () => {
-            // Only reload if we don't have a selected voice yet
-            if (!selectedVoiceNameRef.current) {
-                loadVoices();
-            } else {
-                // Just update the voices list, don't reset selection
-                const availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-                setVoices(availableVoices);
-                // Try to restore the selected voice
-                const foundVoice = availableVoices.find(v => v.name === selectedVoiceNameRef.current);
-                if (foundVoice) {
-                    setSelectedVoice(foundVoice);
-                }
-            }
+            // Reload voices when the voices list changes (this is the main event for Chrome)
+            loadVoices();
         };
         
         window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
+        
+        // Also try loading voices after a user interaction (helps with Chrome's lazy loading)
+        const handleUserInteraction = () => {
+            loadVoices();
+        };
+        
+        // Listen for user interactions to trigger voice loading in Chrome
+        document.addEventListener('click', handleUserInteraction, { once: true, passive: true });
+        document.addEventListener('touchstart', handleUserInteraction, { once: true, passive: true });
 
         return () => {
+            clearTimeout(delayedLoad);
             window.speechSynthesis.onvoiceschanged = null;
+            document.removeEventListener('click', handleUserInteraction);
+            document.removeEventListener('touchstart', handleUserInteraction);
         };
     }, [selectedVoice]);
 
@@ -97,7 +117,12 @@ const ReadingCard = ({
         const stopSpeech = () => {
             window.speechSynthesis.cancel();
             setIsSpeaking(false);
+            isSpeakingRef.current = false;
             setHighlightIndex(-1);
+            if (highlightTimerRef.current) {
+                clearTimeout(highlightTimerRef.current);
+                highlightTimerRef.current = null;
+            }
         };
 
         stopSpeech();
@@ -226,6 +251,36 @@ const ReadingCard = ({
         setStorage(StorageKeys.VOCABULARY, updated);
     };
 
+    // Function to refresh voices (helps Chrome load voices after user interaction)
+    const refreshVoices = () => {
+        const availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+        setVoices(availableVoices);
+        
+        // If we have a selected voice, try to restore it
+        if (selectedVoiceNameRef.current) {
+            const foundVoice = availableVoices.find(v => v.name === selectedVoiceNameRef.current);
+            if (foundVoice) {
+                setSelectedVoice(foundVoice);
+            } else if (availableVoices.length > 0) {
+                // If selected voice not found, pick a default
+                const preferred = availableVoices.find(v => v.name.includes('Google US English')) ||
+                    availableVoices.find(v => v.name.includes('Zira')) ||
+                    availableVoices.find(v => v.name.includes('David')) ||
+                    availableVoices[0];
+                setSelectedVoice(preferred);
+                selectedVoiceNameRef.current = preferred?.name || null;
+            }
+        } else if (availableVoices.length > 0) {
+            // No voice selected yet, pick a default
+            const preferred = availableVoices.find(v => v.name.includes('Google US English')) ||
+                availableVoices.find(v => v.name.includes('Zira')) ||
+                availableVoices.find(v => v.name.includes('David')) ||
+                availableVoices[0];
+            setSelectedVoice(preferred);
+            selectedVoiceNameRef.current = preferred?.name || null;
+        }
+    };
+
     // Typing animation when data changes
     useEffect(() => {
         // Clear any existing typing animation
@@ -280,10 +335,16 @@ const ReadingCard = ({
     }, [activeData]);
 
     const handleSpeak = () => {
-        if (isSpeaking) {
+        if (isSpeaking || isSpeakingRef.current) {
             window.speechSynthesis.cancel();
             setIsSpeaking(false);
+            isSpeakingRef.current = false;
             setHighlightIndex(-1);
+            // Clear any timers
+            if (highlightTimerRef.current) {
+                clearTimeout(highlightTimerRef.current);
+                highlightTimerRef.current = null;
+            }
             // Ensure selected voice is preserved after stopping
             if (selectedVoiceNameRef.current && !selectedVoice) {
                 const foundVoice = voices.find(v => v.name === selectedVoiceNameRef.current);
@@ -304,17 +365,7 @@ const ReadingCard = ({
         utterance.rate = 0.9;
         utterance.pitch = 1;
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => {
-            setIsSpeaking(false);
-            setHighlightIndex(-1);
-        };
-        utterance.onerror = () => {
-            setIsSpeaking(false);
-            setHighlightIndex(-1);
-        };
-
-        // Calculate word boundaries
+        // Calculate word boundaries and timing
         const words = text.split(' ');
         let currentOffset = 0;
         const wordOffsets = words.map(word => {
@@ -324,13 +375,113 @@ const ReadingCard = ({
             return { start, end };
         });
 
+        // Estimate duration per word (in milliseconds)
+        // Average reading speed: ~150 words per minute = 400ms per word
+        // Adjusted for rate 0.9: 400 / 0.9 ≈ 444ms per word
+        const baseWordDuration = 444;
+        
+        // Calculate cumulative timings for each word
+        const wordTimings = words.map((word, index) => {
+            // Longer words take more time, shorter words take less
+            const wordLength = word.length;
+            const duration = Math.max(200, baseWordDuration * (0.7 + (wordLength / 10) * 0.3));
+            return {
+                index,
+                startTime: words.slice(0, index).reduce((sum, w) => {
+                    const wLen = w.length;
+                    return sum + Math.max(200, baseWordDuration * (0.7 + (wLen / 10) * 0.3));
+                }, 0),
+                duration
+            };
+        });
+
+        let currentWordIndex = -1;
+
+        // Try boundary-based highlighting (works in Edge)
         utterance.onboundary = (event) => {
-            if (event.name === 'word') {
+            if (event.name === 'word' && isSpeakingRef.current) {
+                boundaryEventFiredRef.current = true;
+                // Clear timer-based highlighting since boundary events are working
+                if (highlightTimerRef.current) {
+                    clearTimeout(highlightTimerRef.current);
+                    highlightTimerRef.current = null;
+                }
                 const charIndex = event.charIndex;
                 const index = wordOffsets.findIndex(w => charIndex >= w.start && charIndex <= w.end);
                 if (index !== -1) {
                     setHighlightIndex(index);
+                    currentWordIndex = index;
                 }
+            }
+        };
+
+        utterance.onstart = () => {
+            setIsSpeaking(true);
+            isSpeakingRef.current = true;
+            setHighlightIndex(-1);
+            currentWordIndex = -1;
+            boundaryEventFiredRef.current = false;
+
+            // Fallback: Timer-based highlighting for Chrome
+            // Start timer-based highlighting, but boundary events will take over if available
+            let wordIndex = 0;
+            const highlightNextWord = () => {
+                // If boundary events are working, don't use timer-based highlighting
+                if (boundaryEventFiredRef.current) {
+                    return;
+                }
+                
+                // Check if still speaking using speechSynthesis API
+                if (wordIndex < words.length && (window.speechSynthesis.speaking || isSpeakingRef.current)) {
+                    setHighlightIndex(wordIndex);
+                    currentWordIndex = wordIndex;
+                    
+                    const timing = wordTimings[wordIndex];
+                    const nextDelay = wordIndex === 0 
+                        ? Math.max(100, timing.startTime) 
+                        : timing.duration;
+                    
+                    highlightTimerRef.current = setTimeout(() => {
+                        wordIndex++;
+                        if (wordIndex < words.length) {
+                            highlightNextWord();
+                        } else {
+                            // Reset highlight when done
+                            if (!window.speechSynthesis.speaking) {
+                                setHighlightIndex(-1);
+                            }
+                        }
+                    }, nextDelay);
+                } else {
+                    setHighlightIndex(-1);
+                }
+            };
+            
+            // Start highlighting after a small initial delay
+            highlightTimerRef.current = setTimeout(() => {
+                if (isSpeakingRef.current && !boundaryEventFiredRef.current) {
+                    highlightNextWord();
+                }
+            }, 100);
+        };
+
+        utterance.onend = () => {
+            setIsSpeaking(false);
+            isSpeakingRef.current = false;
+            setHighlightIndex(-1);
+            if (highlightTimerRef.current) {
+                clearTimeout(highlightTimerRef.current);
+                highlightTimerRef.current = null;
+            }
+        };
+
+        utterance.onerror = () => {
+            setIsSpeaking(false);
+            isSpeakingRef.current = false;
+            setHighlightIndex(-1);
+            if (highlightTimerRef.current) {
+                clearTimeout(highlightTimerRef.current);
+                highlightTimerRef.current = null;
             }
         };
 
@@ -339,7 +490,8 @@ const ReadingCard = ({
     };
 
     const handleCopy = () => {
-        const textToCopy = `Read and Record\n\n${activeData.title}\n\n${activeData.text}\n\n"This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training."\n- By Zayn`;
+        const shareLink = generateShareLink(currentMonth, currentDay);
+        const textToCopy = `Read and Record\n\n${activeData.title}\n\n${activeData.text}\n\n"This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training."\n- By Zayn\n\nPractice with me: ${shareLink}`;
         const textArea = document.createElement("textarea");
         textArea.value = textToCopy;
         document.body.appendChild(textArea);
@@ -427,6 +579,8 @@ const ReadingCard = ({
                                         setSelectedVoice(voice);
                                         selectedVoiceNameRef.current = voice?.name || null;
                                     }}
+                                    onFocus={refreshVoices}
+                                    onMouseDown={refreshVoices}
                                     className="appearance-none bg-transparent text-slate-700 pl-1.5 md:pl-2.5 pr-5 md:pr-7 py-1 md:py-1.5 rounded-md font-medium text-[10px] md:text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#880000]/20 w-full hover:text-[#880000] transition-colors opacity-0 absolute inset-0 z-10"
                                 >
                                     {voices.map(v => (

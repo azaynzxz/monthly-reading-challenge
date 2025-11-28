@@ -9,34 +9,36 @@ const formatTime = (seconds) => {
 
 export const generateShareLink = (month, day) => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/?month=${month}&day=${day}`;
+    return `${baseUrl}/m${month}-day${day}`;
 };
 
 export const shareToSocial = async (month, day, statistics, progress, activeData) => {
     const shareLink = generateShareLink(month, day);
-    const shareText = `Today I learned about ${activeData?.country || 'a new place'}! 📚\n\n` +
+    const shareTextWithoutLink = `Today I learned about ${activeData?.country || 'a new place'}! 📚\n\n` +
         `Read: "${activeData?.title || 'English Reading Practice'}"\n\n` +
         `My Progress:\n` +
         `📖 ${statistics?.totalWordsRead || 0} words read\n` +
         `⏱️ ${formatTime(statistics?.totalTimePracticed || 0)} practiced\n` +
-        `🔥 ${progress?.currentStreak || 0} day streak\n\n` +
-        `Practice with me: ${shareLink}`;
+        `🔥 ${progress?.currentStreak || 0} day streak`;
+    
+    // For clipboard (fallback), include the link in text
+    const shareTextWithLink = `${shareTextWithoutLink}\n\nPractice with me: ${shareLink}`;
 
     if (navigator.share) {
         try {
             await navigator.share({
                 title: 'English Reading Practice',
-                text: shareText,
+                text: shareTextWithoutLink,
                 url: shareLink
             });
         } catch (error) {
             if (error.name !== 'AbortError') {
                 console.error('Error sharing:', error);
-                copyToClipboard(shareText);
+                copyToClipboard(shareTextWithLink);
             }
         }
     } else {
-        copyToClipboard(shareText);
+        copyToClipboard(shareTextWithLink);
     }
 };
 

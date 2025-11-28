@@ -87,12 +87,40 @@ const ReadingChallenge = () => {
         });
         setProgress(prog);
 
-        // Handle URL parameters for sharing
-        const urlParams = new URLSearchParams(window.location.search);
-        const monthParam = urlParams.get('month');
-        const dayParam = urlParams.get('day');
-        if (monthParam) setCurrentMonth(parseInt(monthParam));
-        if (dayParam) setCurrentDay(parseInt(dayParam));
+        // Handle URL path for sharing (format: /m1-day1 for month 1, day 1)
+        const pathname = window.location.pathname;
+        // Match format: /m1-day1 (new format)
+        const newFormatMatch = pathname.match(/^\/m(\d+)-day(\d+)$/);
+        // Match format: /1-1 (old simple format - backward compatibility)
+        const simpleMatch = pathname.match(/^\/(\d+)-(\d+)$/);
+        // Match format: /month-1-day-1 (old full format - backward compatibility)
+        const fullMatch = pathname.match(/\/month-(\d+)-day-(\d+)/);
+        
+        if (newFormatMatch) {
+            const monthParam = parseInt(newFormatMatch[1]);
+            const dayParam = parseInt(newFormatMatch[2]);
+            if (monthParam && monthParam >= 1 && monthParam <= 12) setCurrentMonth(monthParam);
+            if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
+        } else if (simpleMatch) {
+            // Backward compatibility with old simple format
+            const monthParam = parseInt(simpleMatch[1]);
+            const dayParam = parseInt(simpleMatch[2]);
+            if (monthParam && monthParam >= 1 && monthParam <= 12) setCurrentMonth(monthParam);
+            if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
+        } else if (fullMatch) {
+            // Backward compatibility with old full format
+            const monthParam = parseInt(fullMatch[1]);
+            const dayParam = parseInt(fullMatch[2]);
+            if (monthParam && monthParam >= 1 && monthParam <= 12) setCurrentMonth(monthParam);
+            if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
+        } else {
+            // Fallback: Check for old query parameter format for backward compatibility
+            const urlParams = new URLSearchParams(window.location.search);
+            const monthParam = urlParams.get('month');
+            const dayParam = urlParams.get('day');
+            if (monthParam) setCurrentMonth(parseInt(monthParam));
+            if (dayParam) setCurrentDay(parseInt(dayParam));
+        }
     }, []);
 
     // Track teleprompter completion and update statistics
@@ -183,6 +211,14 @@ const ReadingChallenge = () => {
             setProgress(prog);
         }
     }, [isTeleprompterActive, isClosing, currentMonth, currentDay]);
+
+    // Update URL when month or day changes (format: /m1-day1)
+    useEffect(() => {
+        const newPath = `/m${currentMonth}-day${currentDay}`;
+        if (window.location.pathname !== newPath) {
+            window.history.replaceState({}, '', newPath);
+        }
+    }, [currentMonth, currentDay]);
 
     const handleNext = () => { if (currentDay < 30) setCurrentDay(currentDay + 1); };
     const handlePrev = () => { if (currentDay > 1) setCurrentDay(currentDay - 1); };

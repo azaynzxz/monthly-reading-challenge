@@ -76,6 +76,18 @@ src/
 - Word-by-word highlighting during playback
 - Adjustable speech rate
 
+**Note on Browser Voice Differences:**
+- **Microsoft Edge**: Has access to all Windows SAPI5 TTS voices (typically 10-20+ English voices) because it uses Windows' native TTS engine directly.
+- **Google Chrome**: Uses its own TTS engine and typically has fewer voices (2-4 English voices by default). Chrome may require user interaction to load voices.
+
+**To Get More Voices in Chrome:**
+1. Install additional Windows voices:
+   - Go to **Settings** > **Time & Language** > **Speech**
+   - Under **Manage voices**, select **Add voices** to install additional TTS voices
+   - Restart your computer after installing
+2. The app automatically refreshes voices when you interact with the voice selector dropdown
+3. Some voices may become available after clicking the "Listen" button for the first time
+
 ### Teleprompter Mode
 - Full-screen practice mode
 - Adjustable scroll speed and text size
@@ -113,4 +125,5 @@ This project is open source and available for personal and educational use.
 ## Attribution
 
 Created by Zayn
+
 
