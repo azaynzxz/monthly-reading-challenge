@@ -511,7 +511,19 @@ const ReadingCard = ({
 
     const handleCopy = () => {
         const shareLink = generateShareLink(currentMonth, currentDay);
-        const textToCopy = `This is my practice today about The Kite Runner, cannot wait to improve my English with the next training.\n\n- By Zayn\n\nChallenge yourself with daily reading challenge:\n${shareLink}`;
+        const textToCopy = 
+`Read and Record
+
+${activeData.title}
+
+${activeData.text}
+
+This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.
+
+_By Zayn_
+
+Challenge yourself with daily reading challenge:
+${shareLink}`;
         const textArea = document.createElement("textarea");
         textArea.value = textToCopy;
         document.body.appendChild(textArea);
