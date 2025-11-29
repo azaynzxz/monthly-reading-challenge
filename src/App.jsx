@@ -368,40 +368,71 @@ const ReadingChallenge = () => {
         }
         yPos = wrapText(ctx, activeData.text, innerMargin, yPos, innerWidth, 55);
         
-        // Add practice note text
-        yPos += 40; // Add spacing after main text
-        ctx.font = 'italic 28px Arial, sans-serif';
-        ctx.fillStyle = '#666666';
+        // Add practice note text with auto-resize so it always fits
+        yPos += 40; // spacing after main text
         const practiceNote = `This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.`;
-        const footerY = canvas.height - innerMargin - 20;
-        const maxNoteY = footerY - 100; // Leave space for footer
-        
-        // Wrap and draw practice note, ensuring it doesn't exceed boundaries
-        const wrapTextWithLimit = (context, text, x, y, maxWidth, lineHeight, maxY) => {
-            const words = text.split(' ');
-            let line = '';
-            let currentY = y;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = context.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    if (currentY + lineHeight > maxY) break; // Stop if would exceed boundary
-                    context.fillText(line, x, currentY);
-                    line = words[n] + ' ';
-                    currentY += lineHeight;
-                } else {
-                    line = testLine;
+        const finalFooterY = canvas.height - innerMargin - 20;
+        const noteAreaTop = yPos;
+        const noteAreaMaxHeight = Math.max(80, finalFooterY - 120 - noteAreaTop); // leave room for footer
+
+        const drawAutoFitNote = (context, text, x, y, maxWidth, maxHeight) => {
+            const baseFontSize = 32;
+            const minFontSize = 16;
+            let chosenFontSize = minFontSize;
+            let chosenLines = [];
+
+            const wrapText = (fontSize) => {
+                context.font = `italic ${fontSize}px Arial, sans-serif`;
+                const words = text.split(' ');
+                const lines = [];
+                let line = '';
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = context.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        lines.push(line.trim());
+                        line = words[n] + ' ';
+                    } else {
+                        line = testLine;
+                    }
+                }
+                if (line) lines.push(line.trim());
+                return lines;
+            };
+
+            for (let fontSize = baseFontSize; fontSize >= minFontSize; fontSize -= 2) {
+                const lines = wrapText(fontSize);
+                const lineHeight = fontSize * 1.4;
+                const neededHeight = lines.length * lineHeight;
+                if (neededHeight <= maxHeight) {
+                    chosenFontSize = fontSize;
+                    chosenLines = lines;
+                    break;
                 }
             }
-            if (currentY + lineHeight <= maxY) {
-                context.fillText(line, x, currentY);
-                return currentY + lineHeight;
+
+            if (chosenLines.length === 0) {
+                chosenLines = wrapText(minFontSize);
+                chosenFontSize = minFontSize;
             }
-            return currentY;
+
+            context.font = `italic ${chosenFontSize}px Arial, sans-serif`;
+            context.fillStyle = '#666666';
+            context.textAlign = 'left';
+            const lineHeight = chosenFontSize * 1.4;
+            let currentY = y;
+            chosenLines.forEach(line => {
+                if (currentY + lineHeight <= y + maxHeight) {
+                    context.fillText(line, x, currentY);
+                    currentY += lineHeight;
+                }
+            });
+        };
+
+        if (noteAreaMaxHeight > 0) {
+            drawAutoFitNote(ctx, practiceNote, innerMargin, noteAreaTop, innerWidth, noteAreaMaxHeight);
         }
-        wrapTextWithLimit(ctx, practiceNote, innerMargin, yPos, innerWidth, 40, maxNoteY);
         
-        const finalFooterY = canvas.height - innerMargin - 20;
         ctx.fillStyle = accentColor;
         ctx.fillRect(innerMargin, finalFooterY - 50, 60, 6);
         ctx.font = 'bold 24px Arial, sans-serif';
