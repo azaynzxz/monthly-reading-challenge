@@ -36,6 +36,7 @@ const ReadingCard = ({
     const [showShareModal, setShowShareModal] = useState(false);
     const [isDownloadingPoster, setIsDownloadingPoster] = useState(false);
     const [isShareModalClosing, setIsShareModalClosing] = useState(false);
+    const [isPosterReady, setIsPosterReady] = useState(false);
     const practiceButtonRef = useRef(null);
     const posterCanvasRef = useRef(null);
 
@@ -675,6 +676,8 @@ ${shareLink}`;
                         <button
                             onClick={() => {
                                 setIsShareModalClosing(false);
+                                setIsPosterReady(false);
+                                posterCanvasRef.current = null;
                                 setShowShareModal(true);
                             }}
                             className="flex items-center justify-center bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] p-1.5 md:p-2 rounded-lg font-semibold transition-colors border border-[#880000]/20 flex-1 sm:flex-initial"
@@ -903,6 +906,8 @@ ${shareLink}`;
                             setTimeout(() => {
                                 setShowShareModal(false);
                                 setIsShareModalClosing(false);
+                                setIsPosterReady(false);
+                                posterCanvasRef.current = null;
                             }, 300);
                         }}
                     />
@@ -919,6 +924,8 @@ ${shareLink}`;
                                         setTimeout(() => {
                                             setShowShareModal(false);
                                             setIsShareModalClosing(false);
+                                            setIsPosterReady(false);
+                                            posterCanvasRef.current = null;
                                         }, 300);
                                     }}
                                     className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -943,7 +950,7 @@ ${shareLink}`;
                             {/* Download Button */}
                             <button
                                 onClick={async () => {
-                                    if (!posterCanvasRef.current) return;
+                                    if (!posterCanvasRef.current || !isPosterReady) return;
 
                                     setIsDownloadingPoster(true);
 
@@ -966,16 +973,22 @@ ${shareLink}`;
                                             setShowShareModal(false);
                                             setIsShareModalClosing(false);
                                             setIsDownloadingPoster(false);
+                                            setIsPosterReady(false);
                                         }, 300);
                                     } catch (error) {
                                         console.error('Error sharing:', error);
                                         setIsDownloadingPoster(false);
                                     }
                                 }}
-                                disabled={isDownloadingPoster || !posterCanvasRef.current}
+                                disabled={isDownloadingPoster || !isPosterReady || !posterCanvasRef.current}
                                 className="w-full bg-[#880000] hover:bg-[#770000] text-white font-bold py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                {isDownloadingPoster ? (
+                                {!isPosterReady ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <span>Generating Poster...</span>
+                                    </>
+                                ) : isDownloadingPoster ? (
                                     <>
                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                         <span>Downloading...</span>
@@ -994,6 +1007,8 @@ ${shareLink}`;
                                     setTimeout(() => {
                                         setShowShareModal(false);
                                         setIsShareModalClosing(false);
+                                        setIsPosterReady(false);
+                                        posterCanvasRef.current = null;
                                     }, 300);
                                 }}
                                 className="w-full mt-3 text-slate-600 hover:text-slate-800 font-semibold py-2 px-6 rounded-lg transition-colors"
@@ -1019,6 +1034,7 @@ ${shareLink}`;
                             day={currentDay}
                             onPosterReady={(canvas) => {
                                 posterCanvasRef.current = canvas;
+                                setIsPosterReady(true);
                             }}
                         />
                     </div>
