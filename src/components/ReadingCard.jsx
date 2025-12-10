@@ -519,7 +519,7 @@ const ReadingCard = ({
         const shareLink = generateShareLink(currentMonth, currentDay);
         const textToCopy =
             `Read and Record
-Practice month ${currentMonth}, day ${activeData.day} a story from ${activeData.country}
+Practice day ${activeData.day}, a story from ${activeData.country}
 
 ${activeData.title}
 
