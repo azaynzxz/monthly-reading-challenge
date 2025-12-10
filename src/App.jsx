@@ -50,14 +50,14 @@ const ReadingChallenge = () => {
 
     useEffect(() => {
         let intervalId = null;
-        
+
         if (isScrolling && isTeleprompterActive && countdown === null) {
             // Use interval-based scrolling for reliable speed control
             // Update every 16ms (~60fps) for smooth scrolling
             intervalId = setInterval(() => {
                 if (scrollContainerRef.current && isScrolling && isTeleprompterActive) {
                     const currentSpeed = scrollSpeedRef.current;
-                    
+
                     // Speed in pixels per interval (16ms)
                     // Speed 0.3 = 0.6px per 16ms = ~36px/sec (very slow)
                     // Speed 0.5 = 1.0px per 16ms = ~60px/sec (slow)
@@ -66,11 +66,11 @@ const ReadingChallenge = () => {
                     // Speed 2.0 = 4.0px per 16ms = ~240px/sec (very fast)
                     // Use multiplier of 2.0 to ensure even slowest speeds produce visible scrolling
                     const scrollAmount = currentSpeed * 2.0;
-                    
+
                     if (scrollContainerRef.current && scrollAmount > 0) {
                         const container = scrollContainerRef.current;
                         container.scrollTop += scrollAmount;
-                        
+
                         const { scrollTop, scrollHeight, clientHeight } = container;
                         if (scrollTop + clientHeight >= scrollHeight - 1) {
                             setIsScrolling(false);
@@ -112,7 +112,7 @@ const ReadingChallenge = () => {
             monthProgress: {}
         });
         setProgress(prog);
-        
+
         // Load practiced days (days where Practice button was clicked)
         const practiced = getStorage(StorageKeys.PRACTICED_DAYS, {});
         setPracticedDays(practiced);
@@ -125,7 +125,7 @@ const ReadingChallenge = () => {
         const simpleMatch = pathname.match(/^\/(\d+)-(\d+)$/);
         // Match format: /month-1-day-1 (old full format - backward compatibility)
         const fullMatch = pathname.match(/\/month-(\d+)-day-(\d+)/);
-        
+
         if (newFormatMatch) {
             const monthParam = parseInt(newFormatMatch[1]);
             const dayParam = parseInt(newFormatMatch[2]);
@@ -158,7 +158,7 @@ const ReadingChallenge = () => {
         if (!isTeleprompterActive && !isClosing && practiceStartTimeRef.current && activeData && allMonthsData[currentMonth]) {
             const practiceDuration = Math.floor((Date.now() - practiceStartTimeRef.current) / 1000);
             practiceStartTimeRef.current = null;
-            
+
             const stats = getStorage(StorageKeys.STATISTICS, {
                 totalWordsRead: 0,
                 totalTimePracticed: 0,
@@ -168,25 +168,25 @@ const ReadingChallenge = () => {
                 weeklyProgress: {},
                 monthlyProgress: {}
             });
-            
+
             stats.totalTimePracticed = (stats.totalTimePracticed || 0) + practiceDuration;
             const wordCount = activeData?.text.split(' ').length || 0;
             stats.totalWordsRead = (stats.totalWordsRead || 0) + wordCount;
             stats.practiceSessions = (stats.practiceSessions || 0) + 1;
-            
+
             const country = activeData?.country || 'Unknown';
             stats.countries[country] = (stats.countries[country] || 0) + 1;
-            
+
             const today = new Date();
             const weekKey = `${today.getFullYear()}-W${Math.ceil(today.getDate() / 7)}`;
             stats.weeklyProgress[weekKey] = (stats.weeklyProgress[weekKey] || 0) + practiceDuration;
-            
+
             const monthKey = `${today.getFullYear()}-${today.getMonth() + 1}`;
             stats.monthlyProgress[monthKey] = (stats.monthlyProgress[monthKey] || 0) + practiceDuration;
-            
+
             setStorage(StorageKeys.STATISTICS, stats);
             setStatistics(stats);
-            
+
             const prog = getStorage(StorageKeys.PROGRESS, {
                 completedDays: {},
                 currentStreak: 0,
@@ -195,40 +195,40 @@ const ReadingChallenge = () => {
                 badges: [],
                 monthProgress: {}
             });
-            
+
             const dayKey = `${currentMonth}-${currentDay}`;
             const todayStr = today.toISOString().split('T')[0];
-            
+
             if (!prog.completedDays[dayKey]) {
                 prog.completedDays[dayKey] = {
                     completed: true,
                     date: todayStr,
                     practiceTime: practiceDuration
                 };
-                
+
                 const lastDate = prog.lastPracticeDate ? new Date(prog.lastPracticeDate) : null;
                 const todayDate = new Date(todayStr);
-                
+
                 if (!lastDate || Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24)) === 1) {
                     prog.currentStreak = (prog.currentStreak || 0) + 1;
                 } else if (Math.floor((todayDate - lastDate) / (1000 * 60 * 60 * 24)) > 1) {
                     prog.currentStreak = 1;
                 }
-                
+
                 if (prog.currentStreak > prog.longestStreak) {
                     prog.longestStreak = prog.currentStreak;
                 }
-                
+
                 if (prog.currentStreak === 7 && !prog.badges.includes('7-day-streak')) {
                     prog.badges.push('7-day-streak');
                 }
                 if (prog.currentStreak === 30 && !prog.badges.includes('30-day-streak')) {
                     prog.badges.push('30-day-streak');
                 }
-                
+
                 prog.lastPracticeDate = todayStr;
             }
-            
+
             const monthProgressKey = `month-${currentMonth}`;
             if (!prog.monthProgress[monthProgressKey]) {
                 prog.monthProgress[monthProgressKey] = { completed: [] };
@@ -236,7 +236,7 @@ const ReadingChallenge = () => {
             if (!prog.monthProgress[monthProgressKey].completed.includes(currentDay)) {
                 prog.monthProgress[monthProgressKey].completed.push(currentDay);
             }
-            
+
             setStorage(StorageKeys.PROGRESS, prog);
             setProgress(prog);
         }
@@ -254,7 +254,7 @@ const ReadingChallenge = () => {
         const dayKey = `${month}-${day}`;
         return practicedDays[dayKey] === true;
     };
-    
+
     const handleDayClick = (day) => {
         const isLocked = day > 1 && !isDayPracticed(currentMonth, day - 1);
         if (isLocked) {
@@ -279,8 +279,8 @@ const ReadingChallenge = () => {
         }
         setCurrentDay(day);
     };
-    
-    const handleNext = () => { 
+
+    const handleNext = () => {
         // Check if current day is practiced before allowing next
         if (currentDay < 30 && isDayPracticed(currentMonth, currentDay)) {
             setCurrentDay(currentDay + 1);
@@ -346,28 +346,51 @@ const ReadingChallenge = () => {
         ctx.lineTo(canvas.width - innerMargin, yPos);
         ctx.stroke();
         yPos += 80;
-        ctx.font = '36px Arial, sans-serif';
         ctx.fillStyle = '#333333';
-        const wrapText = (context, text, x, y, maxWidth, lineHeight) => {
+
+        // Auto-fit text function - calculates lines and total height for a given font size
+        const calculateTextLayout = (context, text, maxWidth, fontSize) => {
+            context.font = `${fontSize}px Arial, sans-serif`;
             const words = text.split(' ');
+            const lines = [];
             let line = '';
-            let currentY = y;
             for (let n = 0; n < words.length; n++) {
                 const testLine = line + words[n] + ' ';
                 const metrics = context.measureText(testLine);
                 if (metrics.width > maxWidth && n > 0) {
-                    context.fillText(line, x, currentY);
+                    lines.push(line.trim());
                     line = words[n] + ' ';
-                    currentY += lineHeight;
                 } else {
                     line = testLine;
                 }
             }
-            context.fillText(line, x, currentY);
-            return currentY + lineHeight;
+            if (line.trim()) lines.push(line.trim());
+            const lineHeight = fontSize * 1.5;
+            return { lines, lineHeight, totalHeight: lines.length * lineHeight };
+        };
+
+        // Calculate available space for story text (leave room for practice note and footer)
+        const footerReserve = 280; // Space for practice note + footer
+        const availableHeight = canvas.height - margin - yPos - footerReserve;
+
+        // Find optimal font size that fits the text within available space
+        let optimalFontSize = 36;
+        const minFontSize = 18;
+        let layout = calculateTextLayout(ctx, activeData.text, innerWidth, optimalFontSize);
+
+        while (layout.totalHeight > availableHeight && optimalFontSize > minFontSize) {
+            optimalFontSize -= 2;
+            layout = calculateTextLayout(ctx, activeData.text, innerWidth, optimalFontSize);
         }
-        yPos = wrapText(ctx, activeData.text, innerMargin, yPos, innerWidth, 55);
-        
+
+        // Render the text with optimal font size
+        ctx.font = `${optimalFontSize}px Arial, sans-serif`;
+        const lineHeight = optimalFontSize * 1.5;
+        layout.lines.forEach(line => {
+            ctx.fillText(line, innerMargin, yPos);
+            yPos += lineHeight;
+        });
+
         // Add practice note text with auto-resize so it always fits
         yPos += 40; // spacing after main text
         const practiceNote = `This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.`;
@@ -432,7 +455,7 @@ const ReadingChallenge = () => {
         if (noteAreaMaxHeight > 0) {
             drawAutoFitNote(ctx, practiceNote, innerMargin, noteAreaTop, innerWidth, noteAreaMaxHeight);
         }
-        
+
         ctx.fillStyle = accentColor;
         ctx.fillRect(innerMargin, finalFooterY - 50, 60, 6);
         ctx.font = 'bold 24px Arial, sans-serif';
@@ -464,7 +487,7 @@ const ReadingChallenge = () => {
                 setStorage(StorageKeys.PRACTICED_DAYS, practiced);
                 setPracticedDays(practiced);
             }
-            
+
             practiceStartTimeRef.current = Date.now();
             setIsTeleprompterActive(true);
             // Center the title when teleprompter opens
@@ -532,7 +555,7 @@ const ReadingChallenge = () => {
                                 </button>
                             </div>
                         </div>
-                        
+
                         {/* Controls - Collapsible */}
                         <div className={`overflow-hidden transition-all duration-300 ${isControlsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                             <div className="px-4 pb-4 flex flex-col md:flex-row items-start md:items-center gap-4">
@@ -552,11 +575,10 @@ const ReadingChallenge = () => {
                                                 setScrollSpeed(newSpeed);
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
-                                                Math.abs(scrollSpeed - 0.3) < 0.05
-                                                    ? 'bg-red-500 text-white' 
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.3) < 0.05
+                                                    ? 'bg-red-500 text-white'
                                                     : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                            }`}
+                                                }`}
                                         >
                                             Very Slow
                                         </button>
@@ -569,11 +591,10 @@ const ReadingChallenge = () => {
                                                 setScrollSpeed(newSpeed);
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
-                                                Math.abs(scrollSpeed - 0.5) < 0.05
-                                                    ? 'bg-red-500 text-white' 
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.5) < 0.05
+                                                    ? 'bg-red-500 text-white'
                                                     : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                            }`}
+                                                }`}
                                         >
                                             Slow
                                         </button>
@@ -586,11 +607,10 @@ const ReadingChallenge = () => {
                                                 setScrollSpeed(newSpeed);
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
-                                                Math.abs(scrollSpeed - 0.8) < 0.05
-                                                    ? 'bg-red-500 text-white' 
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.8) < 0.05
+                                                    ? 'bg-red-500 text-white'
                                                     : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                            }`}
+                                                }`}
                                         >
                                             Normal
                                         </button>
@@ -603,23 +623,22 @@ const ReadingChallenge = () => {
                                                 setScrollSpeed(newSpeed);
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${
-                                                Math.abs(scrollSpeed - 1.5) < 0.05
-                                                    ? 'bg-red-500 text-white' 
+                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 1.5) < 0.05
+                                                    ? 'bg-red-500 text-white'
                                                     : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                            }`}
+                                                }`}
                                         >
                                             Fast
                                         </button>
                                     </div>
-                                    <input 
-                                        type="range" 
-                                        min="0.3" 
-                                        max="2" 
-                                        step="0.05" 
-                                        value={scrollSpeed} 
-                                        onChange={(e) => setScrollSpeed(parseFloat(e.target.value))} 
-                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors" 
+                                    <input
+                                        type="range"
+                                        min="0.3"
+                                        max="2"
+                                        step="0.05"
+                                        value={scrollSpeed}
+                                        onChange={(e) => setScrollSpeed(parseFloat(e.target.value))}
+                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors"
                                     />
                                     <div className="flex justify-between text-xs text-zinc-400 mt-1">
                                         <span>Slowest</span>
@@ -631,14 +650,14 @@ const ReadingChallenge = () => {
                                         <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Text Size</span>
                                         <span className="text-sm text-zinc-200 font-mono font-bold bg-red-500/20 px-2 py-0.5 rounded">{fontSize}px</span>
                                     </div>
-                                    <input 
-                                        type="range" 
-                                        min="16" 
-                                        max="96" 
-                                        step="4" 
-                                        value={fontSize} 
-                                        onChange={(e) => setFontSize(parseInt(e.target.value))} 
-                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors" 
+                                    <input
+                                        type="range"
+                                        min="16"
+                                        max="96"
+                                        step="4"
+                                        value={fontSize}
+                                        onChange={(e) => setFontSize(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors"
                                     />
                                 </div>
                             </div>
@@ -676,7 +695,7 @@ const ReadingChallenge = () => {
                                     <BarChart3 size={18} />
                                     <span className="hidden md:inline">Dashboard</span>
                                 </button>
-                                
+
                                 {/* Flashcards Button */}
                                 <button
                                     onClick={() => setShowFlashcards(true)}
@@ -686,7 +705,7 @@ const ReadingChallenge = () => {
                                     <RotateCw size={18} />
                                     <span className="hidden md:inline">Flashcards</span>
                                 </button>
-                                
+
                                 {/* Mobile Hamburger Menu */}
                                 <button
                                     onClick={() => {
@@ -714,7 +733,7 @@ const ReadingChallenge = () => {
                 {isMobileMenuOpen && (
                     <>
                         {/* Backdrop */}
-                        <div 
+                        <div
                             className={`fixed inset-0 bg-black z-30 lg:hidden ${isMobileMenuClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
                             onClick={() => {
                                 setIsMobileMenuClosing(true);
@@ -724,14 +743,14 @@ const ReadingChallenge = () => {
                                 }, 300);
                             }}
                         />
-                        
+
                         {/* Mobile Bottom Sheet */}
                         <div className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40 md:hidden max-h-[85vh] overflow-y-auto ${isMobileMenuClosing ? 'animate-bottom-sheet-out' : 'animate-bottom-sheet-in'}`}>
                             {/* Drag Handle */}
                             <div className="flex justify-center pt-3 pb-2">
                                 <div className="w-12 h-1.5 bg-slate-300 rounded-full"></div>
                             </div>
-                            
+
                             <div className="px-6 pb-8">
                                 {/* Close Button */}
                                 <div className="flex justify-end mb-4">
@@ -748,38 +767,38 @@ const ReadingChallenge = () => {
                                         <X size={20} />
                                     </button>
                                 </div>
-                                
+
                                 {/* Month Selector */}
                                 <div className="mb-6">
                                     <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
                                         <Calendar size={16} className="text-[#880000]" /> Month Selector
                                     </h3>
-                                <div className="flex bg-slate-100 p-1 rounded-lg">
-                                    <button 
-                                        onClick={() => {
-                                            changeMonth(1);
-                                        }} 
-                                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                    >
-                                        Month 1
-                                    </button>
-                                    <button 
-                                        onClick={() => {
-                                            changeMonth(2);
-                                        }} 
-                                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                    >
-                                        Month 2
-                                    </button>
-                                    <button 
-                                        onClick={() => {
-                                            changeMonth(3);
-                                        }} 
-                                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                    >
-                                        Month 3
-                                    </button>
-                                </div>
+                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                        <button
+                                            onClick={() => {
+                                                changeMonth(1);
+                                            }}
+                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Month 1
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                changeMonth(2);
+                                            }}
+                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Month 2
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                changeMonth(3);
+                                            }}
+                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            Month 3
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Dashboard & Flashcards Buttons */}
@@ -829,18 +848,17 @@ const ReadingChallenge = () => {
                                             const isPracticed = isDayPracticed(currentMonth, d.day);
                                             const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
                                             return (
-                                                <button 
-                                                    key={d.day} 
-                                                    onClick={() => handleDayClick(d.day)} 
-                                                    className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                        currentDay === d.day 
-                                                            ? 'bg-[#880000] text-white shadow-md transform scale-105' 
-                                                            : isPracticed 
-                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300' 
+                                                <button
+                                                    key={d.day}
+                                                    onClick={() => handleDayClick(d.day)}
+                                                    className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
+                                                            ? 'bg-[#880000] text-white shadow-md transform scale-105'
+                                                            : isPracticed
+                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
                                                                 : isLocked
                                                                     ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
                                                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                    }`}
+                                                        }`}
                                                     title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
                                                 >
                                                     {d.day}
@@ -874,7 +892,7 @@ const ReadingChallenge = () => {
                                         <X size={20} />
                                     </button>
                                 </div>
-                                
+
                                 <div className="p-6">
                                     {/* Month Selector */}
                                     <div className="mb-6">
@@ -882,26 +900,26 @@ const ReadingChallenge = () => {
                                             <Calendar size={16} className="text-[#880000]" /> Month Selector
                                         </h3>
                                         <div className="flex bg-slate-100 p-1 rounded-lg">
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     changeMonth(1);
-                                                }} 
+                                                }}
                                                 className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                             >
                                                 Month 1
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     changeMonth(2);
-                                                }} 
+                                                }}
                                                 className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                             >
                                                 Month 2
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     changeMonth(3);
-                                                }} 
+                                                }}
                                                 className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                             >
                                                 Month 3
@@ -956,18 +974,17 @@ const ReadingChallenge = () => {
                                                 const isPracticed = isDayPracticed(currentMonth, d.day);
                                                 const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
                                                 return (
-                                                    <button 
-                                                        key={d.day} 
-                                                        onClick={() => handleDayClick(d.day)} 
-                                                        className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                            currentDay === d.day 
-                                                                ? 'bg-[#880000] text-white shadow-md transform scale-105' 
-                                                                : isPracticed 
-                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300' 
+                                                    <button
+                                                        key={d.day}
+                                                        onClick={() => handleDayClick(d.day)}
+                                                        className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
+                                                                ? 'bg-[#880000] text-white shadow-md transform scale-105'
+                                                                : isPracticed
+                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
                                                                     : isLocked
                                                                         ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
                                                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                        }`}
+                                                            }`}
                                                         title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
                                                     >
                                                         {d.day}
@@ -1004,18 +1021,17 @@ const ReadingChallenge = () => {
                                         const isPracticed = isDayPracticed(currentMonth, d.day);
                                         const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
                                         return (
-                                            <button 
-                                                key={d.day} 
-                                                onClick={() => handleDayClick(d.day)} 
-                                                className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                                    currentDay === d.day 
-                                                        ? 'bg-[#880000] text-white shadow-md transform scale-105' 
-                                                        : isPracticed 
-                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300' 
+                                            <button
+                                                key={d.day}
+                                                onClick={() => handleDayClick(d.day)}
+                                                className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
+                                                        ? 'bg-[#880000] text-white shadow-md transform scale-105'
+                                                        : isPracticed
+                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
                                                             : isLocked
                                                                 ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
                                                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                }`}
+                                                    }`}
                                                 title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
                                             >
                                                 {d.day}
@@ -1029,14 +1045,14 @@ const ReadingChallenge = () => {
                         {/* Main Reading Card */}
                         <div className="lg:col-span-9 flex flex-col min-h-0">
                             <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
-                                <ReadingCard 
-                                    activeData={activeData} 
-                                    currentMonth={currentMonth} 
-                                    currentDay={currentDay} 
-                                    isGenerating={isGenerating} 
-                                    onDownload={downloadImage} 
-                                    onToggleTeleprompter={toggleTeleprompter} 
-                                    onPrev={handlePrev} 
+                                <ReadingCard
+                                    activeData={activeData}
+                                    currentMonth={currentMonth}
+                                    currentDay={currentDay}
+                                    isGenerating={isGenerating}
+                                    onDownload={downloadImage}
+                                    onToggleTeleprompter={toggleTeleprompter}
+                                    onPrev={handlePrev}
                                     onNext={handleNext}
                                     isDayPracticed={isDayPracticed}
                                     practicedDays={practicedDays}
@@ -1056,7 +1072,7 @@ const ReadingChallenge = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 {/* Dashboard Modal */}
                 {showDashboard && (
                     <Dashboard
@@ -1067,12 +1083,12 @@ const ReadingChallenge = () => {
                         onClose={() => setShowDashboard(false)}
                     />
                 )}
-                
+
                 {/* Flashcards Modal */}
                 {showFlashcards && (
                     <Flashcards onClose={() => setShowFlashcards(false)} />
                 )}
-                
+
             </div>
         </>
     );

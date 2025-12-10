@@ -519,12 +519,13 @@ const ReadingCard = ({
         const shareLink = generateShareLink(currentMonth, currentDay);
         const textToCopy =
             `Read and Record
+Practice month ${currentMonth}, day ${activeData.day} a story from ${activeData.country}
 
 ${activeData.title}
 
 ${activeData.text}
 
-This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.
+This is my practice today about ${activeData.title} from ${activeData.country}, cannot wait to improve my English with the next reading challenge.
 
 _By Zayn_
 
@@ -916,8 +917,91 @@ ${shareLink}`;
                     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
                         <div className={`bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 pointer-events-auto ${isShareModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
                             <div className="p-6">
-                            {/* Close Button */}
-                            <div className="flex justify-end mb-2">
+                                {/* Close Button */}
+                                <div className="flex justify-end mb-2">
+                                    <button
+                                        onClick={() => {
+                                            setIsShareModalClosing(true);
+                                            setTimeout(() => {
+                                                setShowShareModal(false);
+                                                setIsShareModalClosing(false);
+                                                setIsPosterReady(false);
+                                                posterCanvasRef.current = null;
+                                            }, 300);
+                                        }}
+                                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                {/* Modal Content */}
+                                <div className="text-center mb-6">
+                                    <div className="w-16 h-16 bg-[#880000]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Share2 size={32} className="text-[#880000]" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Share Your Progress?
+                                    </h2>
+                                    <p className="text-slate-600">
+                                        Do you want to share your learning progress with others?
+                                    </p>
+                                </div>
+
+                                {/* Download Button */}
+                                <button
+                                    onClick={async () => {
+                                        if (!posterCanvasRef.current || !isPosterReady) return;
+
+                                        setIsDownloadingPoster(true);
+
+                                        try {
+                                            // Download the poster
+                                            const link = document.createElement('a');
+                                            link.download = `reading-progress-m${currentMonth}-d${currentDay}.jpg`;
+                                            link.href = posterCanvasRef.current.toDataURL('image/jpeg', 0.95);
+                                            link.click();
+
+                                            // Wait a moment for download to start
+                                            await new Promise(resolve => setTimeout(resolve, 500));
+
+                                            // Trigger Web Share API
+                                            await shareToSocial(currentMonth, currentDay, statistics, progress, activeData);
+
+                                            // Close modal
+                                            setIsShareModalClosing(true);
+                                            setTimeout(() => {
+                                                setShowShareModal(false);
+                                                setIsShareModalClosing(false);
+                                                setIsDownloadingPoster(false);
+                                                setIsPosterReady(false);
+                                            }, 300);
+                                        } catch (error) {
+                                            console.error('Error sharing:', error);
+                                            setIsDownloadingPoster(false);
+                                        }
+                                    }}
+                                    disabled={isDownloadingPoster || !isPosterReady || !posterCanvasRef.current}
+                                    className="w-full bg-[#880000] hover:bg-[#770000] text-white font-bold py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {!isPosterReady ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Generating Poster...</span>
+                                        </>
+                                    ) : isDownloadingPoster ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Downloading...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download size={20} />
+                                            <span>Download Poster</span>
+                                        </>
+                                    )}
+                                </button>
+
                                 <button
                                     onClick={() => {
                                         setIsShareModalClosing(true);
@@ -928,93 +1012,10 @@ ${shareLink}`;
                                             posterCanvasRef.current = null;
                                         }, 300);
                                     }}
-                                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="w-full mt-3 text-slate-600 hover:text-slate-800 font-semibold py-2 px-6 rounded-lg transition-colors"
                                 >
-                                    <X size={24} />
+                                    Cancel
                                 </button>
-                            </div>
-
-                            {/* Modal Content */}
-                            <div className="text-center mb-6">
-                                <div className="w-16 h-16 bg-[#880000]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Share2 size={32} className="text-[#880000]" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                    Share Your Progress?
-                                </h2>
-                                <p className="text-slate-600">
-                                    Do you want to share your learning progress with others?
-                                </p>
-                            </div>
-
-                            {/* Download Button */}
-                            <button
-                                onClick={async () => {
-                                    if (!posterCanvasRef.current || !isPosterReady) return;
-
-                                    setIsDownloadingPoster(true);
-
-                                    try {
-                                        // Download the poster
-                                        const link = document.createElement('a');
-                                        link.download = `reading-progress-m${currentMonth}-d${currentDay}.jpg`;
-                                        link.href = posterCanvasRef.current.toDataURL('image/jpeg', 0.95);
-                                        link.click();
-
-                                        // Wait a moment for download to start
-                                        await new Promise(resolve => setTimeout(resolve, 500));
-
-                                        // Trigger Web Share API
-                                        await shareToSocial(currentMonth, currentDay, statistics, progress, activeData);
-
-                                        // Close modal
-                                        setIsShareModalClosing(true);
-                                        setTimeout(() => {
-                                            setShowShareModal(false);
-                                            setIsShareModalClosing(false);
-                                            setIsDownloadingPoster(false);
-                                            setIsPosterReady(false);
-                                        }, 300);
-                                    } catch (error) {
-                                        console.error('Error sharing:', error);
-                                        setIsDownloadingPoster(false);
-                                    }
-                                }}
-                                disabled={isDownloadingPoster || !isPosterReady || !posterCanvasRef.current}
-                                className="w-full bg-[#880000] hover:bg-[#770000] text-white font-bold py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                {!isPosterReady ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        <span>Generating Poster...</span>
-                                    </>
-                                ) : isDownloadingPoster ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        <span>Downloading...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Download size={20} />
-                                        <span>Download Poster</span>
-                                    </>
-                                )}
-                            </button>
-
-                            <button
-                                onClick={() => {
-                                    setIsShareModalClosing(true);
-                                    setTimeout(() => {
-                                        setShowShareModal(false);
-                                        setIsShareModalClosing(false);
-                                        setIsPosterReady(false);
-                                        posterCanvasRef.current = null;
-                                    }, 300);
-                                }}
-                                className="w-full mt-3 text-slate-600 hover:text-slate-800 font-semibold py-2 px-6 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
                             </div>
                         </div>
                     </div>
