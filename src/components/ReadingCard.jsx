@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2 } from 'lucide-react';
+import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 import { shareToSocial, generateShareImage, generateShareLink } from '../utils/socialShare';
 import WordPoster from './WordPoster';
+import StoryPrintView from './StoryPrintView';
 
 const ReadingCard = ({
     activeData,
@@ -37,8 +38,12 @@ const ReadingCard = ({
     const [isDownloadingPoster, setIsDownloadingPoster] = useState(false);
     const [isShareModalClosing, setIsShareModalClosing] = useState(false);
     const [isPosterReady, setIsPosterReady] = useState(false);
+    const [showPrintModal, setShowPrintModal] = useState(false);
+    const [isPrintModalClosing, setIsPrintModalClosing] = useState(false);
+    const [isPrintGenerating, setIsPrintGenerating] = useState(false);
     const practiceButtonRef = useRef(null);
     const posterCanvasRef = useRef(null);
+    const printContentRef = useRef(null);
 
     // Watch for tooltip trigger from parent
     useEffect(() => {
@@ -545,6 +550,39 @@ ${shareLink}`;
         document.body.removeChild(textArea);
     };
 
+    // Handle Print - Opens print dialog with Swiss design layout
+    const handlePrint = () => {
+        setIsPrintModalClosing(false);
+        setShowPrintModal(true);
+    };
+
+    // Execute print using the StoryPrintView component (async for API calls)
+    const executePrint = async () => {
+        setIsPrintGenerating(true);
+
+        try {
+            const storyPrintView = StoryPrintView({
+                storyData: activeData,
+                currentMonth: currentMonth,
+                currentDay: currentDay,
+                onPrintComplete: () => {
+                    // Close the modal after print is triggered
+                    setIsPrintModalClosing(true);
+                    setTimeout(() => {
+                        setShowPrintModal(false);
+                        setIsPrintModalClosing(false);
+                        setIsPrintGenerating(false);
+                    }, 300);
+                }
+            });
+
+            await storyPrintView.executePrint();
+        } catch (error) {
+            console.error('Error generating print:', error);
+            setIsPrintGenerating(false);
+        }
+    };
+
     return (
         <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#880000] overflow-visible">
             {/* Card Header */}
@@ -559,8 +597,17 @@ ${shareLink}`;
                         )}
                     </div>
 
-                    {/* Action Buttons */}
+                    {/* Action Buttons - Order: Print, Save, Copy, Share, Practice */}
                     <div className="flex items-center gap-1.5 md:gap-2 w-full sm:w-auto">
+                        {/* Print Button */}
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center justify-center bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] p-1.5 md:p-2 rounded-lg font-semibold transition-colors border border-[#880000]/20 flex-1 sm:flex-initial"
+                            title="Print Story"
+                        >
+                            <Printer size={12} className="md:w-4 md:h-4" />
+                        </button>
+                        {/* Save Button */}
                         <button
                             onClick={onDownload}
                             disabled={isGenerating}
@@ -570,6 +617,7 @@ ${shareLink}`;
                             <span className="hidden sm:inline">{isGenerating ? 'Saving...' : 'Save Image'}</span>
                             <span className="sm:hidden">{isGenerating ? 'Save...' : 'Save'}</span>
                         </button>
+                        {/* Copy Button */}
                         <button
                             onClick={handleCopy}
                             className={`flex items-center justify-center bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] p-1.5 md:p-2 rounded-lg font-semibold transition-colors border border-[#880000]/20 flex-1 sm:flex-initial ${copied ? 'bg-green-100 text-green-700 border-green-200' : ''}`}
@@ -577,6 +625,20 @@ ${shareLink}`;
                         >
                             {copied ? <Check size={12} className="md:w-4 md:h-4" /> : <Copy size={12} className="md:w-4 md:h-4" />}
                         </button>
+                        {/* Share Button */}
+                        <button
+                            onClick={() => {
+                                setIsShareModalClosing(false);
+                                setIsPosterReady(false);
+                                posterCanvasRef.current = null;
+                                setShowShareModal(true);
+                            }}
+                            className="flex items-center justify-center bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] p-1.5 md:p-2 rounded-lg font-semibold transition-colors border border-[#880000]/20 flex-1 sm:flex-initial"
+                            title="Share your progress"
+                        >
+                            <Share2 size={12} className="md:w-4 md:h-4" />
+                        </button>
+                        {/* Practice Button */}
                         <div className="relative flex-1 sm:flex-initial z-10">
                             <button
                                 ref={practiceButtonRef}
@@ -609,84 +671,72 @@ ${shareLink}`;
                                 <span>Practice</span>
                             </button>
                         </div>
+                    </div>
 
-                        {/* Floating Practice Tooltip Menu */}
-                        {showPracticeTooltip && practiceButtonRef.current && (
+                    {/* Floating Practice Tooltip Menu */}
+                    {showPracticeTooltip && practiceButtonRef.current && (
+                        <div
+                            className={`fixed z-[9999] bg-white rounded-lg shadow-2xl border border-slate-200 p-4 max-w-[280px] md:max-w-[320px] ${isPracticeTooltipClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
+                            style={{
+                                top: (() => {
+                                    const rect = practiceButtonRef.current.getBoundingClientRect();
+                                    // Position below button with 12px gap
+                                    return `${rect.bottom + 12}px`;
+                                })(),
+                                left: (() => {
+                                    const rect = practiceButtonRef.current.getBoundingClientRect();
+                                    const tooltipWidth = 280; // max-w-[280px]
+                                    const leftPos = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                                    return `${Math.max(16, Math.min(leftPos, window.innerWidth - tooltipWidth - 16))}px`;
+                                })()
+                            }}
+                        >
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-base md:text-lg text-slate-800 mb-2">Practice Required</h3>
+                                    <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-3">
+                                        Practice first then you can see the next day reading challenge
+                                    </p>
+                                    <p className="text-sm md:text-base font-semibold text-[#880000]">
+                                        Press the button to practice
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setIsPracticeTooltipClosing(true);
+                                        setTimeout(() => {
+                                            setShowPracticeTooltip(false);
+                                            setIsPracticeTooltipClosing(false);
+                                        }, 300);
+                                    }}
+                                    className="text-slate-400 hover:text-slate-600 ml-2 flex-shrink-0"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            {/* Arrow pointing up to button (comic bubble style) */}
                             <div
-                                className={`fixed z-[9999] bg-white rounded-lg shadow-2xl border border-slate-200 p-4 max-w-[280px] md:max-w-[320px] ${isPracticeTooltipClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
+                                className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
                                 style={{
-                                    top: (() => {
-                                        const rect = practiceButtonRef.current.getBoundingClientRect();
-                                        // Position below button with 12px gap
-                                        return `${rect.bottom + 12}px`;
-                                    })(),
                                     left: (() => {
+                                        if (!practiceButtonRef.current) return '50%';
                                         const rect = practiceButtonRef.current.getBoundingClientRect();
-                                        const tooltipWidth = 280; // max-w-[280px]
-                                        const leftPos = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-                                        return `${Math.max(16, Math.min(leftPos, window.innerWidth - tooltipWidth - 16))}px`;
+                                        const tooltipRect = { width: 280 };
+                                        const tooltipLeft = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                                        const adjustedLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipRect.width - 16));
+                                        const buttonCenter = rect.left + (rect.width / 2);
+                                        const relativePos = buttonCenter - adjustedLeft;
+                                        return `${relativePos}px`;
                                     })()
                                 }}
                             >
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex-1">
-                                        <h3 className="font-bold text-base md:text-lg text-slate-800 mb-2">Practice Required</h3>
-                                        <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-3">
-                                            Practice first then you can see the next day reading challenge
-                                        </p>
-                                        <p className="text-sm md:text-base font-semibold text-[#880000]">
-                                            Press the button to practice
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            setIsPracticeTooltipClosing(true);
-                                            setTimeout(() => {
-                                                setShowPracticeTooltip(false);
-                                                setIsPracticeTooltipClosing(false);
-                                            }, 300);
-                                        }}
-                                        className="text-slate-400 hover:text-slate-600 ml-2 flex-shrink-0"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-                                {/* Arrow pointing up to button (comic bubble style) */}
-                                <div
-                                    className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
-                                    style={{
-                                        left: (() => {
-                                            if (!practiceButtonRef.current) return '50%';
-                                            const rect = practiceButtonRef.current.getBoundingClientRect();
-                                            const tooltipRect = { width: 280 };
-                                            const tooltipLeft = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-                                            const adjustedLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipRect.width - 16));
-                                            const buttonCenter = rect.left + (rect.width / 2);
-                                            const relativePos = buttonCenter - adjustedLeft;
-                                            return `${relativePos}px`;
-                                        })()
-                                    }}
-                                >
-                                    {/* Outer border arrow */}
-                                    <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-transparent border-b-slate-200 absolute bottom-0 left-1/2 transform -translate-x-1/2"></div>
-                                    {/* Inner white arrow */}
-                                    <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-transparent border-b-white absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[-1px]"></div>
-                                </div>
+                                {/* Outer border arrow */}
+                                <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-transparent border-b-slate-200 absolute bottom-0 left-1/2 transform -translate-x-1/2"></div>
+                                {/* Inner white arrow */}
+                                <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-transparent border-b-white absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[-1px]"></div>
                             </div>
-                        )}
-                        <button
-                            onClick={() => {
-                                setIsShareModalClosing(false);
-                                setIsPosterReady(false);
-                                posterCanvasRef.current = null;
-                                setShowShareModal(true);
-                            }}
-                            className="flex items-center justify-center bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] p-1.5 md:p-2 rounded-lg font-semibold transition-colors border border-[#880000]/20 flex-1 sm:flex-initial"
-                            title="Share your progress"
-                        >
-                            <Share2 size={12} className="md:w-4 md:h-4" />
-                        </button>
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Row 2: Title and Listen UI */}
@@ -1038,6 +1088,125 @@ ${shareLink}`;
                                 setIsPosterReady(true);
                             }}
                         />
+                    </div>
+                </>
+            )}
+
+            {/* Print Modal */}
+            {showPrintModal && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className={`fixed inset-0 bg-black z-50 ${isPrintModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                        onClick={() => {
+                            setIsPrintModalClosing(true);
+                            setTimeout(() => {
+                                setShowPrintModal(false);
+                                setIsPrintModalClosing(false);
+                            }, 300);
+                        }}
+                    />
+
+                    {/* Modal */}
+                    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                        <div className={`bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 pointer-events-auto ${isPrintModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+                            <div className="p-6">
+                                {/* Close Button */}
+                                <div className="flex justify-end mb-2">
+                                    <button
+                                        onClick={() => {
+                                            setIsPrintModalClosing(true);
+                                            setTimeout(() => {
+                                                setShowPrintModal(false);
+                                                setIsPrintModalClosing(false);
+                                            }, 300);
+                                        }}
+                                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                {/* Modal Content */}
+                                <div className="text-center mb-6">
+                                    <div className="w-16 h-16 bg-[#880000]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Printer size={32} className="text-[#880000]" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Print Story & Quiz
+                                    </h2>
+                                    <p className="text-slate-600">
+                                        Print the story with vocabulary quiz for offline practice. Includes reading instructions and comprehension assessment.
+                                    </p>
+                                </div>
+
+                                {/* Print Preview - 2 Pages */}
+                                <div className="bg-slate-50 rounded-lg p-4 mb-4 border border-slate-200">
+                                    <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">
+                                        What's Included (2 Pages)
+                                    </div>
+                                    <div className="flex gap-3">
+                                        {/* Page 1 Preview */}
+                                        <div className="flex-1 bg-white rounded p-3 shadow-sm border border-slate-100">
+                                            <div className="text-[9px] text-[#880000] font-bold mb-1">PAGE 1</div>
+                                            <div className="text-[10px] text-slate-400 font-semibold mb-1">
+                                                {activeData.country}
+                                            </div>
+                                            <div className="text-xs font-bold text-slate-800 mb-1 line-clamp-1">
+                                                {activeData.title}
+                                            </div>
+                                            <div className="text-[9px] text-slate-500 flex items-center gap-1">
+                                                <BookOpen size={10} /> Story + Vocabulary
+                                            </div>
+                                        </div>
+                                        {/* Page 2 Preview */}
+                                        <div className="flex-1 bg-white rounded p-3 shadow-sm border border-slate-100">
+                                            <div className="text-[9px] text-[#880000] font-bold mb-1">PAGE 2</div>
+                                            <div className="text-[10px] text-slate-400 font-semibold mb-1">
+                                                Assessment Quiz
+                                            </div>
+                                            <div className="text-[9px] text-slate-500 space-y-0.5">
+                                                <div className="flex items-center gap-1"><PenLine size={10} /> Fill in the blank</div>
+                                                <div className="flex items-center gap-1"><FileText size={10} /> Word meanings</div>
+                                                <div className="flex items-center gap-1"><BookOpen size={10} /> Comprehension</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Print Button */}
+                                <button
+                                    onClick={executePrint}
+                                    disabled={isPrintGenerating}
+                                    className="w-full bg-[#880000] hover:bg-[#770000] text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
+                                >
+                                    {isPrintGenerating ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Generating Quiz...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Printer size={20} />
+                                            <span>Print Story & Quiz (A4)</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setIsPrintModalClosing(true);
+                                        setTimeout(() => {
+                                            setShowPrintModal(false);
+                                            setIsPrintModalClosing(false);
+                                        }, 300);
+                                    }}
+                                    className="w-full mt-3 text-slate-600 hover:text-slate-800 font-semibold py-2 px-6 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </>
             )}
