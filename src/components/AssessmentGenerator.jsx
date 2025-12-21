@@ -45,10 +45,10 @@ const COMMON_WORDS = new Set([
 
 /**
  * Fetch word definition from Free Dictionary API
- * Same API used in ReadingCard for consistency
  */
 async function fetchWordDefinition(word) {
-    const cleanWord = word.toLowerCase().replace(/[.,!?;:()"'-]/g, '');
+    const cleanWord = word.toLowerCase().replace(/[.,!?;:()\"'-]/g, '');
+
     try {
         const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
         if (response.ok) {
@@ -62,14 +62,15 @@ async function fetchWordDefinition(word) {
                         definition: definition,
                         partOfSpeech: meaning.partOfSpeech || 'word',
                         phonetic: data[0].phonetic || '',
-                        source: 'api'
+                        source: 'dictionary'
                     };
                 }
             }
         }
     } catch (error) {
-        console.error('Error fetching definition for', cleanWord, error);
+        console.log('Dictionary API error for', cleanWord);
     }
+
     return null;
 }
 

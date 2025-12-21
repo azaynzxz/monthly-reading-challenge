@@ -1,0 +1,99 @@
+#LIBRE TRANSLATE API
+Request:
+const res = await fetch("https://libretranslate.com/translate", {
+	method: "POST",
+	body: JSON.stringify({
+		q: "remarkable",
+		source: "auto",
+		target: "id",
+		format: "text",
+		alternatives: 3,
+		api_key: ""
+	}),
+	headers: { "Content-Type": "application/json" }
+});
+
+console.log(await res.json());
+
+
+
+Response
+{
+    "alternatives": [
+        "hebat"
+    ],
+    "detectedLanguage": {
+        "confidence": 90,
+        "language": "en"
+    },
+    "translatedText": "luar biasa"
+}
+
+#OPEN DICTIONARY API
+Word Definitions
+Get comprehensive word definitions, phonetics, and meanings
+
+ENDPOINT: https://api.opendictionaryapi.com/entries/en/{word}
+EXAMPLE REQUEST : https://api.opendictionaryapi.com/entries/en/hello
+
+Response Format
+JSON response structure for successful requests
+Success Response (200)
+[
+  {
+    "word": "hello",
+    "phonetics": [
+      {
+        "text": "/həˈloʊ/",
+        "audio": "https://..."
+      }
+    ],
+    "meanings": [
+      {
+        "partOfSpeech": "noun",
+        "definitions": [
+          {
+            "definition": "A greeting",
+            "example": "She said hello",
+            "synonyms": ["greeting"],
+            "antonyms": []
+          }
+        ]
+      }
+    ]
+  }
+]
+
+
+Error Responses
+Common error responses and their meanings
+404 - Word Not Found
+{
+  "title": "No Definitions Found",
+  "message": "Sorry pal, we couldn't find definitions for the word you were looking for.",
+  "resolution": "You can try the search again at later time or head to the web instead."
+}
+400 - Bad Request
+{
+  "title": "Bad Request",
+  "message": "Invalid word format",
+  "resolution": "Please provide a valid English word"
+}
+
+
+Usage Examples
+Code examples in different programming languages
+JavaScript (Fetch)
+fetch('https://api.opendictionaryapi.com/entries/en/hello')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
+cURL
+curl -X GET "https://api.opendictionaryapi.com/entries/en/hello"
+Copy
+Python (requests)
+import requests
+
+response = requests.get('https://api.opendictionaryapi.com/entries/en/hello')
+data = response.json()
+print(data)

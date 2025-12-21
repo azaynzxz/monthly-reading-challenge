@@ -133,6 +133,27 @@ const getPrintStyles = () => `
         border-radius: 3px;
     }
     
+    .story-image-container {
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+    }
+
+    .story-image {
+        width: 100%;
+        max-height: 250px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .image-attribution {
+        font-size: 8pt;
+        color: #888888;
+        margin-top: 6px;
+        text-align: right;
+        font-style: italic;
+    }
+
     .instructions-box {
         background: linear-gradient(135deg, #FEF7F7 0%, #FFFFFF 100%);
         border: 1px solid #E8D4D4;
@@ -308,10 +329,17 @@ const getPrintStyles = () => `
 `;
 
 // Generate the Story Page HTML
-const generateStoryPageHTML = (storyData, currentMonth, wordBank, shareLink) => {
+const generateStoryPageHTML = (storyData, currentMonth, wordBank, shareLink, wikiImage) => {
     const wordTags = wordBank.map(word =>
         '<span class="word-tag">' + word + '</span>'
     ).join('');
+
+    const imageHTML = wikiImage ? `
+        <div class="story-image-container">
+            <img src="${wikiImage.url}" alt="${wikiImage.title}" class="story-image" />
+            <div class="image-attribution">Image: ${wikiImage.title} • Source: Wikipedia</div>
+        </div>
+    ` : '';
 
     return `
         <div class="page story-page">
@@ -323,6 +351,8 @@ const generateStoryPageHTML = (storyData, currentMonth, wordBank, shareLink) => 
                 <h1 class="title">${storyData.title}</h1>
             </div>
             
+            ${imageHTML}
+            
             <div class="story-section">
                 <div class="section-label">Read Aloud</div>
                 <p class="story-text">${storyData.text}</p>
@@ -333,16 +363,6 @@ const generateStoryPageHTML = (storyData, currentMonth, wordBank, shareLink) => 
                 <div class="word-bank-words">
                     ${wordTags}
                 </div>
-            </div>
-            
-            <div class="instructions-box">
-                <div class="instructions-title">Practice Instructions</div>
-                <ol class="instructions-list">
-                    <li>Read the story aloud slowly and clearly</li>
-                    <li>Underline any unfamiliar words and look them up</li>
-                    <li>Read it again with better pronunciation</li>
-                    <li>Complete the assessment on the next page</li>
-                </ol>
             </div>
         </div>
     `;
@@ -436,7 +456,7 @@ const generateAssessmentPageHTML = (storyData, currentMonth, assessment) => {
 };
 
 // Main component
-const StoryPrintView = ({ storyData, currentMonth, currentDay, onPrintComplete }) => {
+const StoryPrintView = ({ storyData, currentMonth, currentDay, wikiImage, onPrintComplete }) => {
 
     const executePrint = async () => {
         // Generate assessment quiz (async with API calls)
@@ -466,14 +486,42 @@ const StoryPrintView = ({ storyData, currentMonth, currentDay, onPrintComplete }
                 <style>${getPrintStyles()}</style>
             </head>
             <body>
-                ${generateStoryPageHTML(storyData, currentMonth, wordBank, shareLink)}
+                ${generateStoryPageHTML(storyData, currentMonth, wordBank, shareLink, wikiImage)}
                 ${generateAssessmentPageHTML(storyData, currentMonth, assessment)}
                 
                 <script>
                     window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                        }, 500);
+                        // Function to trigger print
+                        const triggerPrint = () => {
+                            setTimeout(function() {
+                                window.print();
+                            }, 800);
+                        };
+
+                        // Check if images are loaded
+                        const images = document.images;
+                        let loadedCount = 0;
+                        const totalImages = images.length;
+
+                        if (totalImages === 0) {
+                            triggerPrint();
+                        } else {
+                            const checkProgress = () => {
+                                loadedCount++;
+                                if (loadedCount === totalImages) {
+                                    triggerPrint();
+                                }
+                            };
+
+                            for (let i = 0; i < totalImages; i++) {
+                                if (images[i].complete) {
+                                    checkProgress();
+                                } else {
+                                    images[i].onload = checkProgress;
+                                    images[i].onerror = checkProgress;
+                                }
+                            }
+                        }
                     };
                     window.onafterprint = function() {
                         // window.close();

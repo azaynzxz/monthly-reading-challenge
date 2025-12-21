@@ -28,6 +28,9 @@ const ReadingChallenge = () => {
     const [showFlashcards, setShowFlashcards] = useState(false);
     const [practicedDays, setPracticedDays] = useState({});
     const [triggerPracticeTooltip, setTriggerPracticeTooltip] = useState(false);
+    const [isMonthSelectorOpen, setIsMonthSelectorOpen] = useState(false);
+    const [isMonthSelectorClosing, setIsMonthSelectorClosing] = useState(false);
+    const [isMounting, setIsMounting] = useState(false);
     const scrollContainerRef = useRef(null);
     const animationFrameRef = useRef(null);
     const practiceStartTimeRef = useRef(null);
@@ -576,8 +579,8 @@ const ReadingChallenge = () => {
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
                                             className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.3) < 0.05
-                                                    ? 'bg-red-500 text-white'
-                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                                ? 'bg-red-500 text-white'
+                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
                                                 }`}
                                         >
                                             Very Slow
@@ -592,8 +595,8 @@ const ReadingChallenge = () => {
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
                                             className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.5) < 0.05
-                                                    ? 'bg-red-500 text-white'
-                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                                ? 'bg-red-500 text-white'
+                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
                                                 }`}
                                         >
                                             Slow
@@ -608,8 +611,8 @@ const ReadingChallenge = () => {
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
                                             className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.8) < 0.05
-                                                    ? 'bg-red-500 text-white'
-                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                                ? 'bg-red-500 text-white'
+                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
                                                 }`}
                                         >
                                             Normal
@@ -624,8 +627,8 @@ const ReadingChallenge = () => {
                                                 scrollSpeedRef.current = newSpeed;
                                             }}
                                             className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 1.5) < 0.05
-                                                    ? 'bg-red-500 text-white'
-                                                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                                                ? 'bg-red-500 text-white'
+                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
                                                 }`}
                                         >
                                             Fast
@@ -852,12 +855,12 @@ const ReadingChallenge = () => {
                                                     key={d.day}
                                                     onClick={() => handleDayClick(d.day)}
                                                     className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
-                                                            ? 'bg-[#880000] text-white shadow-md transform scale-105'
-                                                            : isPracticed
-                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                                                                : isLocked
-                                                                    ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
-                                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                        ? 'bg-[#880000] text-white shadow-md transform scale-105'
+                                                        : isPracticed
+                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                                                            : isLocked
+                                                                ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
+                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                                         }`}
                                                     title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
                                                 >
@@ -978,12 +981,12 @@ const ReadingChallenge = () => {
                                                         key={d.day}
                                                         onClick={() => handleDayClick(d.day)}
                                                         className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
-                                                                ? 'bg-[#880000] text-white shadow-md transform scale-105'
-                                                                : isPracticed
-                                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                                                                    : isLocked
-                                                                        ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
-                                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                            ? 'bg-[#880000] text-white shadow-md transform scale-105'
+                                                            : isPracticed
+                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                                                                : isLocked
+                                                                    ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
+                                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                                             }`}
                                                         title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
                                                     >
@@ -1001,49 +1004,9 @@ const ReadingChallenge = () => {
 
                 {/* Main Content */}
                 <div className="w-full flex-1 flex flex-col items-center justify-center pt-20 md:pt-24 pb-4 px-4 md:px-6 lg:px-8 min-h-0 overflow-hidden">
-                    <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 flex-1 min-h-0 max-h-full">
-                        {/* Desktop Sidebar - Hidden on Mobile */}
-                        <div className="hidden lg:block lg:col-span-3 flex flex-col min-h-0">
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex-1 flex flex-col">
-                                <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                    <Calendar size={16} className="text-[#880000]" /> Month Selector
-                                </h3>
-                                <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
-                                    <button onClick={() => changeMonth(1)} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Month 1</button>
-                                    <button onClick={() => changeMonth(2)} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Month 2</button>
-                                    <button onClick={() => changeMonth(3)} className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Month 3</button>
-                                </div>
-                                <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                    <Square size={16} className="text-[#880000]" /> Day Selector
-                                </h3>
-                                <div className="grid grid-cols-5 gap-2">
-                                    {allMonthsData[currentMonth].map((d) => {
-                                        const isPracticed = isDayPracticed(currentMonth, d.day);
-                                        const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
-                                        return (
-                                            <button
-                                                key={d.day}
-                                                onClick={() => handleDayClick(d.day)}
-                                                className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
-                                                        ? 'bg-[#880000] text-white shadow-md transform scale-105'
-                                                        : isPracticed
-                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                                                            : isLocked
-                                                                ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
-                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                    }`}
-                                                title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
-                                            >
-                                                {d.day}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-
+                    <div className="w-full max-w-5xl flex-1 min-h-0 max-h-full">
                         {/* Main Reading Card */}
-                        <div className="lg:col-span-9 flex flex-col min-h-0">
+                        <div className="flex flex-col min-h-0 h-full">
                             <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
                                 <ReadingCard
                                     activeData={activeData}
@@ -1088,6 +1051,99 @@ const ReadingChallenge = () => {
                 {showFlashcards && (
                     <Flashcards onClose={() => setShowFlashcards(false)} />
                 )}
+
+                {/* Floating Calendar Button with Popup Menu - Desktop Only */}
+                <div className="hidden lg:block">
+                    {/* Popup Menu */}
+                    {(isMonthSelectorOpen || isMonthSelectorClosing) && (
+                        <div
+                            className={`fixed bottom-24 right-6 z-50 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 ${isMonthSelectorClosing
+                                    ? 'opacity-0 translate-y-4'
+                                    : isMounting
+                                        ? 'opacity-0 translate-y-8'
+                                        : 'opacity-100 translate-y-0'
+                                }`}
+                            style={{
+                                transition: 'opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)'
+                            }}
+                        >
+                            <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                                <Calendar size={16} className="text-[#880000]" /> Month Selector
+                            </h3>
+                            <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
+                                <button
+                                    onClick={() => changeMonth(1)}
+                                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Month 1
+                                </button>
+                                <button
+                                    onClick={() => changeMonth(2)}
+                                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Month 2
+                                </button>
+                                <button
+                                    onClick={() => changeMonth(3)}
+                                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    Month 3
+                                </button>
+                            </div>
+                            <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                                <Square size={16} className="text-[#880000]" /> Day Selector
+                            </h3>
+                            <div className="grid grid-cols-5 gap-2">
+                                {allMonthsData[currentMonth].map((d) => {
+                                    const isPracticed = isDayPracticed(currentMonth, d.day);
+                                    const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
+                                    return (
+                                        <button
+                                            key={d.day}
+                                            onClick={() => handleDayClick(d.day)}
+                                            className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
+                                                ? 'bg-[#880000] text-white shadow-md transform scale-105'
+                                                : isPracticed
+                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                                                    : isLocked
+                                                        ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
+                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                }`}
+                                            title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
+                                        >
+                                            {d.day}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Calendar Button */}
+                    <button
+                        onClick={() => {
+                            if (isMonthSelectorOpen) {
+                                setIsMonthSelectorClosing(true);
+                                setTimeout(() => {
+                                    setIsMonthSelectorOpen(false);
+                                    setIsMonthSelectorClosing(false);
+                                }, 300);
+                            } else {
+                                setIsMounting(true);
+                                setIsMonthSelectorOpen(true);
+                                requestAnimationFrame(() => {
+                                    requestAnimationFrame(() => {
+                                        setIsMounting(false);
+                                    });
+                                });
+                            }
+                        }}
+                        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#880000] hover:bg-[#770000] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
+                        title={isMonthSelectorOpen ? "Hide Month Selector" : "Show Month Selector"}
+                    >
+                        <Calendar size={24} />
+                    </button>
+                </div>
 
             </div>
         </>
