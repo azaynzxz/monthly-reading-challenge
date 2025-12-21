@@ -37,9 +37,21 @@ const LandingPage = () => {
         }
 
         try {
+            // Add timeout to fetch request
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
             const response = await fetch(
-                `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`
+                `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`,
+                {
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                }
             );
+
+            clearTimeout(timeoutId);
 
             if (response.ok) {
                 const data = await response.json();
@@ -70,11 +82,15 @@ const LandingPage = () => {
                             return null;
                         }
                     } else {
-                        // If dimensions not available, load image to check dimensions
+                        // If dimensions not available, load image to check dimensions with timeout
                         return new Promise((resolve) => {
                             const img = new Image();
+                            const loadTimeout = setTimeout(() => {
+                                resolve(null);
+                            }, 8000); // 8 second timeout
                             
                             img.onload = () => {
+                                clearTimeout(loadTimeout);
                                 // Only return if image is horizontal (landscape orientation)
                                 if (img.width > img.height) {
                                     const imageData = {
@@ -92,6 +108,7 @@ const LandingPage = () => {
                             };
                             
                             img.onerror = () => {
+                                clearTimeout(loadTimeout);
                                 resolve(null);
                             };
                             
@@ -104,7 +121,10 @@ const LandingPage = () => {
                 return null;
             }
         } catch (error) {
-            // Silently handle errors
+            // Silently handle errors (network, timeout, CORS, etc.)
+            if (error.name !== 'AbortError') {
+                console.log('Wikipedia API error:', error.message);
+            }
             return null;
         }
 
@@ -149,90 +169,116 @@ const LandingPage = () => {
 
         // Fetch Wikipedia images for selected landmarks
         const fetchImages = async () => {
-            const slides = [];
-            const imagePromises = [];
-            
-            // Fetch all images in parallel
-            for (const keyword of selected) {
-                imagePromises.push(
-                    fetchWikipediaImage(keyword).then(imageData => {
-                        if (imageData) {
-                            return {
-                                ...imageData,
-                                title: imageData.title,
-                                month: 1,
-                                day: 1,
-                                country: 'World',
-                                searchTerm: keyword
+            try {
+                const slides = [];
+                const imagePromises = [];
+                
+                // Fetch all images in parallel with timeout
+                for (const keyword of selected) {
+                    imagePromises.push(
+                        Promise.race([
+                            fetchWikipediaImage(keyword).then(imageData => {
+                                if (imageData) {
+                                    return {
+                                        ...imageData,
+                                        title: imageData.title,
+                                        month: 1,
+                                        day: 1,
+                                        country: 'World',
+                                        searchTerm: keyword
+                                    };
+                                }
+                                return null;
+                            }),
+                            new Promise((resolve) => setTimeout(() => resolve(null), 10000)) // 10s timeout
+                        ])
+                    );
+                }
+
+                // Wait for all Wikipedia API responses with timeout
+                const results = await Promise.all(imagePromises);
+                const validSlides = results.filter(slide => slide !== null);
+
+                // If we don't have enough horizontal images, try more landmarks
+                if (validSlides.length < 5 && shuffled.length > selected.length) {
+                    const additional = shuffled.slice(selected.length, selected.length + 5);
+                    const additionalPromises = additional.map(keyword =>
+                        Promise.race([
+                            fetchWikipediaImage(keyword).then(imageData => {
+                                if (imageData) {
+                                    return {
+                                        ...imageData,
+                                        title: imageData.title,
+                                        month: 1,
+                                        day: 1,
+                                        country: 'World',
+                                        searchTerm: keyword
+                                    };
+                                }
+                                return null;
+                            }),
+                            new Promise((resolve) => setTimeout(() => resolve(null), 10000)) // 10s timeout
+                        ])
+                    );
+                    const additionalResults = await Promise.all(additionalPromises);
+                    validSlides.push(...additionalResults.filter(slide => slide !== null));
+                }
+
+                // Take only first 5 horizontal images
+                const finalSlides = validSlides.slice(0, 5);
+
+                // If no images found, still set imagesLoaded to true to stop loading
+                if (finalSlides.length === 0) {
+                    setImagesLoaded(true);
+                    return;
+                }
+
+                // Preload and cache all images before showing carousel with timeout
+                const preloadPromises = finalSlides.map(slide => {
+                    return Promise.race([
+                        new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                // Image is fully loaded and cached
+                                resolve(slide);
                             };
-                        }
-                        return null;
-                    })
-                );
-            }
-
-            // Wait for all Wikipedia API responses
-            const results = await Promise.all(imagePromises);
-            const validSlides = results.filter(slide => slide !== null);
-
-            // If we don't have enough horizontal images, try more landmarks
-            if (validSlides.length < 5 && shuffled.length > selected.length) {
-                const additional = shuffled.slice(selected.length, selected.length + 5);
-                const additionalPromises = additional.map(keyword =>
-                    fetchWikipediaImage(keyword).then(imageData => {
-                        if (imageData) {
-                            return {
-                                ...imageData,
-                                title: imageData.title,
-                                month: 1,
-                                day: 1,
-                                country: 'World',
-                                searchTerm: keyword
+                            img.onerror = () => {
+                                // If image fails to load, still resolve but mark as failed
+                                resolve(null);
                             };
-                        }
-                        return null;
-                    })
-                );
-                const additionalResults = await Promise.all(additionalPromises);
-                validSlides.push(...additionalResults.filter(slide => slide !== null));
-            }
-
-            // Take only first 5 horizontal images
-            const finalSlides = validSlides.slice(0, 5);
-
-            if (finalSlides.length === 0) {
-                return;
-            }
-
-            // Preload and cache all images before showing carousel
-            const preloadPromises = finalSlides.map(slide => {
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        // Image is fully loaded and cached
-                        resolve(slide);
-                    };
-                    img.onerror = () => {
-                        // If image fails to load, still resolve but mark as failed
-                        resolve(null);
-                    };
-                    // Start loading the image
-                    img.src = slide.url;
+                            // Start loading the image
+                            img.src = slide.url;
+                        }),
+                        new Promise((resolve) => setTimeout(() => resolve(null), 15000)) // 15s timeout for image loading
+                    ]);
                 });
-            });
 
-            // Wait for all images to be fully loaded and cached
-            const loadedSlides = await Promise.all(preloadPromises);
-            const successfullyLoaded = loadedSlides.filter(slide => slide !== null);
+                // Wait for all images to be fully loaded and cached
+                const loadedSlides = await Promise.all(preloadPromises);
+                const successfullyLoaded = loadedSlides.filter(slide => slide !== null);
 
-            // Only set slides once all images are cached
-            if (successfullyLoaded.length > 0) {
-                setHeroSlides(successfullyLoaded);
+                // Set slides even if some failed, and always set imagesLoaded to true
+                if (successfullyLoaded.length > 0) {
+                    setHeroSlides(successfullyLoaded);
+                }
+                setImagesLoaded(true);
+            } catch (error) {
+                console.error('Error fetching hero images:', error);
+                // Always set imagesLoaded to true to prevent infinite loading
                 setImagesLoaded(true);
             }
         };
 
-        fetchImages();
+        // Add overall timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+            if (!imagesLoaded) {
+                setImagesLoaded(true);
+            }
+        }, 30000); // 30 second overall timeout
+
+        fetchImages().finally(() => {
+            clearTimeout(timeoutId);
+        });
     }, []);
 
     // Auto-advance carousel
