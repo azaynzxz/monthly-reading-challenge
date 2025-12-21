@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
@@ -47,7 +47,9 @@ const ReadingCard = ({
     const [isPrintGenerating, setIsPrintGenerating] = useState(false);
     const [showAssessment, setShowAssessment] = useState(false);
     const [wikiImage, setWikiImage] = useState(null);
+    const [prevWikiImage, setPrevWikiImage] = useState(null);
     const [isLoadingImage, setIsLoadingImage] = useState(false);
+    const [imageOpacity, setImageOpacity] = useState(0);
     const [showImageModal, setShowImageModal] = useState(false);
     const [isImageModalClosing, setIsImageModalClosing] = useState(false);
     const practiceButtonRef = useRef(null);
@@ -179,7 +181,9 @@ const ReadingCard = ({
     useEffect(() => {
         const fetchWikiImage = async () => {
             if (!activeData?.title) {
+                setPrevWikiImage(wikiImage);
                 setWikiImage(null);
+                setImageOpacity(0);
                 return;
             }
 
@@ -188,11 +192,26 @@ const ReadingCard = ({
 
             // Check cache first
             if (imageCache.current[cacheKey]) {
+                // Keep previous image visible during transition
+                setPrevWikiImage(wikiImage);
+                // Set new image with opacity 0 first
                 setWikiImage(imageCache.current[cacheKey]);
+                setImageOpacity(0);
+                // Use requestAnimationFrame to ensure DOM update before transition
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        setImageOpacity(1);
+                        // Clear previous image after fade in completes
+                        setTimeout(() => setPrevWikiImage(null), 2000);
+                    });
+                });
                 return;
             }
 
             setIsLoadingImage(true);
+            // Keep previous image visible during loading
+            setPrevWikiImage(wikiImage);
+            setImageOpacity(0);
 
             // Priority: wikiSearch field (manually set) > title > country
             const searchTerms = [
@@ -213,18 +232,41 @@ const ReadingCard = ({
 
                         // Skip if no image or if it's an SVG (usually flags/icons)
                         if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
-                            const imageData = {
-                                url: imageUrl,
-                                title: activeData.wikiSearch || data.title, // Use wikiSearch as title
-                                description: data.extract,
-                                searchTerm: activeData.wikiSearch || term
-                            };
+                            // Preload and cache image before displaying
+                            await new Promise((resolve, reject) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    // Image is fully loaded and cached
+                                    const imageData = {
+                                        url: imageUrl,
+                                        title: activeData.wikiSearch || data.title, // Use wikiSearch as title
+                                        description: data.extract,
+                                        searchTerm: activeData.wikiSearch || term
+                                    };
 
-                            // Store in cache
-                            imageCache.current[cacheKey] = imageData;
+                                    // Store in cache
+                                    imageCache.current[cacheKey] = imageData;
 
-                            setWikiImage(imageData);
-                            setIsLoadingImage(false);
+                                    setWikiImage(imageData);
+                                    setIsLoadingImage(false);
+                                    // Fade in the image - use requestAnimationFrame for smooth transition
+                                    setImageOpacity(0);
+                                    requestAnimationFrame(() => {
+                                        requestAnimationFrame(() => {
+                                            setImageOpacity(1);
+                                            // Clear previous image after fade in completes
+                                            setTimeout(() => setPrevWikiImage(null), 2000);
+                                        });
+                                    });
+                                    resolve();
+                                };
+                                img.onerror = () => {
+                                    // Image failed to load, try next term
+                                    reject(new Error('Image load failed'));
+                                };
+                                // Start loading the image
+                                img.src = imageUrl;
+                            });
                             return;
                         }
                     }
@@ -674,59 +716,62 @@ ${shareLink}`;
         <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#880000] overflow-hidden">
             {/* Hero Header with Image Background */}
             <div
-                className={`relative overflow-hidden ${wikiImage || isLoadingImage ? 'min-h-[200px] md:min-h-[240px] lg:min-h-[280px]' : ''}`}
+                className={`relative overflow-hidden rounded-t-2xl ${wikiImage || prevWikiImage || isLoadingImage ? 'min-h-[200px] md:min-h-[240px] lg:min-h-[280px]' : ''}`}
             >
                 {/* Background Image */}
-                {(wikiImage || isLoadingImage) && (
+                {(wikiImage || prevWikiImage || isLoadingImage) && (
                     <div
-                        className={`absolute inset-0 ${wikiImage ? 'cursor-pointer' : ''}`}
+                        className={`absolute inset-0 rounded-t-2xl overflow-hidden ${wikiImage ? 'cursor-pointer' : ''}`}
                         onClick={() => wikiImage && setShowImageModal(true)}
                     >
-                        {isLoadingImage ? (
-                            <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse" />
-                        ) : wikiImage ? (
+                        {/* Previous image - fade out */}
+                        {prevWikiImage && prevWikiImage.url !== wikiImage?.url && (
+                            <img
+                                src={prevWikiImage.url}
+                                alt={prevWikiImage.title}
+                                className="absolute inset-0 w-full h-full object-cover rounded-t-2xl"
+                                style={{
+                                    opacity: wikiImage ? 0 : 1,
+                                    transition: 'opacity 2000ms ease-in-out',
+                                    zIndex: 0,
+                                    willChange: 'opacity'
+                                }}
+                            />
+                        )}
+                        
+                        {/* Loading placeholder */}
+                        {isLoadingImage && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse z-[1] rounded-t-2xl" />
+                        )}
+                        
+                        {/* Current image - fade in */}
+                        {wikiImage && (
                             <>
                                 <img
                                     src={wikiImage.url}
                                     alt={wikiImage.title}
-                                    className="absolute inset-0 w-full h-full object-cover"
+                                    className="absolute inset-0 w-full h-full object-cover rounded-t-2xl"
+                                    style={{
+                                        opacity: imageOpacity,
+                                        transition: 'opacity 2000ms ease-in-out',
+                                        zIndex: 2,
+                                        willChange: 'opacity'
+                                    }}
                                     onError={(e) => {
                                         e.target.style.display = 'none';
                                         setWikiImage(null);
                                     }}
                                 />
                                 {/* Dark gradient overlay for content readability */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30 z-[3] rounded-t-2xl" />
                             </>
-                        ) : null}
+                        )}
                     </div>
                 )}
 
                 {/* Content Overlay - Split into TOP and BOTTOM */}
                 {/* TOP: Metadata and Buttons */}
                 <div className={`relative z-10 p-4 md:p-6 lg:p-8 ${wikiImage ? 'pointer-events-none' : 'bg-[#880000]/5 border-b border-slate-100'} ${wikiImage ? 'absolute top-0 left-0 right-0' : ''}`}>
-                    {/* Navigation Links - Seamless Transition */}
-                    <div className={`flex items-center gap-4 mb-4 text-[10px] md:text-xs font-bold uppercase tracking-wider pointer-events-auto ${wikiImage ? 'text-white/80' : 'text-slate-500'}`}>
-                        <Link
-                            to="/#features"
-                            className={`transition-colors ${wikiImage ? 'hover:text-white' : 'hover:text-[#880000]'}`}
-                        >
-                            Features
-                        </Link>
-                        <Link
-                            to="/#how-it-works"
-                            className={`transition-colors ${wikiImage ? 'hover:text-white' : 'hover:text-[#880000]'}`}
-                        >
-                            How It Works
-                        </Link>
-                        <Link
-                            to="/#advantages"
-                            className={`transition-colors ${wikiImage ? 'hover:text-white' : 'hover:text-[#880000]'}`}
-                        >
-                            Advantages
-                        </Link>
-                    </div>
-
                     {/* Row 1: Metadata and Action Buttons */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3 mb-3 md:mb-4 relative">
                         {/* Metadata */}

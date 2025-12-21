@@ -14,6 +14,7 @@ const LandingPage = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlides, setHeroSlides] = useState([]);
     const [isHovered, setIsHovered] = useState(false);
+    const [imagesLoaded, setImagesLoaded] = useState(false);
     const carouselIntervalRef = useRef(null);
 
     // Smooth scroll helper function
@@ -26,7 +27,7 @@ const LandingPage = () => {
 
 
 
-    // Fetch Wikipedia image with caching
+    // Fetch Wikipedia image with caching - only horizontal/landscape images
     const fetchWikipediaImage = async (searchTerm) => {
         if (!searchTerm) return null;
 
@@ -42,23 +43,61 @@ const LandingPage = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                const imageUrl = data.originalimage?.source || data.thumbnail?.source;
+                const originalImage = data.originalimage;
+                const thumbnail = data.thumbnail;
+                
+                // Prefer originalimage, fallback to thumbnail
+                const imageUrl = originalImage?.source || thumbnail?.source;
+                const imageWidth = originalImage?.width || thumbnail?.width;
+                const imageHeight = originalImage?.height || thumbnail?.height;
 
                 // Skip if no image or if it's an SVG (usually flags/icons)
                 if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
-                    // Preload image
-                    const img = new Image();
-                    img.src = imageUrl;
-
-                    const imageData = {
-                        url: imageUrl,
-                        title: data.title,
-                        description: data.extract
-                    };
-
-                    // Cache the result
-                    imageCache.set(searchTerm, imageData);
-                    return imageData;
+                    // Check if we have dimensions from API
+                    if (imageWidth && imageHeight) {
+                        // Only return if image is horizontal (landscape orientation)
+                        if (imageWidth > imageHeight) {
+                            const imageData = {
+                                url: imageUrl,
+                                title: data.title,
+                                description: data.extract
+                            };
+                            // Cache the result
+                            imageCache.set(searchTerm, imageData);
+                            return imageData;
+                        } else {
+                            // Image is vertical, don't cache and return null
+                            return null;
+                        }
+                    } else {
+                        // If dimensions not available, load image to check dimensions
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            
+                            img.onload = () => {
+                                // Only return if image is horizontal (landscape orientation)
+                                if (img.width > img.height) {
+                                    const imageData = {
+                                        url: imageUrl,
+                                        title: data.title,
+                                        description: data.extract
+                                    };
+                                    // Cache the result
+                                    imageCache.set(searchTerm, imageData);
+                                    resolve(imageData);
+                                } else {
+                                    // Image is vertical, don't cache and return null
+                                    resolve(null);
+                                }
+                            };
+                            
+                            img.onerror = () => {
+                                resolve(null);
+                            };
+                            
+                            img.src = imageUrl;
+                        });
+                    }
                 }
             } else if (response.status === 404) {
                 // Silently handle 404s - page doesn't exist
@@ -83,42 +122,113 @@ const LandingPage = () => {
         }
     }, [location]);
 
-    // Collect all stories with wikiSearch field and fetch images
+    // Use landmark keywords NOT in JSON files for hero carousel
     useEffect(() => {
-        const allStories = [
-            ...month1Data.map(s => ({ ...s, month: 1 })),
-            ...month2Data.map(s => ({ ...s, month: 2 })),
-            ...month3Data.map(s => ({ ...s, month: 3 }))
-        ].filter(story => story.wikiSearch);
+        // Famous landmarks NOT in the JSON files
+        const landmarkKeywords = [
+            'Eiffel Tower',
+            'Statue of Liberty',
+            'Machu Picchu',
+            'Colosseum',
+            'Big Ben',
+            'Golden Gate Bridge',
+            'Christ the Redeemer',
+            'Angkor Wat',
+            'Stonehenge',
+            'Mount Fuji',
+            'Sydney Opera House',
+            'Petra',
+            'Acropolis',
+            'Sagrada Familia',
+            'Neuschwanstein Castle'
+        ];
 
-        // Randomly select 5 stories
-        const shuffled = [...allStories].sort(() => Math.random() - 0.5);
-        const selected = shuffled.slice(0, 5);
+        // Randomly select landmarks (try more to ensure we get enough horizontal images)
+        const shuffled = [...landmarkKeywords].sort(() => Math.random() - 0.5);
+        const selected = shuffled.slice(0, 8); // Try 8 to ensure we get at least 5 horizontal images
 
-        // Fetch Wikipedia images for selected stories
+        // Fetch Wikipedia images for selected landmarks
         const fetchImages = async () => {
             const slides = [];
-            for (const story of selected) {
-                if (story.wikiSearch) {
-                    const imageData = await fetchWikipediaImage(story.wikiSearch);
-                    if (imageData) {
-                        slides.push({
-                            ...imageData,
-                            title: story.title,
-                            month: story.month,
-                            day: story.day,
-                            country: story.country,
-                            searchTerm: story.wikiSearch
-                        });
-                    }
-                }
+            const imagePromises = [];
+            
+            // Fetch all images in parallel
+            for (const keyword of selected) {
+                imagePromises.push(
+                    fetchWikipediaImage(keyword).then(imageData => {
+                        if (imageData) {
+                            return {
+                                ...imageData,
+                                title: imageData.title,
+                                month: 1,
+                                day: 1,
+                                country: 'World',
+                                searchTerm: keyword
+                            };
+                        }
+                        return null;
+                    })
+                );
             }
 
-            if (slides.length > 0) {
-                setHeroSlides(slides);
-            } else {
-                // If no images found, still set up with at least one placeholder
-                setIsMounted(true);
+            // Wait for all Wikipedia API responses
+            const results = await Promise.all(imagePromises);
+            const validSlides = results.filter(slide => slide !== null);
+
+            // If we don't have enough horizontal images, try more landmarks
+            if (validSlides.length < 5 && shuffled.length > selected.length) {
+                const additional = shuffled.slice(selected.length, selected.length + 5);
+                const additionalPromises = additional.map(keyword =>
+                    fetchWikipediaImage(keyword).then(imageData => {
+                        if (imageData) {
+                            return {
+                                ...imageData,
+                                title: imageData.title,
+                                month: 1,
+                                day: 1,
+                                country: 'World',
+                                searchTerm: keyword
+                            };
+                        }
+                        return null;
+                    })
+                );
+                const additionalResults = await Promise.all(additionalPromises);
+                validSlides.push(...additionalResults.filter(slide => slide !== null));
+            }
+
+            // Take only first 5 horizontal images
+            const finalSlides = validSlides.slice(0, 5);
+
+            if (finalSlides.length === 0) {
+                return;
+            }
+
+            // Preload and cache all images before showing carousel
+            const preloadPromises = finalSlides.map(slide => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        // Image is fully loaded and cached
+                        resolve(slide);
+                    };
+                    img.onerror = () => {
+                        // If image fails to load, still resolve but mark as failed
+                        resolve(null);
+                    };
+                    // Start loading the image
+                    img.src = slide.url;
+                });
+            });
+
+            // Wait for all images to be fully loaded and cached
+            const loadedSlides = await Promise.all(preloadPromises);
+            const successfullyLoaded = loadedSlides.filter(slide => slide !== null);
+
+            // Only set slides once all images are cached
+            if (successfullyLoaded.length > 0) {
+                setHeroSlides(successfullyLoaded);
+                setImagesLoaded(true);
             }
         };
 
@@ -127,24 +237,32 @@ const LandingPage = () => {
 
     // Auto-advance carousel
     useEffect(() => {
+        // Clear any existing interval
+        if (carouselIntervalRef.current) {
+            clearInterval(carouselIntervalRef.current);
+            carouselIntervalRef.current = null;
+        }
+
         if (heroSlides.length > 1 && !isHovered) {
             carouselIntervalRef.current = setInterval(() => {
-                setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+                setCurrentSlide((prev) => {
+                    const next = (prev + 1) % heroSlides.length;
+                    return next;
+                });
             }, 6000);
         }
 
         return () => {
             if (carouselIntervalRef.current) {
                 clearInterval(carouselIntervalRef.current);
+                carouselIntervalRef.current = null;
             }
         };
     }, [heroSlides.length, isHovered]);
 
     const handleHeroClick = () => {
-        if (heroSlides[currentSlide]) {
-            const slide = heroSlides[currentSlide];
-            navigate(`/m${slide.month}-day${slide.day}`);
-        }
+        // Navigate to first day since landmarks don't correspond to specific stories
+        navigate('/m1-day1');
     };
 
     return (
@@ -199,26 +317,56 @@ const LandingPage = () => {
                 onMouseLeave={() => setIsHovered(false)}
             >
                 {/* Background Images Carousel */}
-                {heroSlides.length > 0 && (
-                    <>
-                        {heroSlides.map((slide, index) => (
-                            <div
-                                key={index}
-                                className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
-                                    }`}
-                            >
-                                <img
-                                    src={slide.url}
-                                    alt={slide.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        ))}
-                    </>
+                {imagesLoaded && heroSlides.length > 0 && (
+                    <div className="absolute inset-0 overflow-hidden">
+                        {heroSlides.map((slide, index) => {
+                            const isActive = index === currentSlide;
+                            const isPrevious = index === (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+                            
+                            return (
+                                <div
+                                    key={`${slide.searchTerm}-${index}`}
+                                    className="absolute inset-0"
+                                    style={{
+                                        opacity: isActive ? 1 : 0,
+                                        transition: 'opacity 1.5s ease-in-out',
+                                        willChange: 'opacity',
+                                        backfaceVisibility: 'hidden',
+                                        WebkitBackfaceVisibility: 'hidden',
+                                        zIndex: isActive ? 2 : (isPrevious ? 1 : 0),
+                                        pointerEvents: 'none'
+                                    }}
+                                >
+                                    <img
+                                        src={slide.url}
+                                        alt={slide.title}
+                                        className="w-full h-full object-cover animate-ken-burns"
+                                        loading="eager"
+                                        style={{
+                                            display: 'block',
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            pointerEvents: 'none'
+                                        }}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+                
+                {/* Loading placeholder - show while images are being cached */}
+                {!imagesLoaded && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 animate-pulse">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-white/50 text-sm uppercase tracking-wider">Loading images...</div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-black/50"></div>
+                <div className="absolute inset-0 bg-black/50 z-[5]"></div>
 
                 {/* Content Overlay - Split Layout */}
                 <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 w-full">
@@ -227,7 +375,7 @@ const LandingPage = () => {
                         <div>
                             <h1 className="text-5xl md:text-6xl lg:text-7xl text-white mb-8 leading-tight">
                                 <span className="font-light">Master English Through</span><br />
-                                <span className="font-bold text-white drop-shadow-[0_2px_8px_rgba(136,0,0,0.8)]">Daily Reading</span>
+                                <span className="font-bold text-white">Daily Reading</span>
                             </h1>
 
                             {/* Stats */}
@@ -241,17 +389,6 @@ const LandingPage = () => {
                                     <div className="text-sm text-white/80 uppercase tracking-wider">Countries Featured</div>
                                 </div>
                             </div>
-
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate('/m1-day1');
-                                }}
-                                className="bg-white text-[#880000] px-8 py-4 rounded-lg font-bold text-lg transition-all hover:bg-[#880000] hover:text-white flex items-center gap-2"
-                            >
-                                Start Day 1 Challenge
-                                <ArrowRight size={20} />
-                            </button>
                         </div>
 
                         {/* Right Side - Description */}
