@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
@@ -22,6 +23,8 @@ const ReadingCard = ({
     practicedDays,
     triggerPracticeTooltip
 }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [highlightIndex, setHighlightIndex] = useState(-1);
     const [voices, setVoices] = useState([]);
@@ -702,6 +705,28 @@ ${shareLink}`;
                 {/* Content Overlay - Split into TOP and BOTTOM */}
                 {/* TOP: Metadata and Buttons */}
                 <div className={`relative z-10 p-4 md:p-6 lg:p-8 ${wikiImage ? 'pointer-events-none' : 'bg-[#880000]/5 border-b border-slate-100'} ${wikiImage ? 'absolute top-0 left-0 right-0' : ''}`}>
+                    {/* Navigation Links - Seamless Transition */}
+                    <div className={`flex items-center gap-4 mb-4 text-[10px] md:text-xs font-bold uppercase tracking-wider pointer-events-auto ${wikiImage ? 'text-white/80' : 'text-slate-500'}`}>
+                        <Link
+                            to="/#features"
+                            className={`transition-colors ${wikiImage ? 'hover:text-white' : 'hover:text-[#880000]'}`}
+                        >
+                            Features
+                        </Link>
+                        <Link
+                            to="/#how-it-works"
+                            className={`transition-colors ${wikiImage ? 'hover:text-white' : 'hover:text-[#880000]'}`}
+                        >
+                            How It Works
+                        </Link>
+                        <Link
+                            to="/#advantages"
+                            className={`transition-colors ${wikiImage ? 'hover:text-white' : 'hover:text-[#880000]'}`}
+                        >
+                            Advantages
+                        </Link>
+                    </div>
+
                     {/* Row 1: Metadata and Action Buttons */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3 mb-3 md:mb-4 relative">
                         {/* Metadata */}
