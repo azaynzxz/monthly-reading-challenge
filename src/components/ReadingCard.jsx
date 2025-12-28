@@ -114,7 +114,6 @@ const ReadingCard = ({
     const wordPositionRef = useRef(null);
     const highlightTimerRef = useRef(null);
     const isSpeakingRef = useRef(false);
-    const boundaryEventFiredRef = useRef(false);
 
     // Load available voices
     // Note: Chrome has fewer TTS voices than Edge because:
@@ -204,7 +203,6 @@ const ReadingCard = ({
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
             }
-            boundaryEventFiredRef.current = false;
         };
 
         stopSpeech();
@@ -521,12 +519,12 @@ const ReadingCard = ({
             setIsSpeaking(false);
             isSpeakingRef.current = false;
             setHighlightIndex(-1);
+            setFocusedChunk(null);
             // Clear any timers
             if (highlightTimerRef.current) {
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
             }
-            boundaryEventFiredRef.current = false;
             // Ensure selected voice is preserved after stopping
             if (selectedVoiceNameRef.current && !selectedVoice) {
                 const foundVoice = voices.find(v => v.name === selectedVoiceNameRef.current);
@@ -547,115 +545,73 @@ const ReadingCard = ({
         utterance.rate = 0.9;
         utterance.pitch = 1;
 
-        // Calculate word boundaries and timing
-        const words = text.split(' ');
-        let currentOffset = 0;
-        const wordOffsets = words.map(word => {
-            const start = currentOffset;
-            const end = currentOffset + word.length;
-            currentOffset += word.length + 1; // +1 for space
-            return { start, end };
+        // Split text into sentences/chunks (same as the display chunks)
+        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+        const chunks = [];
+        for (let i = 0; i < sentences.length; i += 2) {
+            chunks.push(sentences.slice(i, i + 2).join(' ').trim());
+        }
+        
+        // Calculate duration for each chunk based on word count
+        // Actual speech is faster than estimated, use ~320ms per word
+        // This makes the highlight move BEFORE the chunk finishes (feels more natural)
+        const msPerWord = 320;
+        const chunkDurations = chunks.map(chunk => {
+            const wordCount = chunk.split(/\s+/).length;
+            return wordCount * msPerWord;
         });
 
-        // Estimate duration per word (in milliseconds)
-        // Average reading speed: ~150 words per minute = 400ms per word
-        // Adjusted for rate 0.9: 400 / 0.9 ≈ 444ms per word
-        const baseWordDuration = 444;
-
-        // Calculate cumulative timings for each word
-        const wordTimings = words.map((word, index) => {
-            // Longer words take more time, shorter words take less
-            const wordLength = word.length;
-            const duration = Math.max(200, baseWordDuration * (0.7 + (wordLength / 10) * 0.3));
-            return {
-                index,
-                startTime: words.slice(0, index).reduce((sum, w) => {
-                    const wLen = w.length;
-                    return sum + Math.max(200, baseWordDuration * (0.7 + (wLen / 10) * 0.3));
-                }, 0),
-                duration
-            };
-        });
-
-        let currentWordIndex = -1;
-
-        // Try boundary-based highlighting (works in Edge)
-        utterance.onboundary = (event) => {
-            if (event.name === 'word' && isSpeakingRef.current) {
-                boundaryEventFiredRef.current = true;
-                // Clear timer-based highlighting since boundary events are working
-                if (highlightTimerRef.current) {
-                    clearTimeout(highlightTimerRef.current);
-                    highlightTimerRef.current = null;
-                }
-                const charIndex = event.charIndex;
-                const index = wordOffsets.findIndex(w => charIndex >= w.start && charIndex <= w.end);
-                if (index !== -1) {
-                    setHighlightIndex(index);
-                    currentWordIndex = index;
-                }
+        // Sequential chunk highlighting using chained timeouts
+        const highlightChunk = (index) => {
+            if (!isSpeakingRef.current || index >= chunks.length) {
+                return;
+            }
+            
+            setHighlightIndex(index);
+            setFocusedChunk(index);
+            
+            // Schedule next chunk
+            if (index < chunks.length - 1) {
+                highlightTimerRef.current = setTimeout(() => {
+                    highlightChunk(index + 1);
+                }, chunkDurations[index]);
             }
         };
 
         utterance.onstart = () => {
             setIsSpeaking(true);
             isSpeakingRef.current = true;
-            setHighlightIndex(-1);
-            currentWordIndex = -1;
-            boundaryEventFiredRef.current = false;
-
-            // Fallback: Timer-based highlighting for Chrome
-            // Start timer-based highlighting, but boundary events will take over if available
-            let wordIndex = 0;
-            const highlightNextWord = () => {
-                // If boundary events are working, don't use timer-based highlighting
-                if (boundaryEventFiredRef.current) {
-                    return;
-                }
-                // Check if still speaking using speechSynthesis API
-                if (wordIndex < words.length && (window.speechSynthesis.speaking || isSpeakingRef.current)) {
-                    setHighlightIndex(wordIndex);
-                    currentWordIndex = wordIndex;
-                    const timing = wordTimings[wordIndex];
-                    const nextDelay = wordIndex === 0 ? Math.max(100, timing.startTime) : timing.duration;
-                    highlightTimerRef.current = setTimeout(() => {
-                        wordIndex++;
-                        if (wordIndex < words.length) {
-                            highlightNextWord();
-                        } else {
-                            // Reset highlight when done
-                            if (!window.speechSynthesis.speaking) {
-                                setHighlightIndex(-1);
-                            }
-                        }
-                    }, nextDelay);
-                } else {
-                    setHighlightIndex(-1);
-                }
-            };
-            // Start highlighting after a small initial delay
-            highlightTimerRef.current = setTimeout(() => {
-                if (isSpeakingRef.current && !boundaryEventFiredRef.current) {
-                    highlightNextWord();
-                }
-            }, 100);
+            
+            // Start highlighting from first chunk
+            highlightChunk(0);
         };
-
 
         utterance.onend = () => {
             setIsSpeaking(false);
             isSpeakingRef.current = false;
             setHighlightIndex(-1);
+            
+            // Keep focus briefly, then reset
+            setTimeout(() => {
+                if (!isSpeakingRef.current) {
+                    setFocusedChunk(null);
+                }
+            }, 800);
+            
             if (highlightTimerRef.current) {
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
             }
         };
 
-        utterance.onerror = () => {
+        utterance.onerror = (event) => {
+            if (event.error !== 'interrupted') {
+                console.log('Speech error:', event.error);
+            }
             setIsSpeaking(false);
             isSpeakingRef.current = false;
             setHighlightIndex(-1);
+            setFocusedChunk(null);
             if (highlightTimerRef.current) {
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
@@ -997,28 +953,32 @@ ${shareLink}`;
                                 
                                 const isFocused = focusedChunk === null || focusedChunk === chunkIndex;
                                 const isActive = focusedChunk === chunkIndex;
+                                const isBeingRead = highlightIndex === chunkIndex && isSpeaking;
                                 
                                 return (
                                     <div
                                         key={chunkIndex}
-                                        onClick={() => setFocusedChunk(focusedChunk === chunkIndex ? null : chunkIndex)}
+                                        onClick={() => !isSpeaking && setFocusedChunk(focusedChunk === chunkIndex ? null : chunkIndex)}
                                         className={`relative cursor-pointer transition-all duration-300 animate-wipe-reveal ${
                                             isFocused ? 'opacity-100' : 'opacity-20 hover:opacity-40'
                                         }`}
                                         style={{ animationDelay: `${chunkIndex * 150}ms` }}
                                     >
                                         {/* Chunk Number - Swiss Style */}
-                                        <div className={`absolute -left-2 md:-left-4 top-0 text-[10px] font-bold transition-colors ${isActive ? 'text-[#880000]' : 'text-slate-200'}`}>
+                                        <div className={`absolute -left-2 md:-left-4 top-0 text-[10px] font-bold transition-colors ${isActive || isBeingRead ? 'text-[#880000]' : 'text-slate-200'}`}>
                                             {String(chunkIndex + 1).padStart(2, '0')}
                                         </div>
                                         
-                                        {/* Text Content */}
-                                        <p className={`text-lg md:text-xl leading-[1.85] md:leading-[1.95] text-slate-700 font-normal pl-4 md:pl-6 transition-all duration-300 ${
-                                            isActive ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2' : 'border-l border-transparent hover:border-slate-200'
+                                        {/* Text Content - Highlight entire chunk when being read */}
+                                        <p className={`text-lg md:text-xl leading-[1.85] md:leading-[1.95] font-normal pl-4 md:pl-6 transition-all duration-300 ${
+                                            isBeingRead 
+                                                ? 'border-l-4 border-[#880000] bg-[#880000]/5 py-4 -my-2 text-slate-900' 
+                                                : isActive 
+                                                    ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2 text-slate-700' 
+                                                    : 'border-l border-transparent hover:border-slate-200 text-slate-700'
                                         }`}>
                                             {chunkWords.map((word, wordIndexInChunk) => {
                                                 const index = startWordIndex + wordIndexInChunk;
-                                                const isHighlighted = index === highlightIndex && !isTyping;
                                                 const cleanWord = word.toLowerCase().replace(/[.,!?;:()"'-]/g, '');
                                                 const isDifficult = isDifficultWord(cleanWord);
                                                 const isSaved = savedWords.find(w => w.word === cleanWord);
@@ -1033,15 +993,13 @@ ${shareLink}`;
                                                                 handleWordClick(word, e);
                                                             }}
                                                             className={`transition-all duration-150 cursor-pointer ${
-                                                                isHighlighted 
-                                                                    ? 'bg-[#880000] text-white px-1' 
-                                                                    : isSelected 
-                                                                        ? 'bg-slate-900 text-white px-1' 
-                                                                        : isSaved 
-                                                                            ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2' 
-                                                                            : isDifficult 
-                                                                                ? 'text-[#880000] hover:bg-[#880000]/10' 
-                                                                                : 'hover:bg-slate-100'
+                                                                isSelected 
+                                                                    ? 'bg-slate-900 text-white px-1' 
+                                                                    : isSaved 
+                                                                        ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2' 
+                                                                        : isDifficult 
+                                                                            ? 'text-[#880000] hover:bg-[#880000]/10' 
+                                                                            : 'hover:bg-slate-100'
                                                             }`}
                                                             title={isSaved ? 'Saved to vocabulary' : isDifficult ? 'Difficult word' : 'Click for definition'}
                                                         >
