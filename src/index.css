@@ -29,6 +29,106 @@ body {
 }
 
 @layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Page transition animations */
+    .animate-page-enter-left {
+        animation: pageEnterLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .animate-page-enter-right {
+        animation: pageEnterRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes pageEnterLeft {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pageEnterRight {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Skeleton loading animations */
+    .animate-skeleton-in {
+        animation: skeletonIn 0.2s ease-out;
+    }
+
+    @keyframes skeletonIn {
+        from {
+            opacity: 0.5;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .animate-shimmer {
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(200%);
+        }
+    }
+
+    /* Landing page section reveal */
+    .animate-section-reveal {
+        animation: sectionReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes sectionReveal {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Stagger children animations */
+    .stagger-children > * {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    .stagger-children.visible > *:nth-child(1) { transition-delay: 0ms; opacity: 1; transform: translateY(0); }
+    .stagger-children.visible > *:nth-child(2) { transition-delay: 100ms; opacity: 1; transform: translateY(0); }
+    .stagger-children.visible > *:nth-child(3) { transition-delay: 200ms; opacity: 1; transform: translateY(0); }
+    .stagger-children.visible > *:nth-child(4) { transition-delay: 300ms; opacity: 1; transform: translateY(0); }
+    .stagger-children.visible > *:nth-child(5) { transition-delay: 400ms; opacity: 1; transform: translateY(0); }
+
     .animate-slideUp {
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -239,5 +339,38 @@ body {
         }
     }
 
+    /* Text wipe reveal animation - top to bottom (calming pace) */
+    .animate-wipe-reveal {
+        animation: wipeReveal 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+    }
+
+    @keyframes wipeReveal {
+        0% {
+            clip-path: inset(0 0 100% 0);
+            opacity: 0;
+        }
+        30% {
+            opacity: 0.7;
+        }
+        100% {
+            clip-path: inset(0 0 0 0);
+            opacity: 1;
+        }
+    }
+
+    /* Smooth image crossfade - using transitions instead of animations to prevent flashing */
+    .image-transition {
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    .image-visible {
+        opacity: 1;
+        transform: scale(1);
+    }
+    
+    .image-hidden {
+        opacity: 0;
+        transform: scale(1.01);
+    }
 
 }

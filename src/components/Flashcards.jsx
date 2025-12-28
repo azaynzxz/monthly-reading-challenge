@@ -53,27 +53,29 @@ const Flashcards = ({ onClose }) => {
     if (filteredWords.length === 0) {
         return (
             <>
+                {/* Backdrop */}
                 <div 
-                    className={`fixed inset-0 bg-black/50 z-50 ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                    className={`fixed inset-0 bg-black/60 z-50 ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
                     onClick={handleClose}
                 />
+                {/* Empty State - Swiss */}
                 <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 pointer-events-auto overflow-hidden">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-slate-800">Flashcards</h2>
-                            <button
-                                onClick={handleClose}
-                                className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-                            >
-                                <X size={20} />
+                    <div className="bg-white shadow-2xl max-w-md w-full p-8 pointer-events-auto border-l-4 border-[#880000]">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em]">Flashcards</h2>
+                            </div>
+                            <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600">
+                                <X size={18} />
                             </button>
                         </div>
                         <div className="text-center py-8">
-                            <BookOpen className="mx-auto text-slate-300 mb-4" size={48} />
-                            <p className="text-slate-600 mb-2">No words in your dictionary yet!</p>
-                            <p className="text-sm text-slate-500">
-                                Click on difficult words while reading to add them to your vocabulary.
-                            </p>
+                            <div className="w-16 h-16 bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <BookOpen className="text-slate-300" size={32} />
+                            </div>
+                            <p className="text-slate-600 mb-2">No words saved yet</p>
+                            <p className="text-sm text-slate-400">Click on difficult words while reading to add them.</p>
                         </div>
                     </div>
                 </div>
@@ -83,107 +85,96 @@ const Flashcards = ({ onClose }) => {
 
     return (
         <>
+            {/* Backdrop */}
             <div 
-                className={`fixed inset-0 bg-black/50 z-50 ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                className={`fixed inset-0 bg-black/60 z-50 ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
                 onClick={handleClose}
             />
+            {/* Modal - Swiss Design */}
             <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-                <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full pointer-events-auto overflow-hidden">
-                    <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between z-10 rounded-t-2xl">
+                <div className="bg-white shadow-2xl max-w-2xl w-full pointer-events-auto border-l-4 border-[#880000]">
+                    {/* Header - Swiss */}
+                    <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <h2 className="text-xl font-bold text-slate-800">Flashcards</h2>
+                            <div className="flex items-center gap-3">
+                                <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em]">Flashcards</h2>
+                            </div>
                             <select
                                 value={studyMode}
-                                onChange={(e) => {
-                                    setStudyMode(e.target.value);
-                                    setCurrentIndex(0);
-                                    setShowDefinition(false);
-                                }}
-                                className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+                                onChange={(e) => { setStudyMode(e.target.value); setCurrentIndex(0); setShowDefinition(false); }}
+                                className="px-3 py-1.5 border border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-transparent focus:outline-none focus:border-slate-400"
                             >
-                                <option value="all">All Words</option>
+                                <option value="all">All</option>
                                 <option value="hard">Hard</option>
                                 <option value="medium">Medium</option>
                                 <option value="easy">Easy</option>
                             </select>
                         </div>
-                        <button
-                            onClick={handleClose}
-                            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-                        >
-                            <X size={20} />
+                        <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600">
+                            <X size={18} />
                         </button>
                     </div>
 
-                <div className="p-8">
-                    <div className="mb-4 text-center">
-                        <span className="text-sm text-slate-500">
-                            {currentIndex + 1} of {filteredWords.length}
-                        </span>
-                    </div>
-
-                    <div
-                        className="bg-gradient-to-br from-[#880000] to-[#660000] rounded-2xl p-12 min-h-[300px] flex flex-col items-center justify-center cursor-pointer transform transition-transform hover:scale-[1.02]"
-                        onClick={() => setShowDefinition(!showDefinition)}
-                    >
-                        {!showDefinition ? (
-                            <div className="text-center">
-                                <h3 className="text-4xl font-bold text-white mb-4 capitalize">
-                                    {currentWord.word}
-                                </h3>
-                                <p className="text-white/80 text-sm">Click to reveal definition</p>
+                    {/* Card Content */}
+                    <div className="p-6 md:p-8">
+                        {/* Progress */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Card {currentIndex + 1} of {filteredWords.length}</div>
+                            <div className="flex gap-1">
+                                {filteredWords.slice(0, Math.min(10, filteredWords.length)).map((_, i) => (
+                                    <div key={i} className={`w-2 h-2 ${i === currentIndex ? 'bg-[#880000]' : 'bg-slate-200'}`}></div>
+                                ))}
+                                {filteredWords.length > 10 && <span className="text-[10px] text-slate-400 ml-1">+{filteredWords.length - 10}</span>}
                             </div>
-                        ) : (
-                            <div className="text-center">
-                                <p className="text-white/90 text-lg mb-4">
-                                    {currentWord.definition?.meanings?.[0]?.definitions?.[0]?.definition || 
-                                     currentWord.definition?.meanings?.[0]?.definitions?.[0]?.definition || 
-                                     'Definition not available'}
-                                </p>
-                                {currentWord.definition?.phonetic && (
-                                    <p className="text-white/70 text-sm italic">{currentWord.definition.phonetic}</p>
-                                )}
-                            </div>
-                        )}
+                        </div>
+
+                        {/* Flashcard - Swiss */}
+                        <div
+                            className="bg-slate-900 p-8 md:p-12 min-h-[280px] flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-slate-800"
+                            onClick={() => setShowDefinition(!showDefinition)}
+                        >
+                            {!showDefinition ? (
+                                <div className="text-center">
+                                    <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 capitalize tracking-tight">{currentWord.word}</h3>
+                                    <p className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Tap to reveal</p>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <div className="w-8 h-0.5 bg-[#880000] mx-auto mb-6"></div>
+                                    <p className="text-white/90 text-base md:text-lg leading-relaxed mb-4">
+                                        {currentWord.definition?.meanings?.[0]?.definitions?.[0]?.definition || 'Definition not available'}
+                                    </p>
+                                    {currentWord.definition?.phonetic && (
+                                        <p className="text-white/50 text-sm font-mono">{currentWord.definition.phonetic}</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Controls - Swiss Grid */}
+                        <div className="grid grid-cols-4 gap-0 mt-6 border border-slate-200">
+                            <button onClick={handlePrev} className="flex items-center justify-center gap-2 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors border-r border-slate-200">
+                                <ChevronLeft size={16} />
+                                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Prev</span>
+                            </button>
+                            <button
+                                onClick={() => { setShowDefinition(false); setCurrentIndex(Math.floor(Math.random() * filteredWords.length)); }}
+                                className="flex items-center justify-center py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors border-r border-slate-200"
+                                title="Shuffle"
+                            >
+                                <RotateCw size={16} />
+                            </button>
+                            <button onClick={() => removeWord(currentWord.word)} className="flex items-center justify-center gap-2 py-3 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors border-r border-slate-200">
+                                <XCircle size={16} />
+                                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Remove</span>
+                            </button>
+                            <button onClick={handleNext} className="flex items-center justify-center gap-2 py-3 bg-slate-900 text-white hover:bg-[#880000] transition-colors">
+                                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Next</span>
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
-
-                    <div className="flex items-center justify-between mt-6">
-                        <button
-                            onClick={handlePrev}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                        >
-                            <ChevronLeft size={20} />
-                            Previous
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                setShowDefinition(false);
-                                setCurrentIndex(Math.floor(Math.random() * filteredWords.length));
-                            }}
-                            className="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                            title="Shuffle"
-                        >
-                            <RotateCw size={20} />
-                        </button>
-
-                        <button
-                            onClick={() => removeWord(currentWord.word)}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors"
-                        >
-                            <XCircle size={20} />
-                            Remove
-                        </button>
-
-                        <button
-                            onClick={handleNext}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#880000] hover:bg-[#770000] text-white rounded-lg transition-colors"
-                        >
-                            Next
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-                </div>
                 </div>
             </div>
         </>

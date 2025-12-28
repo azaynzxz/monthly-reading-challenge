@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import ReadingCard from './ReadingCard';
 import Dashboard from './Dashboard';
 import Flashcards from './Flashcards';
+import MistakeCards from './MistakeCards';
 import month1Data from '../data/month1.json';
 import month2Data from '../data/month2.json';
 import month3Data from '../data/month3.json';
-import { ChevronRight, ChevronLeft, BookOpen, Globe, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw } from 'lucide-react';
+import { ChevronRight, ChevronLeft, BookOpen, Globe, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw, Sparkles } from 'lucide-react';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 
 const ReadingChallenge = () => {
     const navigate = useNavigate();
+    const [isPageReady, setIsPageReady] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(1);
     const [currentDay, setCurrentDay] = useState(1);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -28,6 +30,7 @@ const ReadingChallenge = () => {
     const [progress, setProgress] = useState(null);
     const [showDashboard, setShowDashboard] = useState(false);
     const [showFlashcards, setShowFlashcards] = useState(false);
+    const [showMistakeCards, setShowMistakeCards] = useState(false);
     const [practicedDays, setPracticedDays] = useState({});
     const [triggerPracticeTooltip, setTriggerPracticeTooltip] = useState(false);
     const [isMonthSelectorOpen, setIsMonthSelectorOpen] = useState(false);
@@ -36,6 +39,91 @@ const ReadingChallenge = () => {
     const scrollContainerRef = useRef(null);
     const animationFrameRef = useRef(null);
     const practiceStartTimeRef = useRef(null);
+    const imagePreloadCache = useRef({});
+    const preloadingRef = useRef(false);
+
+    // Preload Wikipedia images for all days in current month (background task)
+    useEffect(() => {
+        const preloadImages = async () => {
+            if (preloadingRef.current) return;
+            preloadingRef.current = true;
+
+            const monthData = allMonthsData[currentMonth];
+            if (!monthData) return;
+
+            // Preload in batches to avoid overwhelming the network
+            const batchSize = 5;
+            
+            for (let i = 0; i < monthData.length; i += batchSize) {
+                const batch = monthData.slice(i, i + batchSize);
+                
+                await Promise.allSettled(
+                    batch.map(async (dayData) => {
+                        const cacheKey = `${currentMonth}-${dayData.day}`;
+                        
+                        // Skip if already cached
+                        if (imagePreloadCache.current[cacheKey]) return;
+
+                        const searchTerms = [
+                            dayData.wikiSearch,
+                            dayData.title,
+                            dayData.country !== "TBD" ? dayData.country : null
+                        ].filter(Boolean);
+
+                        for (const term of searchTerms) {
+                            try {
+                                const response = await fetch(
+                                    `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`
+                                );
+
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    const imageUrl = data.originalimage?.source || data.thumbnail?.source;
+
+                                    if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
+                                        // Preload the actual image
+                                        await new Promise((resolve) => {
+                                            const img = new Image();
+                                            img.onload = () => {
+                                                imagePreloadCache.current[cacheKey] = {
+                                                    url: imageUrl,
+                                                    title: dayData.wikiSearch || data.title,
+                                                    description: data.extract,
+                                                    searchTerm: dayData.wikiSearch || term
+                                                };
+                                                resolve();
+                                            };
+                                            img.onerror = resolve; // Continue even if image fails
+                                            img.src = imageUrl;
+                                        });
+                                        break; // Found an image, move to next day
+                                    }
+                                }
+                            } catch {
+                                // Silent fail, continue to next term
+                            }
+                        }
+                    })
+                );
+
+                // Small delay between batches to be nice to the API
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            preloadingRef.current = false;
+        };
+
+        // Start preloading after a short delay to not block initial render
+        const timer = setTimeout(preloadImages, 1000);
+        return () => clearTimeout(timer);
+    }, [currentMonth]);
+
+    // Safety timeout: ensure page becomes ready after max 4 seconds
+    useEffect(() => {
+        if (isPageReady) return;
+        const timer = setTimeout(() => setIsPageReady(true), 4000);
+        return () => clearTimeout(timer);
+    }, [isPageReady]);
 
     useEffect(() => {
         let timer;
@@ -125,7 +213,7 @@ const ReadingChallenge = () => {
         // Handle URL pathname (format: /m1-day1)
         const pathname = window.location.pathname;
         const pathMatch = pathname.match(/^\/m(\d+)-day(\d+)$/);
-        
+
         if (pathMatch) {
             const monthParam = parseInt(pathMatch[1]);
             const dayParam = parseInt(pathMatch[2]);
@@ -514,327 +602,438 @@ const ReadingChallenge = () => {
         <>
             {isTeleprompterActive && (
                 <div
-                    className={`fixed inset-0 z-[9999] bg-black text-white flex flex-col ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}
+                    className={`fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}
                     onAnimationEnd={handleAnimationEnd}
                 >
+                    {/* Countdown Overlay - Swiss Typography */}
                     {countdown !== null && (
-                        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                            <div className="text-[12rem] md:text-[16rem] font-bold text-red-500 animate-pulse">{countdown}</div>
+                        <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md">
+                            {/* Swiss Grid Pattern Background */}
+                            <div className="absolute inset-0 opacity-5">
+                                <div className="absolute inset-0" style={{ 
+                                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+                                    backgroundSize: '40px 40px'
+                                }}></div>
+                            </div>
+                            
+                            {/* Countdown Number */}
+                            <div className="relative">
+                                <div className="text-[14rem] md:text-[18rem] font-bold text-[#880000] leading-none tracking-tighter animate-pulse">
+                                    {countdown}
+                                </div>
+                                {/* Accent Bar */}
+                                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-white/20"></div>
+                            </div>
+                            
+                            {/* Label */}
+                            <div className="mt-12 text-[10px] md:text-xs text-white/40 uppercase tracking-[0.3em]">
+                                Starting in
+                            </div>
                         </div>
                     )}
-                    <div className="bg-zinc-900 border-b border-zinc-800">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4">
-                            <div className="flex items-center gap-2">
-                                <Monitor className="text-red-500" size={20} />
-                                <span className="font-bold text-sm md:text-base">Teleprompter Mode</span>
+
+                    {/* Header - Swiss Minimal */}
+                    <div className="border-b border-white/10">
+                        <div className="flex items-center justify-between px-4 md:px-6 h-14 md:h-16">
+                            {/* Left: Brand */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-[#880000] flex items-center justify-center">
+                                    <Monitor size={16} className="text-white" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-white">Practice Mode</span>
+                                    <span className="text-[9px] text-white/40 uppercase tracking-wider hidden md:block">Read aloud with teleprompter</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                {/* Collapse Button */}
+
+                            {/* Center: Status */}
+                            <div className="hidden md:flex items-center gap-6">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 ${isScrolling ? 'bg-[#880000] animate-pulse' : 'bg-white/30'}`}></div>
+                                    <span className="text-[10px] text-white/50 uppercase tracking-wider">
+                                        {isScrolling ? 'Scrolling' : 'Paused'}
+                                    </span>
+                                </div>
+                                <div className="text-[10px] text-white/30">|</div>
+                                <span className="text-[10px] text-white/50 uppercase tracking-wider">
+                                    {scrollSpeed.toFixed(1)}x Speed
+                                </span>
+                                <div className="text-[10px] text-white/30">|</div>
+                                <span className="text-[10px] text-white/50 uppercase tracking-wider">
+                                    {fontSize}px
+                                </span>
+                            </div>
+
+                            {/* Right: Controls */}
+                            <div className="flex items-center">
                                 <button
                                     onClick={() => setIsControlsExpanded(!isControlsExpanded)}
-                                    className="p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-zinc-800"
+                                    className={`w-10 h-10 md:w-11 md:h-11 flex items-center justify-center transition-all ${isControlsExpanded ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
                                     title={isControlsExpanded ? 'Hide Controls' : 'Show Controls'}
                                 >
-                                    <Settings size={20} className={isControlsExpanded ? 'rotate-90' : ''} />
+                                    <Settings size={18} className={`transition-transform duration-300 ${isControlsExpanded ? 'rotate-90' : ''}`} />
                                 </button>
-                                <button onClick={toggleTeleprompter} className="text-zinc-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-zinc-800">
-                                    <X size={20} className="md:w-7 md:h-7" />
+                                <button 
+                                    onClick={toggleTeleprompter} 
+                                    className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center text-white/40 hover:text-white hover:bg-[#880000] transition-all"
+                                >
+                                    <X size={18} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Controls - Collapsible */}
-                        <div className={`overflow-hidden transition-all duration-300 ${isControlsExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                            <div className="px-4 pb-4 flex flex-col md:flex-row items-start md:items-center gap-4">
-                                <div className="flex flex-col gap-2 w-full md:w-56 bg-zinc-800/50 rounded-lg p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Speed</span>
-                                        <span className="text-sm text-zinc-200 font-mono font-bold bg-red-500/20 px-2 py-0.5 rounded">{scrollSpeed.toFixed(1)}x</span>
+                        {/* Controls Panel - Swiss Grid */}
+                        <div className={`overflow-hidden transition-all duration-300 ease-out ${isControlsExpanded ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                            <div className="px-4 md:px-6 pb-4 pt-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-white/10">
+                                    {/* Speed Control */}
+                                    <div className="p-4 md:border-r border-white/10">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-0.5 bg-[#880000]"></div>
+                                                <span className="text-[9px] text-white/40 uppercase tracking-[0.2em]">Scroll Speed</span>
+                                            </div>
+                                            <span className="text-sm font-bold text-white bg-white/10 px-2 py-0.5">{scrollSpeed.toFixed(1)}x</span>
+                                        </div>
+                                        
+                                        {/* Speed Presets - Swiss Grid */}
+                                        <div className="grid grid-cols-4 gap-0 border border-white/10 mb-4">
+                                            {[
+                                                { value: 0.3, label: '0.3x' },
+                                                { value: 0.5, label: '0.5x' },
+                                                { value: 0.8, label: '0.8x' },
+                                                { value: 1.5, label: '1.5x' }
+                                            ].map((preset, i) => (
+                                                <button
+                                                    key={preset.value}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setScrollSpeed(preset.value);
+                                                        scrollSpeedRef.current = preset.value;
+                                                    }}
+                                                    className={`py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                                        Math.abs(scrollSpeed - preset.value) < 0.05
+                                                            ? 'bg-[#880000] text-white'
+                                                            : 'text-white/50 hover:text-white hover:bg-white/5'
+                                                    } ${i < 3 ? 'border-r border-white/10' : ''}`}
+                                                >
+                                                    {preset.label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Slider */}
+                                        <div className="relative">
+                                            <input
+                                                type="range"
+                                                min="0.3"
+                                                max="2"
+                                                step="0.05"
+                                                value={scrollSpeed}
+                                                onChange={(e) => {
+                                                    const newSpeed = parseFloat(e.target.value);
+                                                    setScrollSpeed(newSpeed);
+                                                    scrollSpeedRef.current = newSpeed;
+                                                }}
+                                                className="w-full h-1 bg-white/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-[#880000] [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#880000] [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                                            />
+                                            <div className="flex justify-between mt-2 text-[9px] text-white/30 uppercase tracking-wider">
+                                                <span>Slow</span>
+                                                <span>Fast</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    {/* Speed Presets */}
-                                    <div className="flex gap-1.5 mb-2">
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                const newSpeed = 0.3;
-                                                setScrollSpeed(newSpeed);
-                                                scrollSpeedRef.current = newSpeed;
-                                            }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.3) < 0.05
-                                                ? 'bg-red-500 text-white'
-                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                                }`}
-                                        >
-                                            Very Slow
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                const newSpeed = 0.5;
-                                                setScrollSpeed(newSpeed);
-                                                scrollSpeedRef.current = newSpeed;
-                                            }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.5) < 0.05
-                                                ? 'bg-red-500 text-white'
-                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                                }`}
-                                        >
-                                            Slow
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                const newSpeed = 0.8;
-                                                setScrollSpeed(newSpeed);
-                                                scrollSpeedRef.current = newSpeed;
-                                            }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 0.8) < 0.05
-                                                ? 'bg-red-500 text-white'
-                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                                }`}
-                                        >
-                                            Normal
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                const newSpeed = 1.5;
-                                                setScrollSpeed(newSpeed);
-                                                scrollSpeedRef.current = newSpeed;
-                                            }}
-                                            className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-all ${Math.abs(scrollSpeed - 1.5) < 0.05
-                                                ? 'bg-red-500 text-white'
-                                                : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                                }`}
-                                        >
-                                            Fast
-                                        </button>
+
+                                    {/* Font Size Control */}
+                                    <div className="p-4 border-t md:border-t-0 border-white/10">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-0.5 bg-white/30"></div>
+                                                <span className="text-[9px] text-white/40 uppercase tracking-[0.2em]">Text Size</span>
+                                            </div>
+                                            <span className="text-sm font-bold text-white bg-white/10 px-2 py-0.5">{fontSize}px</span>
+                                        </div>
+
+                                        {/* Size Presets - Swiss Grid */}
+                                        <div className="grid grid-cols-4 gap-0 border border-white/10 mb-4">
+                                            {[
+                                                { value: 24, label: 'S' },
+                                                { value: 36, label: 'M' },
+                                                { value: 48, label: 'L' },
+                                                { value: 72, label: 'XL' }
+                                            ].map((preset, i) => (
+                                                <button
+                                                    key={preset.value}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setFontSize(preset.value);
+                                                    }}
+                                                    className={`py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                                        fontSize === preset.value
+                                                            ? 'bg-white text-slate-900'
+                                                            : 'text-white/50 hover:text-white hover:bg-white/5'
+                                                    } ${i < 3 ? 'border-r border-white/10' : ''}`}
+                                                >
+                                                    {preset.label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Slider */}
+                                        <div className="relative">
+                                            <input
+                                                type="range"
+                                                min="16"
+                                                max="96"
+                                                step="4"
+                                                value={fontSize}
+                                                onChange={(e) => setFontSize(parseInt(e.target.value))}
+                                                className="w-full h-1 bg-white/10 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                                            />
+                                            <div className="flex justify-between mt-2 text-[9px] text-white/30 uppercase tracking-wider">
+                                                <span>Small</span>
+                                                <span>Large</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <input
-                                        type="range"
-                                        min="0.3"
-                                        max="2"
-                                        step="0.05"
-                                        value={scrollSpeed}
-                                        onChange={(e) => setScrollSpeed(parseFloat(e.target.value))}
-                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors"
-                                    />
-                                    <div className="flex justify-between text-xs text-zinc-400 mt-1">
-                                        <span>Slowest</span>
-                                        <span>Fastest</span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-2 w-full md:w-56 bg-zinc-800/50 rounded-lg p-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Text Size</span>
-                                        <span className="text-sm text-zinc-200 font-mono font-bold bg-red-500/20 px-2 py-0.5 rounded">{fontSize}px</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="16"
-                                        max="96"
-                                        step="4"
-                                        value={fontSize}
-                                        onChange={(e) => setFontSize(parseInt(e.target.value))}
-                                        className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-red-500 hover:accent-red-400 transition-colors"
-                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative no-scrollbar" style={{ paddingBottom: '50vh', paddingTop: '50vh', scrollBehavior: 'auto' }}>
-                        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center leading-relaxed font-bold transition-all duration-300" style={{ fontSize: `${fontSize}px` }}>
-                            <h2 className="text-red-500 mb-12 md:mb-16 uppercase tracking-widest opacity-80" style={{ fontSize: `${fontSize * 0.6}px` }}>{activeData.title}</h2>
-                            {activeData.text}
+
+                    {/* Reading Area - Swiss Typography */}
+                    <div 
+                        ref={scrollContainerRef} 
+                        className="flex-1 overflow-y-auto relative no-scrollbar" 
+                        style={{ paddingBottom: '50vh', paddingTop: '50vh', scrollBehavior: 'auto' }}
+                    >
+                        {/* Center Guide Line */}
+                        <div className="fixed left-0 right-0 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
+                            <div className="flex items-center justify-center gap-4 opacity-20">
+                                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/50"></div>
+                                <div className="w-3 h-3 border-2 border-[#880000] transform rotate-45"></div>
+                                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/50"></div>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div 
+                            className="max-w-4xl mx-auto px-6 md:px-10 text-center transition-all duration-300" 
+                            style={{ fontSize: `${fontSize}px` }}
+                        >
+                            {/* Title - Swiss Style */}
+                            <div className="mb-16 md:mb-20">
+                                <div className="w-12 h-0.5 bg-[#880000] mx-auto mb-6"></div>
+                                <h2 
+                                    className="text-[#880000] uppercase tracking-[0.25em] font-bold leading-tight"
+                                    style={{ fontSize: `${Math.max(fontSize * 0.5, 14)}px` }}
+                                >
+                                    {activeData.title}
+                                </h2>
+                                <div className="flex items-center justify-center gap-3 mt-4">
+                                    <span 
+                                        className="text-white/30 uppercase tracking-[0.15em]"
+                                        style={{ fontSize: `${Math.max(fontSize * 0.25, 10)}px` }}
+                                    >
+                                        Month {currentMonth} · Day {currentDay}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Main Text - Swiss Typography */}
+                            <p className="font-normal leading-[1.7] text-white/90 tracking-wide">
+                                {activeData.text}
+                            </p>
+
+                            {/* End Marker */}
+                            <div className="mt-20 md:mt-24">
+                                <div className="w-8 h-0.5 bg-white/20 mx-auto"></div>
+                                <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mt-4">End of text</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50">
-                        <button onClick={handlePlayPause} disabled={countdown !== null} className={`p-6 rounded-full shadow-2xl transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${isScrolling ? 'bg-zinc-800 text-red-400 border border-red-900/50' : 'bg-[#880000] text-white'}`}>
-                            {isScrolling ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
-                        </button>
+
+                    {/* Bottom Controls - Swiss Minimal */}
+                    <div className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none">
+                        <div className="flex flex-col items-center pb-8 md:pb-10">
+                            {/* Play/Pause Button - Swiss Square */}
+                            <button 
+                                onClick={handlePlayPause} 
+                                disabled={countdown !== null} 
+                                className={`pointer-events-auto w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    isScrolling 
+                                        ? 'bg-white text-slate-900 hover:bg-white/90' 
+                                        : 'bg-[#880000] text-white hover:bg-[#aa0000]'
+                                }`}
+                            >
+                                {isScrolling ? (
+                                    <Pause size={28} className="md:w-8 md:h-8" fill="currentColor" />
+                                ) : (
+                                    <Play size={28} className="md:w-8 md:h-8 ml-1" fill="currentColor" />
+                                )}
+                            </button>
+
+                            {/* Status Label */}
+                            <div className="mt-4 text-[9px] text-white/40 uppercase tracking-[0.2em]">
+                                {isScrolling ? 'Tap to pause' : 'Tap to start'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Side Indicators - Swiss Accent */}
+                    <div className="fixed left-0 top-1/2 transform -translate-y-1/2 z-20">
+                        <div className="w-1 h-32 bg-gradient-to-b from-transparent via-[#880000]/50 to-transparent"></div>
+                    </div>
+                    <div className="fixed right-0 top-1/2 transform -translate-y-1/2 z-20">
+                        <div className="w-1 h-32 bg-gradient-to-b from-transparent via-[#880000]/50 to-transparent"></div>
                     </div>
                 </div>
             )}
-            <div className="h-screen w-screen bg-stone-50 text-slate-800 font-sans selection:bg-[#880000]/20 flex flex-col items-center justify-center overflow-hidden">
-                {/* Navbar */}
-                <nav className="w-full bg-white border-b border-slate-200 shadow-sm flex-shrink-0 z-20 fixed top-0">
-                    <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-3 md:py-4">
-                        <div className="flex items-center justify-between">
-                            <button 
+            {/* Page Loading Overlay - Prevents flash */}
+            {!isPageReady && (
+                <div className="fixed inset-0 z-[9998] bg-stone-50 flex flex-col items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 bg-[#880000] flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">E</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-[#880000] animate-pulse"></div>
+                            <div className="w-2 h-2 bg-[#880000]/60 animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-[#880000]/30 animate-pulse" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className={`h-screen w-screen bg-stone-50 text-slate-800 font-sans selection:bg-[#880000]/20 flex flex-col items-center justify-center overflow-hidden transition-opacity duration-500 ${isPageReady ? 'opacity-100' : 'opacity-0'}`}>
+                {/* Navbar - Swiss Design */}
+                <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-slate-100 flex-shrink-0 z-20 fixed top-0">
+                    <div className="w-full max-w-6xl mx-auto px-4 md:px-6">
+                        <div className="flex items-center justify-between h-14 md:h-16">
+                            {/* Logo */}
+                            <button
                                 onClick={() => navigate('/')}
-                                className="flex items-center gap-2 text-[#880000] cursor-pointer hover:opacity-80 transition-opacity"
+                                className="flex items-center gap-2 md:gap-3 cursor-pointer group"
                             >
-                                <BookOpen size={24} />
-                                <span className="font-bold tracking-wider text-sm md:text-base uppercase">ENGLISH READING PRACTICE</span>
+                                <div className="w-7 h-7 md:w-8 md:h-8 bg-[#880000] flex items-center justify-center">
+                                    <span className="text-white font-bold text-xs md:text-sm">E</span>
+                                </div>
+                                <span className="text-xs md:text-sm font-bold text-slate-900 uppercase tracking-[0.1em] md:tracking-[0.15em]">English Daily</span>
                             </button>
-                            <div className="flex items-center gap-2">
-                                {/* Dashboard Button */}
-                                <button
-                                    onClick={() => setShowDashboard(true)}
-                                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[#880000] hover:bg-[#880000]/10 rounded-lg transition-colors text-sm font-semibold"
-                                    title="View Dashboard"
-                                >
-                                    <BarChart3 size={18} />
-                                    <span className="hidden md:inline">Dashboard</span>
-                                </button>
 
-                                {/* Flashcards Button */}
-                                <button
-                                    onClick={() => setShowFlashcards(true)}
-                                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[#880000] hover:bg-[#880000]/10 rounded-lg transition-colors text-sm font-semibold"
-                                    title="Study Flashcards"
-                                >
-                                    <RotateCw size={18} />
-                                    <span className="hidden md:inline">Flashcards</span>
-                                </button>
-
-                                {/* Mobile Hamburger Menu */}
-                                <button
-                                    onClick={() => {
-                                        if (isMobileMenuOpen) {
-                                            setIsMobileMenuClosing(true);
-                                            setTimeout(() => {
-                                                setIsMobileMenuOpen(false);
-                                                setIsMobileMenuClosing(false);
-                                            }, 300);
-                                        } else {
-                                            setIsMobileMenuOpen(true);
-                                        }
-                                    }}
-                                    className="lg:hidden p-2 text-[#880000] hover:bg-[#880000]/10 rounded-lg transition-colors"
-                                    aria-label="Toggle menu"
-                                >
-                                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                                </button>
+                            {/* Desktop Actions */}
+                            <div className="hidden sm:flex items-center">
+                                {[
+                                    { icon: BarChart3, label: 'Stats', onClick: () => setShowDashboard(true) },
+                                    { icon: RotateCw, label: 'Cards', onClick: () => setShowFlashcards(true) },
+                                    { icon: Sparkles, label: 'Review', onClick: () => setShowMistakeCards(true) }
+                                ].map((item, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={item.onClick}
+                                        className="flex items-center gap-1.5 px-3 md:px-4 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors text-[10px] md:text-xs font-medium uppercase tracking-wider"
+                                    >
+                                        <item.icon size={14} className="md:w-4 md:h-4" />
+                                        <span className="hidden md:inline">{item.label}</span>
+                                    </button>
+                                ))}
                             </div>
+
+                            {/* Mobile Menu Toggle */}
+                            <button
+                                onClick={() => {
+                                    if (isMobileMenuOpen) {
+                                        setIsMobileMenuClosing(true);
+                                        setTimeout(() => { setIsMobileMenuOpen(false); setIsMobileMenuClosing(false); }, 300);
+                                    } else {
+                                        setIsMobileMenuOpen(true);
+                                    }
+                                }}
+                                className="sm:hidden w-8 h-8 flex flex-col items-center justify-center gap-1.5"
+                                aria-label="Toggle menu"
+                            >
+                                <span className={`block w-5 h-0.5 bg-slate-900 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+                                <span className={`block w-5 h-0.5 bg-slate-900 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                                <span className={`block w-5 h-0.5 bg-slate-900 transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+                            </button>
                         </div>
                     </div>
                 </nav>
 
-                {/* Mobile Bottom Sheet & Tablet Modal */}
+                {/* Mobile Menu - Swiss Design */}
                 {isMobileMenuOpen && (
                     <>
                         {/* Backdrop */}
                         <div
-                            className={`fixed inset-0 bg-black z-30 lg:hidden ${isMobileMenuClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
-                            onClick={() => {
-                                setIsMobileMenuClosing(true);
-                                setTimeout(() => {
-                                    setIsMobileMenuOpen(false);
-                                    setIsMobileMenuClosing(false);
-                                }, 300);
-                            }}
+                            className={`fixed inset-0 bg-black/60 z-30 ${isMobileMenuClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                            onClick={() => { setIsMobileMenuClosing(true); setTimeout(() => { setIsMobileMenuOpen(false); setIsMobileMenuClosing(false); }, 300); }}
                         />
 
-                        {/* Mobile Bottom Sheet */}
-                        <div className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-40 md:hidden max-h-[85vh] overflow-y-auto ${isMobileMenuClosing ? 'animate-bottom-sheet-out' : 'animate-bottom-sheet-in'}`}>
-                            {/* Drag Handle */}
-                            <div className="flex justify-center pt-3 pb-2">
-                                <div className="w-12 h-1.5 bg-slate-300 rounded-full"></div>
+                        {/* Mobile Bottom Sheet - Swiss */}
+                        <div className={`fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-40 max-h-[80vh] overflow-y-auto ${isMobileMenuClosing ? 'animate-bottom-sheet-out' : 'animate-bottom-sheet-in'}`}>
+                            {/* Handle + Close */}
+                            <div className="sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Navigation</span>
+                                </div>
+                                <button
+                                    onClick={() => { setIsMobileMenuClosing(true); setTimeout(() => { setIsMobileMenuOpen(false); setIsMobileMenuClosing(false); }, 300); }}
+                                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                                >
+                                    <X size={18} />
+                                </button>
                             </div>
 
-                            <div className="px-6 pb-8">
-                                {/* Close Button */}
-                                <div className="flex justify-end mb-4">
-                                    <button
-                                        onClick={() => {
-                                            setIsMobileMenuClosing(true);
-                                            setTimeout(() => {
-                                                setIsMobileMenuOpen(false);
-                                                setIsMobileMenuClosing(false);
-                                            }, 300);
-                                        }}
-                                        className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-
-                                {/* Month Selector */}
-                                <div className="mb-6">
-                                    <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                        <Calendar size={16} className="text-[#880000]" /> Month Selector
-                                    </h3>
-                                    <div className="flex bg-slate-100 p-1 rounded-lg">
-                                        <button
-                                            onClick={() => {
-                                                changeMonth(1);
-                                            }}
-                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                            Month 1
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                changeMonth(2);
-                                            }}
-                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                            Month 2
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                changeMonth(3);
-                                            }}
-                                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                            Month 3
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Dashboard & Flashcards Buttons */}
-                                <div className="mb-6">
-                                    <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                        <Trophy size={16} className="text-[#880000]" /> Quick Actions
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            onClick={() => {
-                                                setShowDashboard(true);
-                                                setIsMobileMenuClosing(true);
-                                                setTimeout(() => {
-                                                    setIsMobileMenuOpen(false);
-                                                    setIsMobileMenuClosing(false);
-                                                }, 300);
-                                            }}
-                                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
-                                        >
-                                            <BarChart3 size={16} />
-                                            <span>Dashboard</span>
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setShowFlashcards(true);
-                                                setIsMobileMenuClosing(true);
-                                                setTimeout(() => {
-                                                    setIsMobileMenuOpen(false);
-                                                    setIsMobileMenuClosing(false);
-                                                }, 300);
-                                            }}
-                                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
-                                        >
-                                            <RotateCw size={16} />
-                                            <span>Flashcards</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Day Selector */}
+                            <div className="p-4 space-y-6">
+                                {/* Month Tabs - Swiss */}
                                 <div>
-                                    <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                        <Square size={16} className="text-[#880000]" /> Day Selector
-                                    </h3>
-                                    <div className="grid grid-cols-5 gap-2">
+                                    <div className="flex border-b border-slate-200">
+                                        {[1, 2, 3].map(month => (
+                                            <button
+                                                key={month}
+                                                onClick={() => changeMonth(month)}
+                                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all ${
+                                                    currentMonth === month 
+                                                        ? 'text-[#880000] border-b-2 border-[#880000]' 
+                                                        : 'text-slate-400 hover:text-slate-600'
+                                                }`}
+                                            >
+                                                Month {month}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Quick Actions - Swiss Grid */}
+                                <div className="grid grid-cols-3 gap-0 border border-slate-200">
+                                    {[
+                                        { icon: BarChart3, label: 'Stats', onClick: () => setShowDashboard(true) },
+                                        { icon: RotateCw, label: 'Cards', onClick: () => setShowFlashcards(true) },
+                                        { icon: Sparkles, label: 'Review', onClick: () => setShowMistakeCards(true) }
+                                    ].map((item, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => { item.onClick(); setIsMobileMenuClosing(true); setTimeout(() => { setIsMobileMenuOpen(false); setIsMobileMenuClosing(false); }, 300); }}
+                                            className={`flex flex-col items-center justify-center py-4 text-slate-600 hover:bg-slate-50 hover:text-[#880000] transition-all ${i < 2 ? 'border-r border-slate-200' : ''}`}
+                                        >
+                                            <item.icon size={18} />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider mt-1.5">{item.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Day Grid - Swiss */}
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="w-4 h-0.5 bg-slate-300"></div>
+                                        <span className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">Select Day</span>
+                                    </div>
+                                    <div className="grid grid-cols-6 gap-1.5">
                                         {allMonthsData[currentMonth].map((d) => {
                                             const isPracticed = isDayPracticed(currentMonth, d.day);
                                             const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
@@ -842,15 +1041,15 @@ const ReadingChallenge = () => {
                                                 <button
                                                     key={d.day}
                                                     onClick={() => handleDayClick(d.day)}
-                                                    className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
-                                                        ? 'bg-[#880000] text-white shadow-md transform scale-105'
-                                                        : isPracticed
-                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                                                            : isLocked
-                                                                ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
-                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                        }`}
-                                                    title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
+                                                    className={`aspect-square text-xs font-bold transition-all ${
+                                                        currentDay === d.day
+                                                            ? 'bg-[#880000] text-white'
+                                                            : isPracticed
+                                                                ? 'bg-green-50 text-green-600 border border-green-200'
+                                                                : isLocked
+                                                                    ? 'bg-slate-50 text-slate-300'
+                                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                    }`}
                                                 >
                                                     {d.day}
                                                 </button>
@@ -860,138 +1059,11 @@ const ReadingChallenge = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Tablet Modal Popup */}
-                        <div className={`hidden md:flex lg:hidden fixed inset-0 z-40 items-center justify-center p-4 ${isMobileMenuClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-                            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
-                                {/* Header */}
-                                <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                        <Calendar className="text-[#880000]" size={20} />
-                                        Select Month & Day
-                                    </h2>
-                                    <button
-                                        onClick={() => {
-                                            setIsMobileMenuClosing(true);
-                                            setTimeout(() => {
-                                                setIsMobileMenuOpen(false);
-                                                setIsMobileMenuClosing(false);
-                                            }, 300);
-                                        }}
-                                        className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-
-                                <div className="p-6">
-                                    {/* Month Selector */}
-                                    <div className="mb-6">
-                                        <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                            <Calendar size={16} className="text-[#880000]" /> Month Selector
-                                        </h3>
-                                        <div className="flex bg-slate-100 p-1 rounded-lg">
-                                            <button
-                                                onClick={() => {
-                                                    changeMonth(1);
-                                                }}
-                                                className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                            >
-                                                Month 1
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    changeMonth(2);
-                                                }}
-                                                className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                            >
-                                                Month 2
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    changeMonth(3);
-                                                }}
-                                                className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                            >
-                                                Month 3
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Dashboard & Flashcards Buttons */}
-                                    <div className="mb-6">
-                                        <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                            <Trophy size={16} className="text-[#880000]" /> Quick Actions
-                                        </h3>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setShowDashboard(true);
-                                                    setIsMobileMenuClosing(true);
-                                                    setTimeout(() => {
-                                                        setIsMobileMenuOpen(false);
-                                                        setIsMobileMenuClosing(false);
-                                                    }, 300);
-                                                }}
-                                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
-                                            >
-                                                <BarChart3 size={16} />
-                                                <span>Dashboard</span>
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setShowFlashcards(true);
-                                                    setIsMobileMenuClosing(true);
-                                                    setTimeout(() => {
-                                                        setIsMobileMenuOpen(false);
-                                                        setIsMobileMenuClosing(false);
-                                                    }, 300);
-                                                }}
-                                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#880000] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#770000] active:scale-[0.98] shadow-sm"
-                                            >
-                                                <RotateCw size={16} />
-                                                <span>Flashcards</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Day Selector */}
-                                    <div>
-                                        <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                            <Square size={16} className="text-[#880000]" /> Day Selector
-                                        </h3>
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {allMonthsData[currentMonth].map((d) => {
-                                                const isPracticed = isDayPracticed(currentMonth, d.day);
-                                                const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
-                                                return (
-                                                    <button
-                                                        key={d.day}
-                                                        onClick={() => handleDayClick(d.day)}
-                                                        className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
-                                                            ? 'bg-[#880000] text-white shadow-md transform scale-105'
-                                                            : isPracticed
-                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                                                                : isLocked
-                                                                    ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
-                                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                            }`}
-                                                        title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
-                                                    >
-                                                        {d.day}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </>
                 )}
 
                 {/* Main Content */}
-                <div className="w-full flex-1 flex flex-col items-center justify-center pt-20 md:pt-24 pb-4 px-4 md:px-6 lg:px-8 min-h-0 overflow-hidden">
+                <div className="w-full flex-1 flex flex-col items-center justify-center pt-16 md:pt-20 pb-4 px-4 md:px-6 lg:px-8 min-h-0 overflow-hidden">
                     <div className="w-full max-w-5xl flex-1 min-h-0 max-h-full">
                         {/* Main Reading Card */}
                         <div className="flex flex-col min-h-0 h-full">
@@ -1010,13 +1082,30 @@ const ReadingChallenge = () => {
                                     statistics={statistics}
                                     progress={progress}
                                     triggerPracticeTooltip={triggerPracticeTooltip}
+                                    preloadedImages={imagePreloadCache.current}
+                                    onOpenMonthSelector={() => {
+                                        setIsMounting(true);
+                                        setIsMonthSelectorOpen(true);
+                                        requestAnimationFrame(() => {
+                                            requestAnimationFrame(() => {
+                                                setIsMounting(false);
+                                            });
+                                        });
+                                    }}
+                                    onReady={() => !isPageReady && setIsPageReady(true)}
                                 />
-                                <div className="mt-4 md:mt-6 text-center flex flex-col items-center pb-4">
-                                    <p className="text-sm md:text-base lg:text-lg text-slate-500 italic max-w-2xl">"This is my practice today about <span className="text-[#880000] font-semibold">{activeData.title}</span>, cannot wait to improve my English with the next training."</p>
-                                    <div className="mt-4 md:mt-6 flex items-center justify-center gap-2">
-                                        <div className="h-px w-8 bg-slate-300"></div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">By Zayn</span>
-                                        <div className="h-px w-8 bg-slate-300"></div>
+                                {/* Attribution - Swiss Design */}
+                                <div className="mt-6 md:mt-8 pb-4">
+                                    <div className="max-w-xl mx-auto px-4">
+                                        <div className="border-l-2 border-slate-200 pl-4">
+                                            <p className="text-sm md:text-base text-slate-400 leading-relaxed">
+                                                "This is my practice today about <span className="text-slate-600 font-medium">{activeData.title}</span>, cannot wait to improve my English with the next training."
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-4 pl-4">
+                                            <div className="w-4 h-0.5 bg-[#880000]"></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">By Zayn</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1040,98 +1129,114 @@ const ReadingChallenge = () => {
                     <Flashcards onClose={() => setShowFlashcards(false)} />
                 )}
 
-                {/* Floating Calendar Button with Popup Menu - Desktop Only */}
-                <div className="hidden lg:block">
-                    {/* Popup Menu */}
-                    {(isMonthSelectorOpen || isMonthSelectorClosing) && (
+                {/* Review Cards Modal */}
+                {showMistakeCards && (
+                    <MistakeCards onClose={() => setShowMistakeCards(false)} />
+                )}
+
+                {/* Month/Day Selector - Swiss Design */}
+                {(isMonthSelectorOpen || isMonthSelectorClosing) && (
+                    <>
+                        {/* Backdrop */}
                         <div
-                            className={`fixed bottom-24 right-6 z-50 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 ${isMonthSelectorClosing
-                                    ? 'opacity-0 translate-y-4'
-                                    : isMounting
-                                        ? 'opacity-0 translate-y-8'
-                                        : 'opacity-100 translate-y-0'
-                                }`}
+                            className={`fixed inset-0 bg-black/40 z-40 ${isMonthSelectorClosing ? 'opacity-0' : 'opacity-100'}`}
+                            style={{ transition: 'opacity 0.3s ease-out' }}
+                            onClick={() => { setIsMonthSelectorClosing(true); setTimeout(() => { setIsMonthSelectorOpen(false); setIsMonthSelectorClosing(false); }, 300); }}
+                        />
+                        
+                        {/* Dropdown Panel - Swiss */}
+                        <div
+                            className={`fixed z-50 bg-white shadow-2xl overflow-hidden border-l-4 border-[#880000] ${
+                                isMonthSelectorClosing ? 'opacity-0 -translate-y-4' : isMounting ? 'opacity-0 -translate-y-8' : 'opacity-100 translate-y-0'
+                            } left-2 right-2 sm:left-4 sm:right-4 md:left-1/2 md:right-auto md:w-[400px] md:-translate-x-1/2`}
                             style={{
+                                top: '64px',
                                 transition: 'opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)'
                             }}
                         >
-                            <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                <Calendar size={16} className="text-[#880000]" /> Month Selector
-                            </h3>
-                            <div className="flex bg-slate-100 p-1 rounded-lg mb-4">
+                            {/* Header */}
+                            <div className="px-4 md:px-5 py-3 md:py-4 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                    <span className="text-xs md:text-[10px] text-slate-400 uppercase tracking-[0.15em] md:tracking-[0.2em]">Select Day</span>
+                                </div>
                                 <button
-                                    onClick={() => changeMonth(1)}
-                                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 1 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    onClick={() => { setIsMonthSelectorClosing(true); setTimeout(() => { setIsMonthSelectorOpen(false); setIsMonthSelectorClosing(false); }, 300); }}
+                                    className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                                 >
-                                    Month 1
-                                </button>
-                                <button
-                                    onClick={() => changeMonth(2)}
-                                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 2 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                >
-                                    Month 2
-                                </button>
-                                <button
-                                    onClick={() => changeMonth(3)}
-                                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${currentMonth === 3 ? 'bg-white text-[#880000] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                >
-                                    Month 3
+                                    <X size={18} className="md:w-4 md:h-4" />
                                 </button>
                             </div>
-                            <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                                <Square size={16} className="text-[#880000]" /> Day Selector
-                            </h3>
-                            <div className="grid grid-cols-5 gap-2">
-                                {allMonthsData[currentMonth].map((d) => {
-                                    const isPracticed = isDayPracticed(currentMonth, d.day);
-                                    const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
-                                    return (
-                                        <button
-                                            key={d.day}
-                                            onClick={() => handleDayClick(d.day)}
-                                            className={`aspect-square rounded-lg text-sm font-semibold transition-all duration-200 ${currentDay === d.day
-                                                ? 'bg-[#880000] text-white shadow-md transform scale-105'
-                                                : isPracticed
-                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                                                    : isLocked
-                                                        ? 'bg-slate-50 text-slate-400 cursor-pointer opacity-50'
-                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+
+                            {/* Month Tabs - Swiss Style */}
+                            <div className="flex border-b border-slate-100">
+                                {[1, 2, 3].map(month => (
+                                    <button
+                                        key={month}
+                                        onClick={() => changeMonth(month)}
+                                        className={`flex-1 py-4 md:py-3 text-xs md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.15em] transition-all ${
+                                            currentMonth === month 
+                                                ? 'text-[#880000] bg-slate-50 border-b-2 border-[#880000]' 
+                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        Month {month}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            {/* Days Grid - Swiss - Larger on mobile */}
+                            <div className="p-3 sm:p-4">
+                                <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
+                                    {allMonthsData[currentMonth].map((d) => {
+                                        const isPracticed = isDayPracticed(currentMonth, d.day);
+                                        const isLocked = d.day > 1 && !isDayPracticed(currentMonth, d.day - 1);
+                                        return (
+                                            <button
+                                                key={d.day}
+                                                onClick={() => {
+                                                    handleDayClick(d.day);
+                                                    setIsMonthSelectorClosing(true);
+                                                    setTimeout(() => { setIsMonthSelectorOpen(false); setIsMonthSelectorClosing(false); }, 300);
+                                                }}
+                                                className={`aspect-square text-sm font-bold transition-all ${
+                                                    currentDay === d.day
+                                                        ? 'bg-[#880000] text-white'
+                                                        : isPracticed
+                                                            ? 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
+                                                            : isLocked
+                                                                ? 'bg-slate-50 text-slate-200 cursor-not-allowed'
+                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
                                                 }`}
-                                            title={isLocked ? 'Complete previous day first' : isPracticed ? 'Practiced' : ''}
-                                        >
-                                            {d.day}
-                                        </button>
-                                    );
-                                })}
+                                                disabled={isLocked}
+                                            >
+                                                {d.day}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            
+                            {/* Legend - Swiss Minimal */}
+                            <div className="px-4 pb-4 pt-3 border-t border-slate-100">
+                                <div className="flex items-center justify-center gap-4 md:gap-6 text-[10px] md:text-[9px] text-slate-400 uppercase tracking-wider">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-2.5 h-2.5 md:w-2 md:h-2 bg-[#880000]"></div>
+                                        <span>Current</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-2.5 h-2.5 md:w-2 md:h-2 bg-green-100 border border-green-300"></div>
+                                        <span>Done</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-2.5 h-2.5 md:w-2 md:h-2 bg-slate-100 border border-slate-200"></div>
+                                        <span>Open</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    )}
-
-                    {/* Calendar Button */}
-                    <button
-                        onClick={() => {
-                            if (isMonthSelectorOpen) {
-                                setIsMonthSelectorClosing(true);
-                                setTimeout(() => {
-                                    setIsMonthSelectorOpen(false);
-                                    setIsMonthSelectorClosing(false);
-                                }, 300);
-                            } else {
-                                setIsMounting(true);
-                                setIsMonthSelectorOpen(true);
-                                requestAnimationFrame(() => {
-                                    requestAnimationFrame(() => {
-                                        setIsMounting(false);
-                                    });
-                                });
-                            }
-                        }}
-                        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#880000] hover:bg-[#770000] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
-                        title={isMonthSelectorOpen ? "Hide Month Selector" : "Show Month Selector"}
-                    >
-                        <Calendar size={24} />
-                    </button>
-                </div>
+                    </>
+                )}
 
             </div>
         </>

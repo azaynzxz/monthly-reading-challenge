@@ -21,11 +21,15 @@ const ReadingCard = ({
     progress,
     isDayPracticed,
     practicedDays,
-    triggerPracticeTooltip
+    triggerPracticeTooltip,
+    onOpenMonthSelector,
+    preloadedImages = {},
+    onReady
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [focusedChunk, setFocusedChunk] = useState(null);
     const [highlightIndex, setHighlightIndex] = useState(-1);
     const [voices, setVoices] = useState([]);
     const [selectedVoice, setSelectedVoice] = useState(null);
@@ -47,11 +51,14 @@ const ReadingCard = ({
     const [isPrintGenerating, setIsPrintGenerating] = useState(false);
     const [showAssessment, setShowAssessment] = useState(false);
     const [wikiImage, setWikiImage] = useState(null);
-    const [prevWikiImage, setPrevWikiImage] = useState(null);
-    const [isLoadingImage, setIsLoadingImage] = useState(false);
-    const [imageOpacity, setImageOpacity] = useState(0);
+    const [isLoadingImage, setIsLoadingImage] = useState(true);
     const [showImageModal, setShowImageModal] = useState(false);
     const [isImageModalClosing, setIsImageModalClosing] = useState(false);
+    const [isContentReady, setIsContentReady] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [transitionDirection, setTransitionDirection] = useState('none'); // 'left', 'right', 'none'
+    const [hasAnimated, setHasAnimated] = useState(false);
+    const prevDayRef = useRef(currentDay);
     const practiceButtonRef = useRef(null);
     const posterCanvasRef = useRef(null);
     const printContentRef = useRef(null);
@@ -73,6 +80,34 @@ const ReadingCard = ({
             return () => clearTimeout(timer);
         }
     }, [triggerPracticeTooltip]);
+
+    // Handle page transitions when day changes
+    useEffect(() => {
+        if (prevDayRef.current !== currentDay) {
+            // Determine direction
+            const direction = currentDay > prevDayRef.current ? 'left' : 'right';
+            setTransitionDirection(direction);
+            setIsTransitioning(true);
+            
+            // Reset transition after animation completes
+            const timer = setTimeout(() => {
+                setIsTransitioning(false);
+                setTransitionDirection('none');
+                setHasAnimated(true);
+            }, 400);
+            
+            prevDayRef.current = currentDay;
+            return () => clearTimeout(timer);
+        }
+    }, [currentDay]);
+
+    // Mark as animated after initial fade-in completes
+    useEffect(() => {
+        if (isContentReady && !hasAnimated) {
+            const timer = setTimeout(() => setHasAnimated(true), 600);
+            return () => clearTimeout(timer);
+        }
+    }, [isContentReady, hasAnimated]);
     const utteranceRef = useRef(null);
     const selectedVoiceNameRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -178,44 +213,61 @@ const ReadingCard = ({
     }, [activeData]);
 
     // Fetch Wikipedia image based on wikiSearch field, title, or country
+    // Load image FIRST, then show UI
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchWikiImage = async () => {
-            if (!activeData?.title) {
-                setPrevWikiImage(wikiImage);
-                setWikiImage(null);
-                setImageOpacity(0);
-                return;
-            }
-
-            // Create cache key based on day and month
-            const cacheKey = `${activeData.day}-${activeData.wikiSearch || activeData.title}`;
-
-            // Check cache first
-            if (imageCache.current[cacheKey]) {
-                // Keep previous image visible during transition
-                setPrevWikiImage(wikiImage);
-                // Set new image with opacity 0 first
-                setWikiImage(imageCache.current[cacheKey]);
-                setImageOpacity(0);
-                // Use requestAnimationFrame to ensure DOM update before transition
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        setImageOpacity(1);
-                        // Clear previous image after fade in completes
-                        setTimeout(() => setPrevWikiImage(null), 2000);
-                    });
-                });
-                return;
-            }
-
+            // Reset states for new content
+            setIsContentReady(false);
             setIsLoadingImage(true);
-            // Keep previous image visible during loading
-            setPrevWikiImage(wikiImage);
-            setImageOpacity(0);
+            
+            if (!activeData?.title) {
+                setWikiImage(null);
+                setIsLoadingImage(false);
+                setIsContentReady(true);
+                onReady?.();
+                return;
+            }
 
-            // Priority: wikiSearch field (manually set) > title > country
+            // Create cache keys
+            const localCacheKey = `${activeData.day}-${activeData.wikiSearch || activeData.title}`;
+            const preloadCacheKey = `${currentMonth}-${activeData.day}`;
+
+            // Check preloaded images first (from parent component)
+            if (preloadedImages[preloadCacheKey]) {
+                if (isMounted) {
+                    setWikiImage(preloadedImages[preloadCacheKey]);
+                    setIsLoadingImage(false);
+                    // Small delay for smooth reveal
+                    setTimeout(() => {
+                        if (isMounted) {
+                            setIsContentReady(true);
+                            onReady?.();
+                        }
+                    }, 50);
+                }
+                return;
+            }
+
+            // Check local cache
+            if (imageCache.current[localCacheKey]) {
+                if (isMounted) {
+                    setWikiImage(imageCache.current[localCacheKey]);
+                    setIsLoadingImage(false);
+                    setTimeout(() => {
+                        if (isMounted) {
+                            setIsContentReady(true);
+                            onReady?.();
+                        }
+                    }, 50);
+                }
+                return;
+            }
+
+            // Need to fetch from API
             const searchTerms = [
-                activeData.wikiSearch,  // e.g., "Taj Mahal" - manually specified
+                activeData.wikiSearch,
                 activeData.title,
                 activeData.country !== "TBD" ? activeData.country : null
             ].filter(Boolean);
@@ -230,41 +282,33 @@ const ReadingCard = ({
                         const data = await response.json();
                         const imageUrl = data.originalimage?.source || data.thumbnail?.source;
 
-                        // Skip if no image or if it's an SVG (usually flags/icons)
                         if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
-                            // Preload and cache image before displaying
-                            await new Promise((resolve, reject) => {
+                            // Preload the image before showing UI
+                            await new Promise((resolve) => {
                                 const img = new Image();
                                 img.onload = () => {
-                                    // Image is fully loaded and cached
-                                    const imageData = {
-                                        url: imageUrl,
-                                        title: activeData.wikiSearch || data.title, // Use wikiSearch as title
-                                        description: data.extract,
-                                        searchTerm: activeData.wikiSearch || term
-                                    };
-
-                                    // Store in cache
-                                    imageCache.current[cacheKey] = imageData;
-
-                                    setWikiImage(imageData);
-                                    setIsLoadingImage(false);
-                                    // Fade in the image - use requestAnimationFrame for smooth transition
-                                    setImageOpacity(0);
-                                    requestAnimationFrame(() => {
-                                        requestAnimationFrame(() => {
-                                            setImageOpacity(1);
-                                            // Clear previous image after fade in completes
-                                            setTimeout(() => setPrevWikiImage(null), 2000);
-                                        });
-                                    });
+                                    if (isMounted) {
+                                        const imageData = {
+                                            url: imageUrl,
+                                            title: activeData.wikiSearch || data.title,
+                                            description: data.extract,
+                                            searchTerm: activeData.wikiSearch || term
+                                        };
+                                        imageCache.current[localCacheKey] = imageData;
+                                        setWikiImage(imageData);
+                                        setIsLoadingImage(false);
+                                        setTimeout(() => {
+                                            if (isMounted) {
+                                                setIsContentReady(true);
+                                                onReady?.();
+                                            }
+                                        }, 50);
+                                    }
                                     resolve();
                                 };
                                 img.onerror = () => {
-                                    // Image failed to load, try next term
-                                    reject(new Error('Image load failed'));
+                                    resolve(); // Continue even if image fails
                                 };
-                                // Start loading the image
                                 img.src = imageUrl;
                             });
                             return;
@@ -275,12 +319,19 @@ const ReadingCard = ({
                 }
             }
 
-            setWikiImage(null);
-            setIsLoadingImage(false);
+            // No image found - still show UI
+            if (isMounted) {
+                setWikiImage(null);
+                setIsLoadingImage(false);
+                setIsContentReady(true);
+                onReady?.();
+            }
         };
 
         fetchWikiImage();
-    }, [activeData?.wikiSearch, activeData?.title, activeData?.country, activeData?.day]);
+        
+        return () => { isMounted = false; };
+    }, [activeData?.wikiSearch, activeData?.title, activeData?.country, activeData?.day, currentMonth, preloadedImages]);
 
     // Fetch word definition using Free Dictionary API
     const fetchWordDefinition = async (word) => {
@@ -444,57 +495,24 @@ const ReadingCard = ({
         }
     };
 
-    // Typing animation when data changes
+    // Text reveal animation - Performance-friendly CSS-based approach
+    // Instead of word-by-word JS animation, use CSS for smooth fade-slide effect
+    const [textKey, setTextKey] = useState(0);
+    
     useEffect(() => {
-        // Clear any existing typing animation
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-        const fullText = activeData.text;
-        const words = fullText.split(' ');
-        setDisplayedText('');
+        // Simply show full text immediately, let CSS handle the animation
+        setDisplayedText(activeData.text);
         setIsTyping(true);
-
-        let currentWordIndex = 0;
-        const maxAnimationTime = 1500; // 1.5 seconds maximum
-        const wordCount = words.length;
-        const baseDelay = Math.max(15, Math.floor(maxAnimationTime / wordCount));
-
-        // Quint easing function (easeInOutQuint) - smooth acceleration and deceleration
-        const easeInOutQuint = (t) => {
-            return t < 0.5
-                ? 16 * t * t * t * t * t
-                : 1 - Math.pow(-2 * t + 2, 5) / 2;
-        };
-
-        const typeWord = () => {
-            if (currentWordIndex < wordCount) {
-                const wordsToShow = words.slice(0, currentWordIndex + 1);
-                setDisplayedText(wordsToShow.join(' '));
-                currentWordIndex++;
-
-                // Calculate progress (0 to 1)
-                const progress = currentWordIndex / wordCount;
-                // Apply quint easing for smooth acceleration/deceleration
-                const easedProgress = easeInOutQuint(progress);
-                // Adjust delay based on easing - slower at start/end, faster in middle
-                const delay = Math.floor(baseDelay * (1.5 - easedProgress * 0.5));
-
-                typingTimeoutRef.current = setTimeout(typeWord, delay);
-            } else {
-                setIsTyping(false);
-            }
-        };
-
-        // Start typing after a small delay
-        typingTimeoutRef.current = setTimeout(typeWord, 50);
-
-        return () => {
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
-        };
+        
+        // Increment key to trigger CSS animation on text change
+        setTextKey(prev => prev + 1);
+        
+        // Mark typing as done after CSS animation completes
+        const timer = setTimeout(() => {
+            setIsTyping(false);
+        }, 1500); // Match CSS animation duration (1.2s + stagger)
+        
+        return () => clearTimeout(timer);
     }, [activeData]);
 
     const handleSpeak = () => {
@@ -712,184 +730,187 @@ ${shareLink}`;
         }
     };
 
+    // Show loading skeleton while content loads
+    if (!isContentReady) {
+        return (
+            <div className="bg-white shadow-xl overflow-hidden border-l-4 border-[#880000] animate-skeleton-in">
+                {/* Loading Skeleton - Swiss Design */}
+                <div className="min-h-[180px] md:min-h-[220px] lg:min-h-[260px] bg-slate-100 relative overflow-hidden">
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                    </div>
+                    {/* Gradient overlay placeholder */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-200/80 via-transparent to-transparent" />
+                </div>
+                {/* Content skeleton */}
+                <div className="p-6 md:p-8 lg:p-10 space-y-4">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-8 h-0.5 bg-slate-200"></div>
+                        <div className="h-3 w-24 bg-slate-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div>
+                        <div className="h-4 bg-slate-200 rounded w-5/6 animate-pulse" style={{ animationDelay: '75ms' }}></div>
+                        <div className="h-4 bg-slate-200 rounded w-4/6 animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Determine animation class based on transition state
+    const getTransitionClass = () => {
+        if (isTransitioning) {
+            return transitionDirection === 'left' 
+                ? 'animate-page-enter-left' 
+                : 'animate-page-enter-right';
+        }
+        // Only fade in on first load, no animation after
+        if (!hasAnimated) {
+            return 'animate-fade-in';
+        }
+        return '';
+    };
+
     return (
-        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#880000] overflow-hidden">
-            {/* Hero Header with Image Background */}
+        <div 
+            key={isTransitioning ? `${currentMonth}-${currentDay}` : 'stable'}
+            className={`bg-white shadow-xl overflow-hidden border-l-4 border-[#880000] ${getTransitionClass()}`}
+        >
+            {/* Hero Header with Image Background - Swiss Design */}
             <div
-                className={`relative overflow-hidden rounded-t-2xl ${wikiImage || prevWikiImage || isLoadingImage ? 'min-h-[200px] md:min-h-[240px] lg:min-h-[280px]' : ''}`}
+                className={`relative overflow-hidden ${wikiImage ? 'min-h-[180px] md:min-h-[220px] lg:min-h-[260px]' : ''}`}
             >
-                {/* Background Image */}
-                {(wikiImage || prevWikiImage || isLoadingImage) && (
+                {/* Background Image - Already loaded */}
+                {wikiImage && (
                     <div
-                        className={`absolute inset-0 rounded-t-2xl overflow-hidden ${wikiImage ? 'cursor-pointer' : ''}`}
-                        onClick={() => wikiImage && setShowImageModal(true)}
+                        className="absolute inset-0 overflow-hidden cursor-pointer"
+                        onClick={() => setShowImageModal(true)}
                     >
-                        {/* Previous image - fade out */}
-                        {prevWikiImage && prevWikiImage.url !== wikiImage?.url && (
-                            <img
-                                src={prevWikiImage.url}
-                                alt={prevWikiImage.title}
-                                className="absolute inset-0 w-full h-full object-cover rounded-t-2xl"
-                                style={{
-                                    opacity: wikiImage ? 0 : 1,
-                                    transition: 'opacity 2000ms ease-in-out',
-                                    zIndex: 0,
-                                    willChange: 'opacity'
-                                }}
-                            />
-                        )}
-                        
-                        {/* Loading placeholder */}
-                        {isLoadingImage && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse z-[1] rounded-t-2xl" />
-                        )}
-                        
-                        {/* Current image - fade in */}
-                        {wikiImage && (
-                            <>
-                                <img
-                                    src={wikiImage.url}
-                                    alt={wikiImage.title}
-                                    className="absolute inset-0 w-full h-full object-cover rounded-t-2xl"
-                                    style={{
-                                        opacity: imageOpacity,
-                                        transition: 'opacity 2000ms ease-in-out',
-                                        zIndex: 2,
-                                        willChange: 'opacity'
-                                    }}
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        setWikiImage(null);
-                                    }}
-                                />
-                                {/* Dark gradient overlay for content readability */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30 z-[3] rounded-t-2xl" />
-                            </>
-                        )}
+                        <img
+                            src={wikiImage.url}
+                            alt={wikiImage.title}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                                setWikiImage(null);
+                            }}
+                        />
+                        {/* Dark gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
                     </div>
                 )}
 
-                {/* Content Overlay - Split into TOP and BOTTOM */}
-                {/* TOP: Metadata and Buttons */}
-                <div className={`relative z-10 p-4 md:p-6 lg:p-8 ${wikiImage ? 'pointer-events-none' : 'bg-[#880000]/5 border-b border-slate-100'} ${wikiImage ? 'absolute top-0 left-0 right-0' : ''}`}>
-                    {/* Row 1: Metadata and Action Buttons */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3 mb-3 md:mb-4 relative">
-                        {/* Metadata */}
-                        <div className={`flex items-center justify-between sm:justify-start gap-2 font-bold text-xs md:text-sm uppercase tracking-wide w-full sm:w-auto ${wikiImage ? 'text-white' : 'text-[#880000]'}`}>
-                            <span className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-xs md:text-sm ${wikiImage ? 'bg-white/20 backdrop-blur-sm' : 'bg-[#880000]/10'}`}>Month {currentMonth} - Day {activeData.day}</span>
+                {/* Content Overlay - Swiss Design Split Layout */}
+                {/* TOP: Metadata and Action Buttons */}
+                <div className={`relative z-10 p-4 md:p-6 ${wikiImage ? 'pointer-events-none' : 'bg-slate-50 border-b border-slate-100'} ${wikiImage ? 'absolute top-0 left-0 right-0' : ''}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 relative">
+                        {/* Left: Day Selector + Location */}
+                        <div className={`flex items-center gap-3 pointer-events-auto ${wikiImage ? 'text-white' : 'text-slate-900'}`}>
+                            {/* Day Selector - Swiss Pill */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onOpenMonthSelector?.(); }}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] md:text-xs font-bold uppercase tracking-[0.15em] transition-all cursor-pointer z-20 ${wikiImage ? 'bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white' : 'bg-slate-900 text-white hover:bg-[#880000]'}`}
+                            >
+                                <span>M{currentMonth} · D{activeData.day}</span>
+                                <ChevronDown size={10} className="md:w-3 md:h-3" />
+                            </button>
+                            {/* Location */}
                             {activeData.country !== "TBD" && (
-                                <span className="flex items-center gap-1 md:gap-1.5 text-xs md:text-sm"><Globe size={12} className="md:w-3.5 md:h-3.5" /> {activeData.country}</span>
-                            )}
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-1.5 md:gap-2 w-full sm:w-auto pointer-events-auto">
-                            {/* Print Button */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handlePrint(); }}
-                                className={`flex items-center justify-center p-1.5 md:p-2 rounded-lg font-semibold transition-colors flex-1 sm:flex-initial ${wikiImage ? 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm' : 'bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] border border-[#880000]/20'}`}
-                                title="Print Story"
-                            >
-                                <Printer size={12} className="md:w-4 md:h-4" />
-                            </button>
-                            {/* Save Button */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onDownload(); }}
-                                disabled={isGenerating}
-                                className={`flex items-center justify-center p-1.5 md:p-2 rounded-lg font-semibold transition-colors disabled:opacity-50 flex-1 sm:flex-initial ${wikiImage ? 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm' : 'bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] border border-[#880000]/20'}`}
-                                title={isGenerating ? 'Saving...' : 'Save Image'}
-                            >
-                                <Download size={12} className="md:w-4 md:h-4" />
-                            </button>
-                            {/* Copy Button */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); handleCopy(); }}
-                                className={`flex items-center justify-center p-1.5 md:p-2 rounded-lg font-semibold transition-colors flex-1 sm:flex-initial ${copied ? 'bg-green-500/80 text-white' : wikiImage ? 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm' : 'bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] border border-[#880000]/20'}`}
-                                title={copied ? 'Copied!' : 'Copy for Sharing'}
-                            >
-                                {copied ? <Check size={12} className="md:w-4 md:h-4" /> : <Copy size={12} className="md:w-4 md:h-4" />}
-                            </button>
-                            {/* Share Button */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsShareModalClosing(false);
-                                    setIsPosterReady(false);
-                                    posterCanvasRef.current = null;
-                                    setShowShareModal(true);
-                                }}
-                                className={`flex items-center justify-center p-1.5 md:p-2 rounded-lg font-semibold transition-colors flex-1 sm:flex-initial ${wikiImage ? 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm' : 'bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] border border-[#880000]/20'}`}
-                                title="Share your progress"
-                            >
-                                <Share2 size={12} className="md:w-4 md:h-4" />
-                            </button>
-                            {/* Assessment Button */}
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setShowAssessment(true); }}
-                                className={`flex items-center justify-center p-1.5 md:p-2 rounded-lg font-semibold transition-colors flex-1 sm:flex-initial ${wikiImage ? 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm' : 'bg-[#880000]/5 hover:bg-[#880000]/10 text-[#880000] border border-[#880000]/20'}`}
-                                title="Take Reading Assessment"
-                            >
-                                <ClipboardCheck size={12} className="md:w-4 md:h-4" />
-                            </button>
-                            {/* Practice Button */}
-                            <div className="relative flex-1 sm:flex-initial z-10">
-                                <button
-                                    ref={practiceButtonRef}
-                                    onClick={(e) => { e.stopPropagation(); onToggleTeleprompter(); }}
-                                    onMouseEnter={() => {
-                                        setIsPracticeTooltipClosing(false);
-                                        setShowPracticeTooltip(true);
-                                    }}
-                                    onMouseLeave={() => {
-                                        setIsPracticeTooltipClosing(true);
-                                        setTimeout(() => {
-                                            setShowPracticeTooltip(false);
-                                            setIsPracticeTooltipClosing(false);
-                                        }, 300);
-                                    }}
-                                    onTouchStart={() => {
-                                        setIsPracticeTooltipClosing(false);
-                                        setShowPracticeTooltip(true);
-                                        setTimeout(() => {
-                                            setIsPracticeTooltipClosing(true);
-                                            setTimeout(() => {
-                                                setShowPracticeTooltip(false);
-                                                setIsPracticeTooltipClosing(false);
-                                            }, 300);
-                                        }, 3000);
-                                    }}
-                                    className="relative flex items-center justify-center gap-1 md:gap-1.5 bg-[#880000] hover:bg-[#770000] text-white px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-red-900/20 text-[10px] md:text-xs lg:text-sm whitespace-nowrap w-full overflow-visible shine-effect"
-                                >
-                                    <Mic size={12} className="md:w-4 md:h-4" />
-                                    <span>Practice</span>
-                                </button>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-
-                {/* BOTTOM: Title (left) and Listen (right) */}
-                <div className={`relative z-10 ${wikiImage ? 'absolute bottom-0 left-0 right-0 pointer-events-none' : ''} px-4 pt-20 pb-2 md:px-6 md:pt-20 md:pb-4 lg:px-8 lg:pt-20 lg:pb-6 ${wikiImage ? '' : 'pb-4'}`}>
-                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                        {/* Title - Bottom Left */}
-                        <div>
-                            <h2 className={`text-xl md:text-2xl lg:text-3xl font-bold leading-tight ${wikiImage ? 'text-white drop-shadow-lg' : 'text-slate-800'}`}>{activeData.title}</h2>
-                            {/* Wikipedia Image Attribution */}
-                            {wikiImage && (
-                                <span className="text-white/50 text-[10px] flex items-center gap-1 mt-1">
-                                    <ImageIcon size={10} />
-                                    {wikiImage.title} • Wikipedia
+                                <span className={`flex items-center gap-1.5 text-[10px] md:text-xs uppercase tracking-[0.1em] ${wikiImage ? 'text-white/70' : 'text-slate-500'}`}>
+                                    <Globe size={10} className="md:w-3 md:h-3" />
+                                    {activeData.country}
                                 </span>
                             )}
                         </div>
 
-                        {/* Listen UI - Bottom Right */}
-                        <div className={`flex items-center gap-1 md:gap-1.5 p-1 md:p-1.5 rounded-lg shadow-sm sm:min-w-[180px] pointer-events-auto ${wikiImage ? 'bg-white/20 backdrop-blur-sm border border-white/20' : 'bg-white border border-slate-200'}`}>
+                        {/* Right: Action Buttons - Swiss Minimal */}
+                        <div className="flex items-center gap-1 pointer-events-auto">
+                            {/* Print */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handlePrint(); }}
+                                className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 transition-colors duration-200 ${wikiImage ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`}
+                                title="Print"
+                            >
+                                <Printer size={14} className="md:w-4 md:h-4" />
+                            </button>
+                            {/* Download */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onDownload(); }}
+                                disabled={isGenerating}
+                                className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 transition-colors duration-200 disabled:opacity-50 ${wikiImage ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`}
+                                title="Save"
+                            >
+                                <Download size={14} className="md:w-4 md:h-4" />
+                            </button>
+                            {/* Copy */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleCopy(); }}
+                                className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 transition-colors duration-200 ${copied ? 'bg-green-500 text-white' : wikiImage ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`}
+                                title={copied ? 'Copied!' : 'Copy'}
+                            >
+                                {copied ? <Check size={14} className="md:w-4 md:h-4" /> : <Copy size={14} className="md:w-4 md:h-4" />}
+                            </button>
+                            {/* Share */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsShareModalClosing(false); setIsPosterReady(false); posterCanvasRef.current = null; setShowShareModal(true); }}
+                                className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 transition-colors duration-200 ${wikiImage ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`}
+                                title="Share"
+                            >
+                                <Share2 size={14} className="md:w-4 md:h-4" />
+                            </button>
+                            {/* Quiz */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setShowAssessment(true); }}
+                                className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 transition-colors duration-200 ${wikiImage ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`}
+                                title="Quiz"
+                            >
+                                <ClipboardCheck size={14} className="md:w-4 md:h-4" />
+                            </button>
+                            
+                            {/* Practice Button - Swiss CTA */}
+                            <div className="relative ml-1 z-10">
+                                <button
+                                    ref={practiceButtonRef}
+                                    onClick={(e) => { e.stopPropagation(); onToggleTeleprompter(); }}
+                                    onMouseEnter={() => { setIsPracticeTooltipClosing(false); setShowPracticeTooltip(true); }}
+                                    onMouseLeave={() => { setIsPracticeTooltipClosing(true); setTimeout(() => { setShowPracticeTooltip(false); setIsPracticeTooltipClosing(false); }, 300); }}
+                                    onTouchStart={() => { setIsPracticeTooltipClosing(false); setShowPracticeTooltip(true); setTimeout(() => { setIsPracticeTooltipClosing(true); setTimeout(() => { setShowPracticeTooltip(false); setIsPracticeTooltipClosing(false); }, 300); }, 3000); }}
+                                    className="flex items-center gap-1.5 bg-[#880000] hover:bg-slate-900 text-white px-3 md:px-4 py-2 md:py-2.5 font-bold text-[10px] md:text-xs uppercase tracking-[0.1em] transition-all"
+                                >
+                                    <Mic size={12} className="md:w-3.5 md:h-3.5" />
+                                    <span>Practice</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BOTTOM: Title and Listen - Swiss Typography */}
+                <div className={`relative z-10 ${wikiImage ? 'absolute bottom-0 left-0 right-0 pointer-events-none' : ''} px-4 pt-16 pb-4 md:px-6 md:pt-20 md:pb-6 ${wikiImage ? '' : 'pt-4 pb-4'}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                        {/* Title - Swiss Typography */}
+                        <div className="flex-1">
+                            {/* Accent Line */}
+                            <div className={`w-8 h-0.5 mb-3 ${wikiImage ? 'bg-white/40' : 'bg-[#880000]'}`}></div>
+                            <h2 className={`text-xl md:text-2xl lg:text-3xl font-bold leading-[1.1] tracking-tight ${wikiImage ? 'text-white' : 'text-slate-900'}`}>
+                                {activeData.title}
+                            </h2>
+                            {/* Wikipedia Attribution */}
+                            {wikiImage && (
+                                <span className="text-white/40 text-[9px] md:text-[10px] flex items-center gap-1 mt-2 uppercase tracking-[0.15em]">
+                                    <ImageIcon size={9} />
+                                    {wikiImage.title} · Wikipedia
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Listen UI - Swiss Minimal */}
+                        <div className={`flex items-center gap-0 pointer-events-auto ${wikiImage ? 'bg-white/10 backdrop-blur-sm' : 'bg-slate-100'}`}>
                             {/* Voice Selector */}
                             {voices.length > 0 && (
-                                <div className="relative flex-[3]">
+                                <div className="relative">
                                     <select
                                         value={selectedVoice?.name || ''}
                                         onChange={(e) => {
@@ -899,77 +920,148 @@ ${shareLink}`;
                                         }}
                                         onFocus={refreshVoices}
                                         onMouseDown={refreshVoices}
-                                        className="appearance-none bg-white pl-1.5 md:pl-2.5 pr-5 md:pr-7 py-1 md:py-1.5 rounded-md font-medium text-[10px] md:text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#880000]/20 w-full transition-colors text-slate-700 hover:text-[#880000] absolute inset-0 z-10"
-                                        style={{ opacity: 0.01 }}
+                                        className="appearance-none bg-transparent pl-3 pr-7 py-2 md:py-2.5 font-medium text-[10px] md:text-xs cursor-pointer focus:outline-none w-full transition-colors absolute inset-0 z-10 opacity-[0.01]"
                                     >
                                         {voices.map(v => (
-                                            <option key={v.name} value={v.name} className="bg-white text-slate-700">
+                                            <option key={v.name} value={v.name}>
                                                 {v.name.replace(/Microsoft |Google |English |United States/g, '').replace(/\s*\(\s*\)/g, '').replace(/\s*-\s*$/, '').trim()}
                                             </option>
                                         ))}
                                     </select>
-                                    <div className={`pointer-events-none pl-1.5 md:pl-2.5 pr-5 md:pr-7 py-1 md:py-1.5 text-[10px] md:text-xs font-medium truncate overflow-hidden text-ellipsis whitespace-nowrap ${wikiImage ? 'text-white' : 'text-slate-700'}`}>
+                                    <div className={`pointer-events-none pl-3 pr-7 py-2 md:py-2.5 text-[10px] md:text-xs font-medium truncate max-w-[100px] md:max-w-[120px] ${wikiImage ? 'text-white' : 'text-slate-600'}`}>
                                         {(selectedVoice?.name || selectedVoiceNameRef.current) ? (selectedVoice?.name || selectedVoiceNameRef.current).replace(/Microsoft |Google |English |United States/g, '').replace(/\s*\(\s*\)/g, '').replace(/\s*-\s*$/, '').trim() : 'Zira'}
                                     </div>
-                                    <div className={`absolute right-1 md:right-1.5 top-1/2 transform -translate-y-1/2 pointer-events-none z-20 ${wikiImage ? 'text-white/60' : 'text-slate-400'}`}>
-                                        <ChevronDown size={10} className="md:w-3 md:h-3" />
+                                    <div className={`absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none z-20 ${wikiImage ? 'text-white/50' : 'text-slate-400'}`}>
+                                        <ChevronDown size={10} />
                                     </div>
                                 </div>
                             )}
 
+                            {/* Divider */}
+                            <div className={`w-px h-6 ${wikiImage ? 'bg-white/20' : 'bg-slate-300'}`}></div>
+
                             {/* Listen Button */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleSpeak(); }}
-                                className={`flex items-center justify-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 md:py-1.5 rounded-md font-semibold text-[10px] md:text-xs transition-all whitespace-nowrap flex-1 ${isSpeaking ? 'bg-red-500/80 text-white animate-pulse' : wikiImage ? 'text-white hover:bg-white/20' : 'text-slate-700 hover:text-[#880000] hover:bg-slate-50'}`}
+                                className={`flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 font-bold text-[10px] md:text-xs uppercase tracking-[0.1em] transition-all ${
+                                    isSpeaking 
+                                        ? 'bg-[#880000] text-white' 
+                                        : wikiImage 
+                                            ? 'text-white hover:bg-white/10' 
+                                            : 'text-slate-700 hover:bg-slate-200'
+                                }`}
                             >
-                                {isSpeaking ? <Square size={12} className="md:w-3.5 md:h-3.5" fill="currentColor" /> : <Volume2 size={12} className="md:w-3.5 md:h-3.5" />}
-                                <span className="hidden sm:inline">{isSpeaking ? 'Stop' : 'Listen'}</span>
+                                {isSpeaking ? <Square size={10} className="md:w-3 md:h-3" fill="currentColor" /> : <Volume2 size={10} className="md:w-3 md:h-3" />}
+                                <span>{isSpeaking ? 'Stop' : 'Listen'}</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Reading Content */}
-            <div className="p-6 md:p-10">
-                <div className="mb-4">
-                    <span className="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">Read Aloud</span>
-                    <p className="text-lg md:text-2xl leading-relaxed text-slate-700 font-medium">
-                        {displayedText.split(' ').map((word, index) => {
-                            const isHighlighted = index === highlightIndex && !isTyping;
-                            const cleanWord = word.toLowerCase().replace(/[.,!?;:()"'-]/g, '');
-                            const isDifficult = isDifficultWord(cleanWord);
-                            const isSaved = savedWords.find(w => w.word === cleanWord);
-                            const isSelected = selectedWord === cleanWord;
-
-                            return (
-                                <React.Fragment key={index}>
-                                    <span
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            handleWordClick(word, e);
-                                        }}
-                                        className={`transition-all duration-200 rounded px-1 cursor-pointer ${isHighlighted ? 'bg-yellow-300 text-slate-900 shadow-sm' :
-                                            isSelected ? 'bg-blue-200 text-blue-900 shadow-sm' :
-                                                isSaved ? 'bg-green-100 text-green-800' :
-                                                    isDifficult ? 'text-[#4a1a1a] hover:text-[#5a2a2a]' :
-                                                        'hover:bg-slate-100'
-                                            }`}
-                                        title={isSaved ? 'Saved to vocabulary - Click to view' : isDifficult ? 'Difficult word - Click for definition' : 'Click for definition'}
+            {/* Reading Content - Swiss Design */}
+            <div className="p-6 md:p-8 lg:p-10">
+                <div className="mb-6">
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-0.5 bg-[#880000]"></div>
+                            <span className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">Read Aloud</span>
+                        </div>
+                        {focusedChunk !== null && (
+                            <button
+                                onClick={() => setFocusedChunk(null)}
+                                className="text-[10px] md:text-xs text-slate-400 hover:text-[#880000] font-medium uppercase tracking-wider transition-colors"
+                            >
+                                Show All
+                            </button>
+                        )}
+                    </div>
+                    
+                    {/* Reading Chunks - Swiss Typography with Wipe Animation */}
+                    <div key={textKey} className="space-y-6">
+                        {(() => {
+                            // Split text into chunks (2-3 sentences each)
+                            const sentences = displayedText.match(/[^.!?]+[.!?]+/g) || [displayedText];
+                            const chunks = [];
+                            for (let i = 0; i < sentences.length; i += 2) {
+                                chunks.push(sentences.slice(i, i + 2).join(' ').trim());
+                            }
+                            
+                            let globalWordIndex = 0;
+                            
+                            return chunks.map((chunk, chunkIndex) => {
+                                const chunkWords = chunk.split(' ');
+                                const startWordIndex = globalWordIndex;
+                                globalWordIndex += chunkWords.length;
+                                
+                                const isFocused = focusedChunk === null || focusedChunk === chunkIndex;
+                                const isActive = focusedChunk === chunkIndex;
+                                
+                                return (
+                                    <div
+                                        key={chunkIndex}
+                                        onClick={() => setFocusedChunk(focusedChunk === chunkIndex ? null : chunkIndex)}
+                                        className={`relative cursor-pointer transition-all duration-300 animate-wipe-reveal ${
+                                            isFocused ? 'opacity-100' : 'opacity-20 hover:opacity-40'
+                                        }`}
+                                        style={{ animationDelay: `${chunkIndex * 150}ms` }}
                                     >
-                                        {word}
-                                    </span>
-                                    {' '}
-                                </React.Fragment>
-                            );
-                        })}
-                    </p>
+                                        {/* Chunk Number - Swiss Style */}
+                                        <div className={`absolute -left-2 md:-left-4 top-0 text-[10px] font-bold transition-colors ${isActive ? 'text-[#880000]' : 'text-slate-200'}`}>
+                                            {String(chunkIndex + 1).padStart(2, '0')}
+                                        </div>
+                                        
+                                        {/* Text Content */}
+                                        <p className={`text-lg md:text-xl leading-[1.85] md:leading-[1.95] text-slate-700 font-normal pl-4 md:pl-6 transition-all duration-300 ${
+                                            isActive ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2' : 'border-l border-transparent hover:border-slate-200'
+                                        }`}>
+                                            {chunkWords.map((word, wordIndexInChunk) => {
+                                                const index = startWordIndex + wordIndexInChunk;
+                                                const isHighlighted = index === highlightIndex && !isTyping;
+                                                const cleanWord = word.toLowerCase().replace(/[.,!?;:()"'-]/g, '');
+                                                const isDifficult = isDifficultWord(cleanWord);
+                                                const isSaved = savedWords.find(w => w.word === cleanWord);
+                                                const isSelected = selectedWord === cleanWord;
 
-                    {/* Word Definition Tooltip */}
+                                                return (
+                                                    <React.Fragment key={index}>
+                                                        <span
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleWordClick(word, e);
+                                                            }}
+                                                            className={`transition-all duration-150 cursor-pointer ${
+                                                                isHighlighted 
+                                                                    ? 'bg-[#880000] text-white px-1' 
+                                                                    : isSelected 
+                                                                        ? 'bg-slate-900 text-white px-1' 
+                                                                        : isSaved 
+                                                                            ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2' 
+                                                                            : isDifficult 
+                                                                                ? 'text-[#880000] hover:bg-[#880000]/10' 
+                                                                                : 'hover:bg-slate-100'
+                                                            }`}
+                                                            title={isSaved ? 'Saved to vocabulary' : isDifficult ? 'Difficult word' : 'Click for definition'}
+                                                        >
+                                                            {word}
+                                                        </span>
+                                                        {' '}
+                                                    </React.Fragment>
+                                                );
+                                            })}
+                                        </p>
+                                    </div>
+                                );
+                            });
+                        })()}
+                    </div>
+
+                    {/* Word Definition Tooltip - Swiss Design */}
                     {selectedWord && wordDefinition && (
                         <div
-                            className={`fixed z-50 bg-white rounded-lg shadow-2xl border border-slate-200 p-4 max-w-sm ${isDefinitionClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
+                            className={`fixed z-50 bg-white shadow-2xl border-l-4 border-[#880000] p-5 max-w-sm ${isDefinitionClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
                             style={{
                                 top: wordPositionRef.current ? `${wordPositionRef.current.top}px` : '50%',
                                 left: wordPositionRef.current
@@ -984,55 +1076,48 @@ ${shareLink}`;
                                     : 'translate(-50%, -50%)'
                             }}
                         >
-                            <div className="flex items-start justify-between mb-2">
+                            {/* Header */}
+                            <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="font-bold text-lg text-slate-800 capitalize">{wordDefinition.word}</h3>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <h3 className="font-bold text-xl text-slate-900 capitalize tracking-tight">{wordDefinition.word}</h3>
                                         <button
                                             onClick={() => {
                                                 const textToSpeak = wordDefinition.word;
                                                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
-                                                if (selectedVoice) {
-                                                    utterance.voice = selectedVoice;
-                                                }
-
+                                                if (selectedVoice) { utterance.voice = selectedVoice; }
                                                 utterance.rate = 0.9;
                                                 utterance.pitch = 1;
-
                                                 window.speechSynthesis.speak(utterance);
                                             }}
-                                            className="p-1.5 text-slate-600 hover:text-[#880000] hover:bg-slate-50 rounded-lg transition-colors"
-                                            title="Listen to pronunciation"
+                                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-[#880000] hover:bg-slate-100 transition-colors"
+                                            title="Listen"
                                         >
                                             <Volume2 size={16} />
                                         </button>
                                     </div>
                                     {wordDefinition.phonetic && (
-                                        <p className="text-sm text-slate-500 italic">{wordDefinition.phonetic}</p>
+                                        <p className="text-sm text-slate-400 font-mono">{wordDefinition.phonetic}</p>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => {
                                         setIsDefinitionClosing(true);
-                                        setTimeout(() => {
-                                            setSelectedWord(null);
-                                            setWordDefinition(null);
-                                            setIsDefinitionClosing(false);
-                                        }, 300);
+                                        setTimeout(() => { setSelectedWord(null); setWordDefinition(null); setIsDefinitionClosing(false); }, 300);
                                     }}
-                                    className="text-slate-400 hover:text-slate-600 ml-2"
+                                    className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors"
                                 >
                                     <X size={18} />
                                 </button>
                             </div>
 
+                            {/* Definitions */}
                             {wordDefinition.meanings && wordDefinition.meanings.length > 0 && (
-                                <div className="mb-3">
+                                <div className="mb-4 space-y-3">
                                     {wordDefinition.meanings.slice(0, 2).map((meaning, idx) => (
-                                        <div key={idx} className="mb-2">
-                                            <span className="text-xs font-semibold text-[#880000] italic">{meaning.partOfSpeech}</span>
-                                            <p className="text-sm text-slate-700 mt-1">
+                                        <div key={idx} className="pl-3 border-l-2 border-slate-100">
+                                            <span className="text-[10px] font-bold text-[#880000] uppercase tracking-[0.1em]">{meaning.partOfSpeech}</span>
+                                            <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                                                 {meaning.definitions[0]?.definition}
                                             </p>
                                         </div>
@@ -1040,21 +1125,22 @@ ${shareLink}`;
                                 </div>
                             )}
 
-                            <div className="flex gap-2">
+                            {/* Action Button */}
+                            <div className="pt-3 border-t border-slate-100">
                                 {savedWords.find(w => w.word === selectedWord) ? (
                                     <button
                                         onClick={() => removeWordFromDictionary(selectedWord)}
-                                        className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider hover:bg-red-50 hover:text-red-600 transition-colors w-full justify-center"
                                     >
-                                        <X size={14} />
-                                        Remove from Dictionary
+                                        <X size={12} />
+                                        Remove
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => saveWordToDictionary(selectedWord)}
-                                        className="flex items-center gap-1 px-3 py-1.5 bg-[#880000] text-white rounded-lg text-xs font-semibold hover:bg-[#770000] transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-[#880000] transition-colors w-full justify-center"
                                     >
-                                        <BookOpen size={14} />
+                                        <BookOpen size={12} />
                                         Save to Dictionary
                                     </button>
                                 )}
@@ -1065,37 +1151,44 @@ ${shareLink}`;
 
             </div>
 
-            {/* Footer Navigation */}
-            <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-between items-center">
+            {/* Footer Navigation - Swiss Minimal */}
+            <div className="border-t border-slate-200 flex items-stretch">
+                {/* Previous */}
                 <button
                     onClick={onPrev}
                     disabled={currentDay === 1}
-                    className="flex items-center gap-2 text-slate-500 hover:text-[#880000] disabled:opacity-30 disabled:hover:text-slate-500 font-semibold px-4 py-2"
+                    className="flex items-center gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 active:bg-slate-100 active:scale-[0.98] disabled:opacity-30 disabled:hover:bg-transparent disabled:active:scale-100 font-medium text-xs uppercase tracking-wider px-4 md:px-6 py-4 transition-all duration-150"
                 >
-                    <ChevronLeft size={20} /> Previous
+                    <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
+                    <span className="hidden sm:inline">Previous</span>
                 </button>
 
-                <div className="hidden md:block text-xs text-slate-400 font-medium text-center">
-                    Review your pronunciation before moving on
+                {/* Center Info */}
+                <div className="flex-1 flex items-center justify-center border-l border-r border-slate-200">
+                    <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-[0.15em]">
+                        Review pronunciation before continuing
+                    </span>
                 </div>
 
+                {/* Next */}
                 <button
                     onClick={onNext}
                     disabled={currentDay === 30 || (isDayPracticed && !isDayPracticed(currentMonth, currentDay))}
-                    className="flex items-center gap-2 text-slate-500 hover:text-[#880000] disabled:opacity-30 disabled:hover:text-slate-500 disabled:cursor-not-allowed font-semibold px-4 py-2"
+                    className="flex items-center gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 active:bg-slate-100 active:scale-[0.98] disabled:opacity-30 disabled:hover:bg-transparent disabled:active:scale-100 disabled:cursor-not-allowed font-medium text-xs uppercase tracking-wider px-4 md:px-6 py-4 transition-all duration-150"
                     title={isDayPracticed && !isDayPracticed(currentMonth, currentDay) ? 'Practice this day first' : ''}
                 >
-                    Next <ChevronRight size={20} />
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                 </button>
             </div>
 
-            {/* Share Modal with WordPoster */}
+            {/* Share Modal - Swiss Design */}
             {
                 showShareModal && (
                     <>
                         {/* Backdrop */}
                         <div
-                            className={`fixed inset-0 bg-black z-50 ${isShareModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                            className={`fixed inset-0 bg-black/60 z-50 ${isShareModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
                             onClick={() => {
                                 setIsShareModalClosing(true);
                                 setTimeout(() => {
@@ -1107,95 +1200,15 @@ ${shareLink}`;
                             }}
                         />
 
-                        {/* Modal - perfectly centered within viewport */}
+                        {/* Modal - Swiss Design */}
                         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-                            <div className={`bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 pointer-events-auto ${isShareModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-                                <div className="p-6">
-                                    {/* Close Button */}
-                                    <div className="flex justify-end mb-2">
-                                        <button
-                                            onClick={() => {
-                                                setIsShareModalClosing(true);
-                                                setTimeout(() => {
-                                                    setShowShareModal(false);
-                                                    setIsShareModalClosing(false);
-                                                    setIsPosterReady(false);
-                                                    posterCanvasRef.current = null;
-                                                }, 300);
-                                            }}
-                                            className="text-slate-400 hover:text-slate-600 transition-colors"
-                                        >
-                                            <X size={24} />
-                                        </button>
+                            <div className={`bg-white shadow-2xl max-w-md w-full mx-4 pointer-events-auto border-l-4 border-[#880000] ${isShareModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+                                {/* Header */}
+                                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                        <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Share Progress</span>
                                     </div>
-
-                                    {/* Modal Content */}
-                                    <div className="text-center mb-6">
-                                        <div className="w-16 h-16 bg-[#880000]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Share2 size={32} className="text-[#880000]" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                            Share Your Progress?
-                                        </h2>
-                                        <p className="text-slate-600">
-                                            Do you want to share your learning progress with others?
-                                        </p>
-                                    </div>
-
-                                    {/* Download Button */}
-                                    <button
-                                        onClick={async () => {
-                                            if (!posterCanvasRef.current || !isPosterReady) return;
-
-                                            setIsDownloadingPoster(true);
-
-                                            try {
-                                                // Download the poster
-                                                const link = document.createElement('a');
-                                                link.download = `reading-progress-m${currentMonth}-d${currentDay}.jpg`;
-                                                link.href = posterCanvasRef.current.toDataURL('image/jpeg', 0.95);
-                                                link.click();
-
-                                                // Wait a moment for download to start
-                                                await new Promise(resolve => setTimeout(resolve, 500));
-
-                                                // Trigger Web Share API
-                                                await shareToSocial(currentMonth, currentDay, statistics, progress, activeData);
-
-                                                // Close modal
-                                                setIsShareModalClosing(true);
-                                                setTimeout(() => {
-                                                    setShowShareModal(false);
-                                                    setIsShareModalClosing(false);
-                                                    setIsDownloadingPoster(false);
-                                                    setIsPosterReady(false);
-                                                }, 300);
-                                            } catch (error) {
-                                                console.error('Error sharing:', error);
-                                                setIsDownloadingPoster(false);
-                                            }
-                                        }}
-                                        disabled={isDownloadingPoster || !isPosterReady || !posterCanvasRef.current}
-                                        className="w-full bg-[#880000] hover:bg-[#770000] text-white font-bold py-3 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {!isPosterReady ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                <span>Generating Poster...</span>
-                                            </>
-                                        ) : isDownloadingPoster ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                <span>Downloading...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Download size={20} />
-                                                <span>Download Poster</span>
-                                            </>
-                                        )}
-                                    </button>
-
                                     <button
                                         onClick={() => {
                                             setIsShareModalClosing(true);
@@ -1206,10 +1219,106 @@ ${shareLink}`;
                                                 posterCanvasRef.current = null;
                                             }, 300);
                                         }}
-                                        className="w-full mt-3 text-slate-600 hover:text-slate-800 font-semibold py-2 px-6 rounded-lg transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors"
                                     >
-                                        Cancel
+                                        <X size={18} />
                                     </button>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-6">
+                                    {/* Icon + Title - Swiss Layout */}
+                                    <div className="flex items-start gap-4 mb-6">
+                                        <div className="w-12 h-12 bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                            <Share2 size={24} className="text-slate-600" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-1 tracking-tight">
+                                                Share Your Progress
+                                            </h2>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                Download your learning poster and share with others.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Preview Info - Swiss Grid */}
+                                    <div className="grid grid-cols-3 gap-0 border border-slate-200 mb-6">
+                                        <div className="p-3 text-center border-r border-slate-200">
+                                            <div className="text-lg font-bold text-slate-900">M{currentMonth}</div>
+                                            <div className="text-[9px] text-slate-400 uppercase tracking-wider">Month</div>
+                                        </div>
+                                        <div className="p-3 text-center border-r border-slate-200">
+                                            <div className="text-lg font-bold text-slate-900">D{currentDay}</div>
+                                            <div className="text-[9px] text-slate-400 uppercase tracking-wider">Day</div>
+                                        </div>
+                                        <div className="p-3 text-center">
+                                            <div className="text-lg font-bold text-[#880000]">JPG</div>
+                                            <div className="text-[9px] text-slate-400 uppercase tracking-wider">Format</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons - Swiss */}
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={async () => {
+                                                if (!posterCanvasRef.current || !isPosterReady) return;
+                                                setIsDownloadingPoster(true);
+                                                try {
+                                                    const link = document.createElement('a');
+                                                    link.download = `reading-progress-m${currentMonth}-d${currentDay}.jpg`;
+                                                    link.href = posterCanvasRef.current.toDataURL('image/jpeg', 0.95);
+                                                    link.click();
+                                                    await new Promise(resolve => setTimeout(resolve, 500));
+                                                    await shareToSocial(currentMonth, currentDay, statistics, progress, activeData);
+                                                    setIsShareModalClosing(true);
+                                                    setTimeout(() => {
+                                                        setShowShareModal(false);
+                                                        setIsShareModalClosing(false);
+                                                        setIsDownloadingPoster(false);
+                                                        setIsPosterReady(false);
+                                                    }, 300);
+                                                } catch (error) {
+                                                    console.error('Error sharing:', error);
+                                                    setIsDownloadingPoster(false);
+                                                }
+                                            }}
+                                            disabled={isDownloadingPoster || !isPosterReady || !posterCanvasRef.current}
+                                            className="w-full bg-slate-900 hover:bg-[#880000] text-white py-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em]"
+                                        >
+                                            {!isPosterReady ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Generating</span>
+                                                </>
+                                            ) : isDownloadingPoster ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Downloading</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download size={14} />
+                                                    <span>Download Poster</span>
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            onClick={() => {
+                                                setIsShareModalClosing(true);
+                                                setTimeout(() => {
+                                                    setShowShareModal(false);
+                                                    setIsShareModalClosing(false);
+                                                    setIsPosterReady(false);
+                                                    posterCanvasRef.current = null;
+                                                }, 300);
+                                            }}
+                                            className="w-full text-slate-400 hover:text-slate-600 py-3 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1237,13 +1346,13 @@ ${shareLink}`;
                 )
             }
 
-            {/* Print Modal */}
+            {/* Print Modal - Swiss Design */}
             {
                 showPrintModal && (
                     <>
                         {/* Backdrop */}
                         <div
-                            className={`fixed inset-0 bg-black z-50 ${isPrintModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                            className={`fixed inset-0 bg-black/60 z-50 ${isPrintModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
                             onClick={() => {
                                 setIsPrintModalClosing(true);
                                 setTimeout(() => {
@@ -1253,92 +1362,15 @@ ${shareLink}`;
                             }}
                         />
 
-                        {/* Modal */}
+                        {/* Modal - Swiss Design */}
                         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-                            <div className={`bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 pointer-events-auto ${isPrintModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-                                <div className="p-6">
-                                    {/* Close Button */}
-                                    <div className="flex justify-end mb-2">
-                                        <button
-                                            onClick={() => {
-                                                setIsPrintModalClosing(true);
-                                                setTimeout(() => {
-                                                    setShowPrintModal(false);
-                                                    setIsPrintModalClosing(false);
-                                                }, 300);
-                                            }}
-                                            className="text-slate-400 hover:text-slate-600 transition-colors"
-                                        >
-                                            <X size={24} />
-                                        </button>
+                            <div className={`bg-white shadow-2xl max-w-md w-full mx-4 pointer-events-auto border-l-4 border-[#880000] ${isPrintModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+                                {/* Header */}
+                                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                        <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Print & Practice</span>
                                     </div>
-
-                                    {/* Modal Content */}
-                                    <div className="text-center mb-6">
-                                        <div className="w-16 h-16 bg-[#880000]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Printer size={32} className="text-[#880000]" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                            Print Story & Quiz
-                                        </h2>
-                                        <p className="text-slate-600">
-                                            Print the story with vocabulary quiz for offline practice. Includes reading instructions and comprehension assessment.
-                                        </p>
-                                    </div>
-
-                                    {/* Print Preview - 2 Pages */}
-                                    <div className="bg-slate-50 rounded-lg p-4 mb-4 border border-slate-200">
-                                        <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">
-                                            What's Included (2 Pages)
-                                        </div>
-                                        <div className="flex gap-3">
-                                            {/* Page 1 Preview */}
-                                            <div className="flex-1 bg-white rounded p-3 shadow-sm border border-slate-100">
-                                                <div className="text-[9px] text-[#880000] font-bold mb-1">PAGE 1</div>
-                                                <div className="text-[10px] text-slate-400 font-semibold mb-1">
-                                                    {activeData.country}
-                                                </div>
-                                                <div className="text-xs font-bold text-slate-800 mb-1 line-clamp-1">
-                                                    {activeData.title}
-                                                </div>
-                                                <div className="text-[9px] text-slate-500 flex items-center gap-1">
-                                                    <BookOpen size={10} /> Story + Vocabulary
-                                                </div>
-                                            </div>
-                                            {/* Page 2 Preview */}
-                                            <div className="flex-1 bg-white rounded p-3 shadow-sm border border-slate-100">
-                                                <div className="text-[9px] text-[#880000] font-bold mb-1">PAGE 2</div>
-                                                <div className="text-[10px] text-slate-400 font-semibold mb-1">
-                                                    Assessment Quiz
-                                                </div>
-                                                <div className="text-[9px] text-slate-500 space-y-0.5">
-                                                    <div className="flex items-center gap-1"><PenLine size={10} /> Fill in the blank</div>
-                                                    <div className="flex items-center gap-1"><FileText size={10} /> Word meanings</div>
-                                                    <div className="flex items-center gap-1"><BookOpen size={10} /> Comprehension</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Print Button */}
-                                    <button
-                                        onClick={executePrint}
-                                        disabled={isPrintGenerating}
-                                        className="w-full bg-[#880000] hover:bg-[#770000] text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
-                                    >
-                                        {isPrintGenerating ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                <span>Generating Quiz...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Printer size={20} />
-                                                <span>Print Story & Quiz (A4)</span>
-                                            </>
-                                        )}
-                                    </button>
-
                                     <button
                                         onClick={() => {
                                             setIsPrintModalClosing(true);
@@ -1347,10 +1379,109 @@ ${shareLink}`;
                                                 setIsPrintModalClosing(false);
                                             }, 300);
                                         }}
-                                        className="w-full mt-3 text-slate-600 hover:text-slate-800 font-semibold py-2 px-6 rounded-lg transition-colors"
+                                        className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors"
                                     >
-                                        Cancel
+                                        <X size={18} />
                                     </button>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-6">
+                                    {/* Icon + Title - Swiss Layout */}
+                                    <div className="flex items-start gap-4 mb-6">
+                                        <div className="w-12 h-12 bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                            <Printer size={24} className="text-slate-600" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-1 tracking-tight">
+                                                Print Story & Quiz
+                                            </h2>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                Offline practice with reading and assessment.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Page Preview - Swiss Grid */}
+                                    <div className="grid grid-cols-2 gap-0 border border-slate-200 mb-6">
+                                        {/* Page 1 */}
+                                        <div className="p-4 border-r border-slate-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-4 h-0.5 bg-[#880000]"></div>
+                                                <span className="text-[9px] text-[#880000] font-bold uppercase tracking-wider">Page 1</span>
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">{activeData.country}</div>
+                                            <div className="text-xs font-bold text-slate-900 mb-2 line-clamp-1">{activeData.title}</div>
+                                            <div className="text-[9px] text-slate-400 flex items-center gap-1">
+                                                <BookOpen size={10} /> Story + Vocab
+                                            </div>
+                                        </div>
+                                        {/* Page 2 */}
+                                        <div className="p-4">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-4 h-0.5 bg-slate-300"></div>
+                                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Page 2</span>
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Assessment</div>
+                                            <div className="space-y-1">
+                                                <div className="text-[9px] text-slate-500 flex items-center gap-1.5">
+                                                    <div className="w-1 h-1 bg-[#880000]"></div>
+                                                    Fill in blank
+                                                </div>
+                                                <div className="text-[9px] text-slate-500 flex items-center gap-1.5">
+                                                    <div className="w-1 h-1 bg-[#880000]"></div>
+                                                    Meanings
+                                                </div>
+                                                <div className="text-[9px] text-slate-500 flex items-center gap-1.5">
+                                                    <div className="w-1 h-1 bg-[#880000]"></div>
+                                                    Comprehension
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Format Info */}
+                                    <div className="flex items-center justify-center gap-4 mb-6 text-[10px] text-slate-400 uppercase tracking-wider">
+                                        <span>A4 Format</span>
+                                        <span>·</span>
+                                        <span>2 Pages</span>
+                                        <span>·</span>
+                                        <span>Print Ready</span>
+                                    </div>
+
+                                    {/* Action Buttons - Swiss */}
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={executePrint}
+                                            disabled={isPrintGenerating}
+                                            className="w-full bg-slate-900 hover:bg-[#880000] text-white py-4 transition-all disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em]"
+                                        >
+                                            {isPrintGenerating ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Generating Quiz</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Printer size={14} />
+                                                    <span>Print Now</span>
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            onClick={() => {
+                                                setIsPrintModalClosing(true);
+                                                setTimeout(() => {
+                                                    setShowPrintModal(false);
+                                                    setIsPrintModalClosing(false);
+                                                }, 300);
+                                            }}
+                                            className="w-full text-slate-400 hover:text-slate-600 py-3 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1358,10 +1489,10 @@ ${shareLink}`;
                 )
             }
 
-            {/* Floating Practice Tooltip Menu */}
+            {/* Floating Practice Tooltip - Swiss Design */}
             {showPracticeTooltip && practiceButtonRef.current && (
                 <div
-                    className={`fixed z-[9999] bg-white rounded-lg shadow-2xl border border-slate-200 p-4 max-w-[280px] md:max-w-[320px] ${isPracticeTooltipClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
+                    className={`fixed z-[9999] bg-white shadow-2xl border-l-4 border-[#880000] p-5 max-w-[260px] md:max-w-[300px] ${isPracticeTooltipClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
                     style={{
                         top: (() => {
                             const rect = practiceButtonRef.current.getBoundingClientRect();
@@ -1369,52 +1500,29 @@ ${shareLink}`;
                         })(),
                         left: (() => {
                             const rect = practiceButtonRef.current.getBoundingClientRect();
-                            const tooltipWidth = 280;
+                            const tooltipWidth = 260;
                             const leftPos = rect.left + (rect.width / 2) - (tooltipWidth / 2);
                             return `${Math.max(16, Math.min(leftPos, window.innerWidth - tooltipWidth - 16))}px`;
                         })()
                     }}
                 >
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                            <h3 className="font-bold text-base md:text-lg text-slate-800 mb-2">Practice Required</h3>
-                            <p className="text-sm md:text-base text-slate-600 leading-relaxed mb-3">
-                                Practice first then you can see the next day reading challenge
-                            </p>
-                            <p className="text-sm md:text-base font-semibold text-[#880000]">
-                                Press the button to practice
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                <span className="text-[9px] text-slate-400 uppercase tracking-[0.2em]">Required</span>
+                            </div>
+                            <h3 className="font-bold text-base text-slate-900 mb-2 leading-tight">Practice First</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed">
+                                Complete this day's practice to unlock the next reading challenge.
                             </p>
                         </div>
                         <button
-                            onClick={() => {
-                                setIsPracticeTooltipClosing(true);
-                                setTimeout(() => {
-                                    setShowPracticeTooltip(false);
-                                    setIsPracticeTooltipClosing(false);
-                                }, 300);
-                            }}
-                            className="text-slate-400 hover:text-slate-600 ml-2 flex-shrink-0"
+                            onClick={() => { setIsPracticeTooltipClosing(true); setTimeout(() => { setShowPracticeTooltip(false); setIsPracticeTooltipClosing(false); }, 300); }}
+                            className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors flex-shrink-0"
                         >
-                            <X size={18} />
+                            <X size={14} />
                         </button>
-                    </div>
-                    <div
-                        className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
-                        style={{
-                            left: (() => {
-                                if (!practiceButtonRef.current) return '50%';
-                                const rect = practiceButtonRef.current.getBoundingClientRect();
-                                const tooltipRect = { width: 280 };
-                                const tooltipLeft = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-                                const adjustedLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipRect.width - 16));
-                                const buttonCenter = rect.left + (rect.width / 2);
-                                const relativePos = buttonCenter - adjustedLeft;
-                                return `${relativePos}px`;
-                            })()
-                        }}
-                    >
-                        <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-transparent border-b-slate-200 absolute bottom-0 left-1/2 transform -translate-x-1/2"></div>
-                        <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-transparent border-b-white absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[-1px]"></div>
                     </div>
                 </div>
             )}
@@ -1437,53 +1545,57 @@ ${shareLink}`;
                     <>
                         {/* Backdrop */}
                         <div
-                            className={`fixed inset-0 bg-black/60 z-50 ${isImageModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                            className={`fixed inset-0 bg-black/80 z-50 ${isImageModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
                             onClick={() => {
                                 setIsImageModalClosing(true);
-                                setTimeout(() => {
-                                    setShowImageModal(false);
-                                    setIsImageModalClosing(false);
-                                }, 300);
+                                setTimeout(() => { setShowImageModal(false); setIsImageModalClosing(false); }, 300);
                             }}
                         />
 
                         {/* Modal Container */}
                         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 pointer-events-none ${isImageModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
                             <div className="relative max-w-4xl w-full pointer-events-auto">
-                                {/* Content Card */}
-                                <div className="bg-white rounded-none md:rounded-2xl overflow-hidden shadow-2xl">
+                                {/* Close Button - Swiss Minimal */}
+                                <button
+                                    onClick={() => { setIsImageModalClosing(true); setTimeout(() => { setShowImageModal(false); setIsImageModalClosing(false); }, 300); }}
+                                    className="absolute -top-12 right-0 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors z-10"
+                                >
+                                    <X size={24} />
+                                </button>
+
+                                {/* Content Card - Swiss Design */}
+                                <div className="bg-white overflow-hidden shadow-2xl">
                                     {/* Image */}
-                                    <div className="relative bg-slate-100 border-b-4 border-[#880000] h-[50vh] md:h-[60vh]">
-                                        <img
-                                            src={wikiImage.url}
-                                            alt={wikiImage.title}
-                                            className="w-full h-full object-cover"
-                                        />
+                                    <div className="relative bg-slate-100 h-[45vh] md:h-[55vh]">
+                                        <img src={wikiImage.url} alt={wikiImage.title} className="w-full h-full object-cover" />
                                     </div>
 
-                                    {/* Text Content - Swiss Grid Layout */}
-                                    <div className="p-6 md:p-8 lg:p-12">
-                                        <div className="max-w-2xl">
-                                            {/* Title */}
-                                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-4 leading-tight">
-                                                {wikiImage.title}
-                                            </h2>
+                                    {/* Text Content */}
+                                    <div className="p-6 md:p-8">
+                                        <div className="flex items-start gap-6">
+                                            {/* Red Accent Bar */}
+                                            <div className="w-1 h-16 bg-[#880000] flex-shrink-0 hidden md:block"></div>
+                                            
+                                            <div className="flex-1">
+                                                {/* Title */}
+                                                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 mb-3 leading-tight tracking-tight">
+                                                    {wikiImage.title}
+                                                </h2>
 
-                                            {/* Description */}
-                                            {wikiImage.description && (
-                                                <p className="text-base md:text-lg text-slate-600 leading-relaxed mb-6">
-                                                    {wikiImage.description}
-                                                </p>
-                                            )}
+                                                {/* Description */}
+                                                {wikiImage.description && (
+                                                    <p className="text-sm md:text-base text-slate-500 leading-relaxed mb-4 line-clamp-3">
+                                                        {wikiImage.description}
+                                                    </p>
+                                                )}
 
-                                            {/* Attribution - Swiss Style */}
-                                            <div className="flex items-center gap-2 pt-4 border-t border-slate-200">
-                                                <div className="flex items-center justify-center w-8 h-8 bg-[#880000]/10 rounded">
-                                                    <ImageIcon size={14} className="text-[#880000]" />
+                                                {/* Attribution */}
+                                                <div className="flex items-center gap-2 pt-4 border-t border-slate-100">
+                                                    <ImageIcon size={12} className="text-slate-400" />
+                                                    <span className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">
+                                                        Wikipedia
+                                                    </span>
                                                 </div>
-                                                <span className="text-sm font-medium text-slate-500">
-                                                    Image from Wikipedia
-                                                </span>
                                             </div>
                                         </div>
                                     </div>
