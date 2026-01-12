@@ -88,14 +88,14 @@ const ReadingCard = ({
             const direction = currentDay > prevDayRef.current ? 'left' : 'right';
             setTransitionDirection(direction);
             setIsTransitioning(true);
-            
+
             // Reset transition after animation completes
             const timer = setTimeout(() => {
                 setIsTransitioning(false);
                 setTransitionDirection('none');
                 setHasAnimated(true);
             }, 400);
-            
+
             prevDayRef.current = currentDay;
             return () => clearTimeout(timer);
         }
@@ -210,16 +210,16 @@ const ReadingCard = ({
         return () => stopSpeech();
     }, [activeData]);
 
-    // Fetch Wikipedia image based on wikiSearch field, title, or country
+    // Fetch image - prioritize local images, fall back to Wikipedia API
     // Load image FIRST, then show UI
     useEffect(() => {
         let isMounted = true;
-        
-        const fetchWikiImage = async () => {
+
+        const fetchImage = async () => {
             // Reset states for new content
             setIsContentReady(false);
             setIsLoadingImage(true);
-            
+
             if (!activeData?.title) {
                 setWikiImage(null);
                 setIsLoadingImage(false);
@@ -237,7 +237,6 @@ const ReadingCard = ({
                 if (isMounted) {
                     setWikiImage(preloadedImages[preloadCacheKey]);
                     setIsLoadingImage(false);
-                    // Small delay for smooth reveal
                     setTimeout(() => {
                         if (isMounted) {
                             setIsContentReady(true);
@@ -263,7 +262,47 @@ const ReadingCard = ({
                 return;
             }
 
-            // Need to fetch from API
+            // PRIORITY 1: Check if activeData has a localImage (downloaded image)
+            if (activeData.localImage) {
+                const imageData = {
+                    url: activeData.localImage,
+                    title: activeData.imageTitle || activeData.wikiSearch || activeData.title,
+                    description: activeData.imageDescription || '',
+                    searchTerm: activeData.wikiSearch || activeData.title,
+                    isLocal: true
+                };
+
+                // Preload the local image
+                await new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        if (isMounted) {
+                            imageCache.current[localCacheKey] = imageData;
+                            setWikiImage(imageData);
+                            setIsLoadingImage(false);
+                            setTimeout(() => {
+                                if (isMounted) {
+                                    setIsContentReady(true);
+                                    onReady?.();
+                                }
+                            }, 50);
+                        }
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        // Local image failed, will fall back to API
+                        resolve();
+                    };
+                    img.src = activeData.localImage;
+                });
+
+                // If local image loaded successfully, we're done
+                if (imageCache.current[localCacheKey]?.isLocal) {
+                    return;
+                }
+            }
+
+            // PRIORITY 2: Fall back to Wikipedia API (for images not yet downloaded)
             const searchTerms = [
                 activeData.wikiSearch,
                 activeData.title,
@@ -326,8 +365,8 @@ const ReadingCard = ({
             }
         };
 
-        fetchWikiImage();
-        
+        fetchImage();
+
         return () => { isMounted = false; };
     }, [activeData?.wikiSearch, activeData?.title, activeData?.country, activeData?.day, currentMonth, preloadedImages]);
 
@@ -496,20 +535,20 @@ const ReadingCard = ({
     // Text reveal animation - Performance-friendly CSS-based approach
     // Instead of word-by-word JS animation, use CSS for smooth fade-slide effect
     const [textKey, setTextKey] = useState(0);
-    
+
     useEffect(() => {
         // Simply show full text immediately, let CSS handle the animation
         setDisplayedText(activeData.text);
         setIsTyping(true);
-        
+
         // Increment key to trigger CSS animation on text change
         setTextKey(prev => prev + 1);
-        
+
         // Mark typing as done after CSS animation completes
         const timer = setTimeout(() => {
             setIsTyping(false);
         }, 1500); // Match CSS animation duration (1.2s + stagger)
-        
+
         return () => clearTimeout(timer);
     }, [activeData]);
 
@@ -551,7 +590,7 @@ const ReadingCard = ({
         for (let i = 0; i < sentences.length; i += 2) {
             chunks.push(sentences.slice(i, i + 2).join(' ').trim());
         }
-        
+
         // Calculate duration for each chunk based on word count
         // Actual speech is faster than estimated, use ~320ms per word
         // This makes the highlight move BEFORE the chunk finishes (feels more natural)
@@ -566,10 +605,10 @@ const ReadingCard = ({
             if (!isSpeakingRef.current || index >= chunks.length) {
                 return;
             }
-            
+
             setHighlightIndex(index);
             setFocusedChunk(index);
-            
+
             // Schedule next chunk
             if (index < chunks.length - 1) {
                 highlightTimerRef.current = setTimeout(() => {
@@ -581,7 +620,7 @@ const ReadingCard = ({
         utterance.onstart = () => {
             setIsSpeaking(true);
             isSpeakingRef.current = true;
-            
+
             // Start highlighting from first chunk
             highlightChunk(0);
         };
@@ -590,14 +629,14 @@ const ReadingCard = ({
             setIsSpeaking(false);
             isSpeakingRef.current = false;
             setHighlightIndex(-1);
-            
+
             // Keep focus briefly, then reset
             setTimeout(() => {
                 if (!isSpeakingRef.current) {
                     setFocusedChunk(null);
                 }
             }, 800);
-            
+
             if (highlightTimerRef.current) {
                 clearTimeout(highlightTimerRef.current);
                 highlightTimerRef.current = null;
@@ -718,8 +757,8 @@ ${shareLink}`;
     // Determine animation class based on transition state
     const getTransitionClass = () => {
         if (isTransitioning) {
-            return transitionDirection === 'left' 
-                ? 'animate-page-enter-left' 
+            return transitionDirection === 'left'
+                ? 'animate-page-enter-left'
                 : 'animate-page-enter-right';
         }
         // Only fade in on first load, no animation after
@@ -730,7 +769,7 @@ ${shareLink}`;
     };
 
     return (
-        <div 
+        <div
             key={isTransitioning ? `${currentMonth}-${currentDay}` : 'stable'}
             className={`bg-white shadow-xl overflow-hidden border-l-4 border-[#880000] ${getTransitionClass()}`}
         >
@@ -824,7 +863,7 @@ ${shareLink}`;
                             >
                                 <ClipboardCheck size={14} className="md:w-4 md:h-4" />
                             </button>
-                            
+
                             {/* Practice Button - Swiss CTA */}
                             <div className="relative ml-1 z-10">
                                 <button
@@ -899,13 +938,12 @@ ${shareLink}`;
                             {/* Listen Button */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleSpeak(); }}
-                                className={`flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 font-bold text-[10px] md:text-xs uppercase tracking-[0.1em] transition-all ${
-                                    isSpeaking 
-                                        ? 'bg-[#880000] text-white' 
-                                        : wikiImage 
-                                            ? 'text-white hover:bg-white/10' 
+                                className={`flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 font-bold text-[10px] md:text-xs uppercase tracking-[0.1em] transition-all ${isSpeaking
+                                        ? 'bg-[#880000] text-white'
+                                        : wikiImage
+                                            ? 'text-white hover:bg-white/10'
                                             : 'text-slate-700 hover:bg-slate-200'
-                                }`}
+                                    }`}
                             >
                                 {isSpeaking ? <Square size={10} className="md:w-3 md:h-3" fill="currentColor" /> : <Volume2 size={10} className="md:w-3 md:h-3" />}
                                 <span>{isSpeaking ? 'Stop' : 'Listen'}</span>
@@ -933,7 +971,7 @@ ${shareLink}`;
                             </button>
                         )}
                     </div>
-                    
+
                     {/* Reading Chunks - Swiss Typography with Wipe Animation */}
                     <div key={textKey} className="space-y-6">
                         {(() => {
@@ -943,40 +981,38 @@ ${shareLink}`;
                             for (let i = 0; i < sentences.length; i += 2) {
                                 chunks.push(sentences.slice(i, i + 2).join(' ').trim());
                             }
-                            
+
                             let globalWordIndex = 0;
-                            
+
                             return chunks.map((chunk, chunkIndex) => {
                                 const chunkWords = chunk.split(' ');
                                 const startWordIndex = globalWordIndex;
                                 globalWordIndex += chunkWords.length;
-                                
+
                                 const isFocused = focusedChunk === null || focusedChunk === chunkIndex;
                                 const isActive = focusedChunk === chunkIndex;
                                 const isBeingRead = highlightIndex === chunkIndex && isSpeaking;
-                                
+
                                 return (
                                     <div
                                         key={chunkIndex}
                                         onClick={() => !isSpeaking && setFocusedChunk(focusedChunk === chunkIndex ? null : chunkIndex)}
-                                        className={`relative cursor-pointer transition-all duration-300 animate-wipe-reveal ${
-                                            isFocused ? 'opacity-100' : 'opacity-20 hover:opacity-40'
-                                        }`}
+                                        className={`relative cursor-pointer transition-all duration-300 animate-wipe-reveal ${isFocused ? 'opacity-100' : 'opacity-20 hover:opacity-40'
+                                            }`}
                                         style={{ animationDelay: `${chunkIndex * 150}ms` }}
                                     >
                                         {/* Chunk Number - Swiss Style */}
                                         <div className={`absolute -left-2 md:-left-4 top-0 text-[10px] font-bold transition-colors ${isActive || isBeingRead ? 'text-[#880000]' : 'text-slate-200'}`}>
                                             {String(chunkIndex + 1).padStart(2, '0')}
                                         </div>
-                                        
+
                                         {/* Text Content - Highlight entire chunk when being read */}
-                                        <p className={`text-lg md:text-xl leading-[1.85] md:leading-[1.95] font-normal pl-4 md:pl-6 transition-all duration-300 ${
-                                            isBeingRead 
-                                                ? 'border-l-4 border-[#880000] bg-[#880000]/5 py-4 -my-2 text-slate-900' 
-                                                : isActive 
-                                                    ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2 text-slate-700' 
+                                        <p className={`text-lg md:text-xl leading-[1.85] md:leading-[1.95] font-normal pl-4 md:pl-6 transition-all duration-300 ${isBeingRead
+                                                ? 'border-l-4 border-[#880000] bg-[#880000]/5 py-4 -my-2 text-slate-900'
+                                                : isActive
+                                                    ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2 text-slate-700'
                                                     : 'border-l border-transparent hover:border-slate-200 text-slate-700'
-                                        }`}>
+                                            }`}>
                                             {chunkWords.map((word, wordIndexInChunk) => {
                                                 const index = startWordIndex + wordIndexInChunk;
                                                 const cleanWord = word.toLowerCase().replace(/[.,!?;:()"'-]/g, '');
@@ -992,15 +1028,14 @@ ${shareLink}`;
                                                                 e.stopPropagation();
                                                                 handleWordClick(word, e);
                                                             }}
-                                                            className={`transition-all duration-150 cursor-pointer ${
-                                                                isSelected 
-                                                                    ? 'bg-slate-900 text-white px-1' 
-                                                                    : isSaved 
-                                                                        ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2' 
-                                                                        : isDifficult 
-                                                                            ? 'text-[#880000] hover:bg-[#880000]/10' 
+                                                            className={`transition-all duration-150 cursor-pointer ${isSelected
+                                                                    ? 'bg-slate-900 text-white px-1'
+                                                                    : isSaved
+                                                                        ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2'
+                                                                        : isDifficult
+                                                                            ? 'text-[#880000] hover:bg-[#880000]/10'
                                                                             : 'hover:bg-slate-100'
-                                                            }`}
+                                                                }`}
                                                             title={isSaved ? 'Saved to vocabulary' : isDifficult ? 'Difficult word' : 'Click for definition'}
                                                         >
                                                             {word}
@@ -1533,7 +1568,7 @@ ${shareLink}`;
                                         <div className="flex items-start gap-6">
                                             {/* Red Accent Bar */}
                                             <div className="w-1 h-16 bg-[#880000] flex-shrink-0 hidden md:block"></div>
-                                            
+
                                             <div className="flex-1">
                                                 {/* Title */}
                                                 <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 mb-3 leading-tight tracking-tight">

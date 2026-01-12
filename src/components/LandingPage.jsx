@@ -28,9 +28,9 @@ const LandingPage = () => {
                 newSet.delete(sectionId);
                 return newSet;
             });
-            
+
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
+
             // Re-add after scroll completes to trigger animation
             setTimeout(() => {
                 setVisibleSections(prev => new Set([...prev, sectionId]));
@@ -94,17 +94,17 @@ const LandingPage = () => {
 
                 // Skip if no image or if it's an SVG
                 if (imageUrl && !imageUrl.includes('.svg')) {
-                            const imageData = {
-                                url: imageUrl,
-                                title: data.title,
-                                description: data.extract
-                            };
-                            imageCache.set(searchTerm, imageData);
-                            return imageData;
+                    const imageData = {
+                        url: imageUrl,
+                        title: data.title,
+                        description: data.extract
+                    };
+                    imageCache.set(searchTerm, imageData);
+                    return imageData;
                 }
             }
         } catch (error) {
-                console.log('Wikipedia API error:', error.message);
+            console.log('Wikipedia API error:', error.message);
         }
 
         return null;
@@ -121,42 +121,84 @@ const LandingPage = () => {
         }
     }, [location]);
 
-    // Use landmark keywords for hero carousel
+    // Use local hero images first, fall back to Wikipedia API
     useEffect(() => {
-        const landmarkKeywords = [
-            'Eiffel Tower',
-            'Statue of Liberty',
-            'Machu Picchu',
-            'Colosseum',
-            'Big Ben',
-            'Golden Gate Bridge',
-            'Christ the Redeemer',
-            'Angkor Wat',
-            'Stonehenge',
-            'Mount Fuji',
-            'Sydney Opera House',
-            'Petra'
-        ];
-
-        // Randomly select 5 landmarks
-        const shuffled = [...landmarkKeywords].sort(() => Math.random() - 0.5);
-        const selected = shuffled.slice(0, 5);
-
         const fetchImages = async () => {
             try {
-                // First, fetch image URLs from Wikipedia API
+                // PRIORITY 1: Try to load local hero images first
+                let localHeroImages = [];
+                try {
+                    const response = await fetch('/images/hero/hero-images.json');
+                    if (response.ok) {
+                        localHeroImages = await response.json();
+                    }
+                } catch (e) {
+                    console.log('No local hero images found, falling back to API');
+                }
+
+                if (localHeroImages.length > 0) {
+                    // Shuffle and select 5 local images
+                    const shuffled = [...localHeroImages].sort(() => Math.random() - 0.5);
+                    const selected = shuffled.slice(0, 5);
+
+                    // Preload local images
+                    const preloadPromises = selected.map(slide => {
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => resolve({
+                                url: slide.localImage,
+                                title: slide.title,
+                                description: slide.description,
+                                searchTerm: slide.searchTerm
+                            });
+                            img.onerror = () => resolve(null);
+                            img.src = slide.localImage;
+                        });
+                    });
+
+                    const loadedSlides = await Promise.all(preloadPromises);
+                    const successfulSlides = loadedSlides.filter(s => s !== null);
+
+                    if (successfulSlides.length > 0) {
+                        setHeroSlides(successfulSlides);
+                        setImagesLoaded(true);
+                        setTimeout(() => setShowCarousel(true), 100);
+                        return;
+                    }
+                }
+
+                // PRIORITY 2: Fall back to Wikipedia API
+                const landmarkKeywords = [
+                    'Eiffel Tower',
+                    'Statue of Liberty',
+                    'Machu Picchu',
+                    'Colosseum',
+                    'Big Ben',
+                    'Golden Gate Bridge',
+                    'Christ the Redeemer',
+                    'Angkor Wat',
+                    'Stonehenge',
+                    'Mount Fuji',
+                    'Sydney Opera House',
+                    'Petra'
+                ];
+
+                // Randomly select 5 landmarks
+                const shuffled = [...landmarkKeywords].sort(() => Math.random() - 0.5);
+                const selected = shuffled.slice(0, 5);
+
                 const results = await Promise.all(
                     selected.map(async (keyword) => {
                         const imageData = await fetchWikipediaImage(keyword);
-                                if (imageData) {
-                                    return {
-                                        ...imageData,
-                                        searchTerm: keyword
-                                    };
-                                }
-                                return null;
+                        if (imageData) {
+                            return {
+                                ...imageData,
+                                searchTerm: keyword
+                            };
+                        }
+                        return null;
                     })
-                    );
+                );
 
                 const validSlides = results.filter(slide => slide !== null);
 
@@ -169,15 +211,14 @@ const LandingPage = () => {
                             img.onerror = () => resolve(null);
                             img.src = slide.url;
                         });
-                });
+                    });
 
-                const loadedSlides = await Promise.all(preloadPromises);
+                    const loadedSlides = await Promise.all(preloadPromises);
                     const successfulSlides = loadedSlides.filter(s => s !== null);
 
                     if (successfulSlides.length > 0) {
                         setHeroSlides(successfulSlides);
                         setImagesLoaded(true);
-                        // Small delay before showing to prevent flash
                         setTimeout(() => setShowCarousel(true), 100);
                         return;
                     }
@@ -228,18 +269,18 @@ const LandingPage = () => {
 
     // Helper to get section animation class
     const getSectionClass = (sectionId) => {
-        return visibleSections.has(sectionId) 
-            ? 'opacity-100 translate-y-0' 
+        return visibleSections.has(sectionId)
+            ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-8';
     };
 
     return (
         <div className={`min-h-screen bg-white transition-opacity duration-700 ${isPageReady ? 'opacity-100' : 'opacity-0'}`}>
             {/* Header/Navigation - Swiss Design */}
-            <header 
+            <header
                 className="w-full bg-white/95 backdrop-blur-sm border-b border-slate-100 fixed top-0 z-[100] transition-all duration-500 ease-out"
-                style={{ 
-                    opacity: isPageReady ? 1 : 0, 
+                style={{
+                    opacity: isPageReady ? 1 : 0,
                     transform: isPageReady ? 'translateY(0)' : 'translateY(-100%)'
                 }}
             >
@@ -250,10 +291,10 @@ const LandingPage = () => {
                         <Link to="/" className="flex items-center gap-3 group">
                             <div className="w-8 h-8 bg-[#880000] flex items-center justify-center">
                                 <span className="text-white font-bold text-sm">E</span>
-                        </div>
+                            </div>
                             <span className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em]">English Daily</span>
                         </Link>
-                        
+
                         {/* Center Links */}
                         <div className="flex items-center gap-8">
                             <button
@@ -275,7 +316,7 @@ const LandingPage = () => {
                                 Process
                             </button>
                         </div>
-                        
+
                         {/* CTA Button */}
                         <button
                             onClick={(e) => {
@@ -287,7 +328,7 @@ const LandingPage = () => {
                             Start
                             <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                         </button>
-                        </div>
+                    </div>
 
                     {/* Mobile Navigation */}
                     <div className="md:hidden flex items-center justify-between h-14">
@@ -298,14 +339,14 @@ const LandingPage = () => {
                             </div>
                             <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.1em]">English Daily</span>
                         </Link>
-                        
+
                         {/* Right Side - Menu Toggle + CTA */}
                         <div className="flex items-center gap-3">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                navigate('/m1-day1');
-                            }}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate('/m1-day1');
+                                }}
                                 className="bg-slate-900 text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider hover:bg-[#880000] transition-colors"
                             >
                                 Start
@@ -317,13 +358,13 @@ const LandingPage = () => {
                                 <span className={`block w-5 h-0.5 bg-slate-900 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
                                 <span className={`block w-5 h-0.5 bg-slate-900 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
                                 <span className={`block w-5 h-0.5 bg-slate-900 transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
-                        </button>
+                            </button>
                         </div>
                     </div>
                 </nav>
 
                 {/* Mobile Menu Dropdown */}
-                <div 
+                <div
                     className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${isMobileMenuOpen ? 'max-h-64 border-t border-slate-100' : 'max-h-0'}`}
                 >
                     <div className="px-4 py-6 bg-white space-y-1">
@@ -366,61 +407,61 @@ const LandingPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-[#2a0a0a]" />
 
                 {/* Background Images Carousel - fades in after preload */}
-                <div 
+                <div
                     className="absolute inset-0 overflow-hidden"
                     style={{
                         opacity: showCarousel ? 1 : 0,
                         transition: 'opacity 1s ease-out'
                     }}
                 >
-                        {heroSlides.map((slide, index) => {
-                            const isActive = index === currentSlide;
-                            const isPrevious = index === (currentSlide - 1 + heroSlides.length) % heroSlides.length;
-                            
-                            return (
-                                <div
-                                    key={`${slide.searchTerm}-${index}`}
-                                    className="absolute inset-0"
+                    {heroSlides.map((slide, index) => {
+                        const isActive = index === currentSlide;
+                        const isPrevious = index === (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+
+                        return (
+                            <div
+                                key={`${slide.searchTerm}-${index}`}
+                                className="absolute inset-0"
+                                style={{
+                                    opacity: isActive ? 1 : 0,
+                                    transition: 'opacity 1.5s ease-in-out',
+                                    willChange: 'opacity',
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    zIndex: isActive ? 2 : (isPrevious ? 1 : 0),
+                                    pointerEvents: 'none'
+                                }}
+                            >
+                                <img
+                                    src={slide.url}
+                                    alt={slide.title}
+                                    className={`w-full h-full object-cover ${showCarousel ? 'animate-ken-burns' : ''}`}
                                     style={{
-                                        opacity: isActive ? 1 : 0,
-                                        transition: 'opacity 1.5s ease-in-out',
-                                        willChange: 'opacity',
-                                        backfaceVisibility: 'hidden',
-                                        WebkitBackfaceVisibility: 'hidden',
-                                        zIndex: isActive ? 2 : (isPrevious ? 1 : 0),
+                                        display: 'block',
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
                                         pointerEvents: 'none'
                                     }}
-                                >
-                                    <img
-                                        src={slide.url}
-                                        alt={slide.title}
-                                    className={`w-full h-full object-cover ${showCarousel ? 'animate-ken-burns' : ''}`}
-                                        style={{
-                                            display: 'block',
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            pointerEvents: 'none'
-                                        }}
-                                    />
-                                </div>
-                            );
-                        })}
-                    </div>
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
 
                 {/* Dark Overlay - Gradient for depth */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60 z-[5]"></div>
 
                 {/* Swiss Design Content Overlay */}
                 <div className="relative z-10 w-full h-full flex flex-col">
-                    
+
                     {/* Mobile Layout - Vertical Swiss Grid */}
                     <div className="md:hidden flex flex-col h-full px-6 pt-8 pb-6">
                         {/* Top Section - Accent Line + Label */}
-                        <div 
+                        <div
                             className="mb-auto transition-all duration-700 ease-out"
-                            style={{ 
-                                opacity: isPageReady ? 1 : 0, 
+                            style={{
+                                opacity: isPageReady ? 1 : 0,
                                 transform: isPageReady ? 'translateY(0)' : 'translateY(-20px)',
                                 transitionDelay: '200ms'
                             }}
@@ -428,41 +469,41 @@ const LandingPage = () => {
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="w-12 h-1 bg-[#880000]"></div>
                                 <span className="text-[10px] text-white/60 uppercase tracking-[0.3em] font-medium">English Reading Practice</span>
+                            </div>
                         </div>
-                    </div>
 
                         {/* Middle Section - Main Content */}
                         <div className="mb-auto">
                             {/* Headline - Strong Typography */}
                             <h1 className="mb-8">
-                                <span 
+                                <span
                                     className="block text-[11vw] leading-[0.9] font-extralight text-white/90 tracking-tight transition-all duration-700 ease-out"
-                                    style={{ 
-                                        opacity: isPageReady ? 1 : 0, 
+                                    style={{
+                                        opacity: isPageReady ? 1 : 0,
                                         transform: isPageReady ? 'translateY(0)' : 'translateY(30px)',
                                         transitionDelay: '300ms'
                                     }}
                                 >Master</span>
-                                <span 
+                                <span
                                     className="block text-[11vw] leading-[0.9] font-extralight text-white/90 tracking-tight transition-all duration-700 ease-out"
-                                    style={{ 
-                                        opacity: isPageReady ? 1 : 0, 
+                                    style={{
+                                        opacity: isPageReady ? 1 : 0,
                                         transform: isPageReady ? 'translateY(0)' : 'translateY(30px)',
                                         transitionDelay: '400ms'
                                     }}
                                 >English</span>
-                                <span 
+                                <span
                                     className="block text-[11vw] leading-[0.9] font-bold text-white tracking-tight transition-all duration-700 ease-out"
-                                    style={{ 
-                                        opacity: isPageReady ? 1 : 0, 
+                                    style={{
+                                        opacity: isPageReady ? 1 : 0,
                                         transform: isPageReady ? 'translateY(0)' : 'translateY(30px)',
                                         transitionDelay: '500ms'
                                     }}
                                 >Through</span>
-                                <span 
+                                <span
                                     className="block text-[11vw] leading-[0.9] font-bold text-[#ff6b6b] tracking-tight transition-all duration-700 ease-out"
-                                    style={{ 
-                                        opacity: isPageReady ? 1 : 0, 
+                                    style={{
+                                        opacity: isPageReady ? 1 : 0,
                                         transform: isPageReady ? 'translateY(0)' : 'translateY(30px)',
                                         transitionDelay: '600ms'
                                     }}
@@ -470,10 +511,10 @@ const LandingPage = () => {
                             </h1>
 
                             {/* Description - Offset for Swiss asymmetry */}
-                            <div 
+                            <div
                                 className="pl-4 border-l-2 border-white/20 mb-10 transition-all duration-700 ease-out"
-                                style={{ 
-                                    opacity: isPageReady ? 1 : 0, 
+                                style={{
+                                    opacity: isPageReady ? 1 : 0,
                                     transform: isPageReady ? 'translateX(0)' : 'translateX(-20px)',
                                     transitionDelay: '700ms'
                                 }}
@@ -485,10 +526,10 @@ const LandingPage = () => {
                         </div>
 
                         {/* Bottom Section - Stats Row */}
-                        <div 
+                        <div
                             className="mt-auto transition-all duration-700 ease-out"
-                            style={{ 
-                                opacity: isPageReady ? 1 : 0, 
+                            style={{
+                                opacity: isPageReady ? 1 : 0,
                                 transform: isPageReady ? 'translateY(0)' : 'translateY(30px)',
                                 transitionDelay: '800ms'
                             }}
@@ -520,12 +561,12 @@ const LandingPage = () => {
                     {/* Desktop Layout - Original Grid */}
                     <div className="hidden md:flex items-center justify-center h-full max-w-6xl mx-auto px-6 w-full">
                         <div className="grid md:grid-cols-2 gap-16 items-center w-full">
-                        {/* Left Side - Headline and Stats */}
-                        <div>
-                                <div 
+                            {/* Left Side - Headline and Stats */}
+                            <div>
+                                <div
                                     className="flex items-center gap-3 mb-6 transition-all duration-700 ease-out"
-                                    style={{ 
-                                        opacity: isPageReady ? 1 : 0, 
+                                    style={{
+                                        opacity: isPageReady ? 1 : 0,
                                         transform: isPageReady ? 'translateY(0)' : 'translateY(-20px)',
                                         transitionDelay: '200ms'
                                     }}
@@ -533,69 +574,69 @@ const LandingPage = () => {
                                     <div className="w-16 h-1 bg-[#880000]"></div>
                                     <span className="text-xs text-white/60 uppercase tracking-[0.3em]">90-Day Challenge</span>
                                 </div>
-                                
+
                                 <h1 className="text-6xl lg:text-7xl text-white mb-10 leading-[0.95]">
-                                    <span 
+                                    <span
                                         className="font-extralight block transition-all duration-700 ease-out"
-                                        style={{ 
-                                            opacity: isPageReady ? 1 : 0, 
+                                        style={{
+                                            opacity: isPageReady ? 1 : 0,
                                             transform: isPageReady ? 'translateY(0)' : 'translateY(40px)',
                                             transitionDelay: '300ms'
                                         }}
                                     >Master English</span>
-                                    <span 
+                                    <span
                                         className="font-bold block transition-all duration-700 ease-out"
-                                        style={{ 
-                                            opacity: isPageReady ? 1 : 0, 
+                                        style={{
+                                            opacity: isPageReady ? 1 : 0,
                                             transform: isPageReady ? 'translateY(0)' : 'translateY(40px)',
                                             transitionDelay: '450ms'
                                         }}
                                     >Through</span>
-                                    <span 
+                                    <span
                                         className="font-bold text-[#ff6b6b] block transition-all duration-700 ease-out"
-                                        style={{ 
-                                            opacity: isPageReady ? 1 : 0, 
+                                        style={{
+                                            opacity: isPageReady ? 1 : 0,
                                             transform: isPageReady ? 'translateY(0)' : 'translateY(40px)',
                                             transitionDelay: '600ms'
                                         }}
                                     >Daily Reading</span>
-                            </h1>
+                                </h1>
 
-                            {/* Stats */}
-                                <div 
+                                {/* Stats */}
+                                <div
                                     className="flex gap-12 transition-all duration-700 ease-out"
-                                    style={{ 
-                                        opacity: isPageReady ? 1 : 0, 
+                                    style={{
+                                        opacity: isPageReady ? 1 : 0,
                                         transform: isPageReady ? 'translateY(0)' : 'translateY(30px)',
                                         transitionDelay: '750ms'
                                     }}
                                 >
-                                <div>
+                                    <div>
                                         <div className="text-6xl font-bold text-white leading-none">90</div>
                                         <div className="text-xs text-white/50 uppercase tracking-[0.2em] mt-2">Days of Content</div>
-                                </div>
-                                <div>
+                                    </div>
+                                    <div>
                                         <div className="text-6xl font-bold text-white leading-none">30</div>
                                         <div className="text-xs text-white/50 uppercase tracking-[0.2em] mt-2">Countries</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Right Side - Description */}
-                            <div 
+                            {/* Right Side - Description */}
+                            <div
                                 className="pl-8 border-l border-white/20 transition-all duration-700 ease-out"
-                                style={{ 
-                                    opacity: isPageReady ? 1 : 0, 
+                                style={{
+                                    opacity: isPageReady ? 1 : 0,
                                     transform: isPageReady ? 'translateX(0)' : 'translateX(40px)',
                                     transitionDelay: '500ms'
                                 }}
                             >
                                 <p className="text-2xl text-white/80 leading-relaxed mb-8">
-                                Transforming language learning through engaging stories, interactive practice, and comprehensive vocabulary building from around the world.
-                            </p>
+                                    Transforming language learning through engaging stories, interactive practice, and comprehensive vocabulary building from around the world.
+                                </p>
                                 <p className="text-sm text-white/50 uppercase tracking-[0.2em]">
-                                Serving learners since 2024
-                            </p>
+                                    Serving learners since 2024
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -645,32 +686,32 @@ const LandingPage = () => {
                             <div className="w-10 h-1 bg-[#880000]"></div>
                             <span className="text-[10px] text-slate-400 uppercase tracking-[0.3em]">About Us</span>
                         </div>
-                        
+
                         {/* Title */}
                         <h2 className="text-3xl font-bold text-slate-900 mb-6 leading-tight">
                             <span className="font-extralight">Building fluency</span><br />
                             <span className="text-[#880000]">one story at a time</span>
-                            </h2>
-                        
+                        </h2>
+
                         {/* Description */}
                         <div className="pl-4 border-l-2 border-slate-200 mb-10">
                             <p className="text-base text-slate-500 leading-relaxed">
                                 English Reading Practice was created to help learners build fluency through consistent, engaging daily practice with stories from around the world.
                             </p>
-                                    </div>
-                        
+                        </div>
+
                         {/* Stats - Horizontal */}
                         <div className="grid grid-cols-2 gap-6 border-t border-slate-100 pt-8">
-                                    <div>
+                            <div>
                                 <div className="text-4xl font-bold text-slate-900 leading-none">30+</div>
                                 <div className="text-[10px] text-slate-400 uppercase tracking-[0.15em] mt-2">Countries</div>
-                                    </div>
+                            </div>
                             <div>
                                 <div className="text-4xl font-bold text-slate-900 leading-none">90</div>
                                 <div className="text-[10px] text-slate-400 uppercase tracking-[0.15em] mt-2">Stories</div>
-                                </div>
-                                    </div>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Desktop Layout - Swiss Asymmetric Grid */}
                     <div className="hidden md:block">
@@ -681,11 +722,11 @@ const LandingPage = () => {
                                     <div className="flex items-center gap-3 mb-8">
                                         <div className="w-12 h-1 bg-[#880000]"></div>
                                         <span className="text-xs text-slate-400 uppercase tracking-[0.3em]">About</span>
-                                </div>
+                                    </div>
                                     <div className="text-[120px] font-bold text-slate-100 leading-none -ml-2">01</div>
+                                </div>
                             </div>
-                        </div>
-                            
+
                             {/* Right Column - Content */}
                             <div className="col-span-8 col-start-5">
                                 {/* Headline */}
@@ -693,7 +734,7 @@ const LandingPage = () => {
                                     <span className="font-extralight">Building fluency through</span><br />
                                     <span className="text-[#880000]">daily reading practice</span>
                                 </h2>
-                                
+
                                 {/* Description with left border */}
                                 <div className="pl-8 border-l border-slate-200 mb-12">
                                     <p className="text-lg text-slate-500 leading-relaxed max-w-xl">
@@ -701,15 +742,15 @@ const LandingPage = () => {
                                         engaging daily practice. Each story is carefully selected to expose you to new vocabulary,
                                         cultural insights, and authentic English from around the world.
                                     </p>
-                                    </div>
-                                
+                                </div>
+
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-3 gap-0 border-t border-slate-100">
                                     <div className="py-8 pr-8 border-r border-slate-100">
                                         <div className="text-5xl font-bold text-slate-900 leading-none">30</div>
                                         <div className="text-xs text-slate-400 uppercase tracking-[0.2em] mt-3">Countries Featured</div>
                                         <div className="w-6 h-0.5 bg-[#880000] mt-4"></div>
-                                </div>
+                                    </div>
                                     <div className="py-8 px-8 border-r border-slate-100">
                                         <div className="text-5xl font-bold text-slate-900 leading-none">90</div>
                                         <div className="text-xs text-slate-400 uppercase tracking-[0.2em] mt-3">Unique Stories</div>
@@ -747,7 +788,7 @@ const LandingPage = () => {
                         <p className="text-sm text-slate-400 max-w-xs md:text-right">
                             Three pillars of effective language learning, designed for daily practice.
                         </p>
-                                        </div>
+                    </div>
 
                     {/* Mobile Layout - Stacked Cards */}
                     <div className="md:hidden space-y-6">
@@ -777,17 +818,17 @@ const LandingPage = () => {
                             <div key={i} className="bg-white p-6 relative">
                                 {/* Number Badge */}
                                 <div className="absolute -top-3 -left-1 text-5xl font-bold text-stone-200/80">{service.num}</div>
-                                
+
                                 {/* Content */}
                                 <div className="pt-6">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 bg-stone-100 flex items-center justify-center">
                                             <service.icon className="text-[#880000]" size={20} />
-                                    </div>
+                                        </div>
                                         <h3 className="text-lg font-bold text-slate-900">{service.title}</h3>
-                                </div>
+                                    </div>
                                     <p className="text-sm text-slate-500 leading-relaxed mb-4">{service.desc}</p>
-                                    
+
                                     {/* Feature Tags */}
                                     <div className="flex flex-wrap gap-2">
                                         {service.features.map((f, j) => (
@@ -795,11 +836,11 @@ const LandingPage = () => {
                                                 {f}
                                             </span>
                                         ))}
-                                        </div>
                                     </div>
-                                        </div>
+                                </div>
+                            </div>
                         ))}
-                                    </div>
+                    </div>
 
                     {/* Desktop Layout - Swiss Grid */}
                     <div className="hidden md:grid grid-cols-3 gap-0 border-t border-stone-200">
@@ -829,18 +870,18 @@ const LandingPage = () => {
                             <div key={i} className={`pt-12 pb-8 ${i < 2 ? 'pr-12 border-r border-stone-200' : 'pl-12'} ${i === 1 ? 'pl-12' : ''}`}>
                                 {/* Large Ghost Number */}
                                 <div className="text-8xl font-bold text-stone-200/50 leading-none mb-6">{service.num}</div>
-                                
+
                                 {/* Icon + Title */}
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-12 h-12 bg-white flex items-center justify-center">
                                         <service.icon className="text-[#880000]" size={24} />
-                                </div>
+                                    </div>
                                     <h3 className="text-xl font-bold text-slate-900">{service.title}</h3>
-                        </div>
+                                </div>
 
                                 {/* Description */}
                                 <p className="text-sm text-slate-500 leading-relaxed mb-6">{service.desc}</p>
-                                
+
                                 {/* Feature Tags */}
                                 <div className="space-y-2">
                                     {service.features.map((f, j) => (
@@ -849,11 +890,11 @@ const LandingPage = () => {
                                             <span className="text-xs text-slate-400 uppercase tracking-wider">{f}</span>
                                         </div>
                                     ))}
-                                    </div>
-                                
+                                </div>
+
                                 {/* Accent Line */}
                                 <div className="w-8 h-0.5 bg-[#880000] mt-8"></div>
-                                        </div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -889,15 +930,15 @@ const LandingPage = () => {
                                 {/* Number Circle */}
                                 <div className="absolute left-0 top-0 w-14 h-14 border border-white/20 rounded-full flex items-center justify-center">
                                     <span className="text-lg font-bold text-[#ff6b6b]">{step.num}</span>
-                            </div>
+                                </div>
                                 {/* Content */}
                                 <div className="pt-2">
                                     <h4 className="text-lg font-bold text-white mb-2">{step.title}</h4>
                                     <p className="text-sm text-white/50 leading-relaxed">{step.desc}</p>
-                        </div>
+                                </div>
                             </div>
                         ))}
-                        </div>
+                    </div>
 
                     {/* Desktop Layout - Swiss Grid */}
                     <div className="hidden md:block">
@@ -918,7 +959,7 @@ const LandingPage = () => {
                                     <p className="text-sm text-white/40 leading-relaxed">{step.desc}</p>
                                     {/* Accent */}
                                     <div className="w-8 h-0.5 bg-[#880000] mt-6"></div>
-                            </div>
+                                </div>
                             ))}
                         </div>
 
@@ -945,12 +986,12 @@ const LandingPage = () => {
                         <div className="w-10 h-1 bg-[#880000]"></div>
                         <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-[0.3em]">Why Choose Us</span>
                     </div>
-                    
+
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 md:mb-20">
                         <h2 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight mb-4 md:mb-0">
                             <span className="font-extralight">The strategic edge</span><br />
                             <span className="text-[#880000]">that sets us apart</span>
-                    </h2>
+                        </h2>
                         <p className="text-sm text-slate-400 max-w-xs md:text-right">
                             Built for serious learners who want measurable results.
                         </p>
@@ -976,9 +1017,9 @@ const LandingPage = () => {
                                     <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
                                     <div className="w-6 h-0.5 bg-[#880000] mt-4"></div>
                                 </div>
-                                </div>
-                        ))}
                             </div>
+                        ))}
+                    </div>
 
                     {/* Desktop Layout - 2x2 Swiss Grid */}
                     <div className="hidden md:grid grid-cols-2 gap-0 border-t border-slate-100">
@@ -1002,10 +1043,10 @@ const LandingPage = () => {
                                 <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
                                 {/* Accent */}
                                 <div className="w-8 h-0.5 bg-[#880000] mt-6"></div>
-                                </div>
-                        ))}
                             </div>
-                        </div>
+                        ))}
+                    </div>
+                </div>
             </section>
 
             {/* Stats Banner - Swiss Minimal */}
@@ -1021,12 +1062,12 @@ const LandingPage = () => {
                             <div key={i} className={`text-center ${i < 3 ? 'md:border-r md:border-white/10' : ''}`}>
                                 <div className="text-4xl md:text-5xl font-bold text-white leading-none">
                                     {stat.value}<span className="text-[#ff6b6b]">{stat.suffix}</span>
-                                    </div>
+                                </div>
                                 <div className="text-[10px] md:text-xs text-white/40 uppercase tracking-[0.2em] mt-2">{stat.label}</div>
-                                </div>
-                        ))}
-                                </div>
                             </div>
+                        ))}
+                    </div>
+                </div>
             </section>
 
             {/* Journey Preview Section - Swiss Design */}
@@ -1036,37 +1077,37 @@ const LandingPage = () => {
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-1 bg-[#880000]"></div>
                         <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-[0.3em]">Your Journey</span>
-                                    </div>
-                    
+                    </div>
+
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 md:mb-16">
                         <h2 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight mb-4 md:mb-0">
                             <span className="font-extralight">Three months to</span><br />
                             <span className="text-[#880000]">transform your English</span>
                         </h2>
-                                </div>
+                    </div>
 
                     {/* Month Cards - Swiss Grid */}
                     <div className="grid md:grid-cols-3 gap-6 md:gap-0 md:border-t md:border-slate-200">
                         {[
-                            { 
-                                month: '01', 
-                                title: 'Foundation', 
+                            {
+                                month: '01',
+                                title: 'Foundation',
                                 focus: 'Building Habits',
                                 desc: 'Establish daily reading routines with approachable stories from Europe and North America. Focus on core vocabulary.',
                                 topics: ['Travel', 'Culture', 'History'],
                                 color: 'bg-white'
                             },
-                            { 
-                                month: '02', 
-                                title: 'Expansion', 
+                            {
+                                month: '02',
+                                title: 'Expansion',
                                 focus: 'Growing Skills',
                                 desc: 'Explore diverse narratives from Asia and South America. Encounter more complex sentence structures.',
                                 topics: ['Nature', 'Technology', 'Society'],
                                 color: 'bg-slate-50'
                             },
-                            { 
-                                month: '03', 
-                                title: 'Mastery', 
+                            {
+                                month: '03',
+                                title: 'Mastery',
                                 focus: 'Achieving Fluency',
                                 desc: 'Challenge yourself with stories from Africa and Oceania. Advanced vocabulary and nuanced expressions.',
                                 topics: ['Science', 'Arts', 'Philosophy'],
@@ -1077,15 +1118,15 @@ const LandingPage = () => {
                                 {/* Month Number */}
                                 <div className="flex items-center gap-3 mb-6">
                                     <span className="text-6xl md:text-7xl font-bold text-slate-200 leading-none">{month.month}</span>
-                                <div>
+                                    <div>
                                         <div className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Month</div>
                                         <div className="text-lg font-bold text-slate-900">{month.title}</div>
+                                    </div>
                                 </div>
-                            </div>
                                 {/* Focus */}
                                 <div className="inline-block bg-[#880000]/10 px-3 py-1 mb-4">
                                     <span className="text-[10px] text-[#880000] uppercase tracking-wider font-medium">{month.focus}</span>
-                        </div>
+                                </div>
                                 {/* Description */}
                                 <p className="text-sm text-slate-500 leading-relaxed mb-6">{month.desc}</p>
                                 {/* Topics */}
@@ -1111,8 +1152,8 @@ const LandingPage = () => {
                     <div className="text-8xl md:text-9xl font-serif text-slate-100 leading-none mb-4">"</div>
                     {/* Quote */}
                     <blockquote className="text-xl md:text-3xl font-light text-slate-700 leading-relaxed mb-8 -mt-16">
-                        The daily practice format changed how I approach learning English. 
-                        <span className="text-[#880000] font-medium"> Reading stories from different countries</span> made 
+                        The daily practice format changed how I approach learning English.
+                        <span className="text-[#880000] font-medium"> Reading stories from different countries</span> made
                         vocabulary stick in a way textbooks never did.
                     </blockquote>
                     {/* Attribution */}
@@ -1133,12 +1174,12 @@ const LandingPage = () => {
                         backgroundSize: '60px 60px'
                     }}
                 ></div>
-                
+
                 {/* Large Ghost Text */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-bold text-white/[0.02] leading-none whitespace-nowrap pointer-events-none select-none">
                     START NOW
                 </div>
-                
+
                 <div className="relative max-w-6xl mx-auto px-6">
                     {/* Mobile Layout */}
                     <div className="md:hidden text-center">
@@ -1180,9 +1221,9 @@ const LandingPage = () => {
                         <h2 className="text-5xl lg:text-7xl font-bold text-white leading-[0.95] mb-8">
                             <span className="font-extralight block">Your journey to fluency</span>
                             <span className="text-[#ff6b6b] block">starts with Day 1</span>
-                    </h2>
+                        </h2>
                         <p className="text-lg text-white/50 max-w-2xl mx-auto mb-12">
-                            90 days of curated content. 30 countries to explore. Unlimited potential to unlock. 
+                            90 days of curated content. 30 countries to explore. Unlimited potential to unlock.
                             No downloads required, no account needed—just click and begin your transformation.
                         </p>
                         <button
@@ -1214,7 +1255,7 @@ const LandingPage = () => {
                         </div>
                         <span className="text-sm font-bold uppercase tracking-[0.1em]">English Daily</span>
                     </div>
-                    
+
                     {/* Quick Links */}
                     <div className="grid grid-cols-2 gap-4 mb-8 pb-8 border-b border-white/10">
                         <button onClick={() => scrollToSection('about')} className="text-left text-xs text-white/50 uppercase tracking-wider hover:text-white transition-colors">About</button>
@@ -1222,7 +1263,7 @@ const LandingPage = () => {
                         <button onClick={() => scrollToSection('how-it-works')} className="text-left text-xs text-white/50 uppercase tracking-wider hover:text-white transition-colors">Process</button>
                         <button onClick={() => scrollToSection('advantages')} className="text-left text-xs text-white/50 uppercase tracking-wider hover:text-white transition-colors">Advantages</button>
                     </div>
-                    
+
                     {/* Creator */}
                     <div className="mb-8">
                         <div className="flex items-center gap-3 mb-4">
@@ -1239,23 +1280,23 @@ const LandingPage = () => {
                         </div>
                         {/* Social Links */}
                         <div className="flex items-center gap-3 pl-13">
-                            <a 
-                                href="https://github.com/azaynz" 
-                                target="_blank" 
+                            <a
+                                href="https://github.com/azaynz"
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-8 h-8 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors"
                             >
                                 <Github size={14} className="text-white/60 hover:text-white" />
                             </a>
-                            <a 
-                                href="https://instagram.com/azaynz" 
-                                target="_blank" 
+                            <a
+                                href="https://instagram.com/azaynz"
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-8 h-8 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors"
                             >
                                 <Instagram size={14} className="text-white/60 hover:text-white" />
                             </a>
-                            <a 
+                            <a
                                 href="mailto:contact.azaynz@gmail.com"
                                 className="w-8 h-8 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors"
                             >
@@ -1263,7 +1304,7 @@ const LandingPage = () => {
                             </a>
                         </div>
                     </div>
-                    
+
                     {/* Bottom */}
                     <div className="flex items-center justify-between">
                         <div className="text-[10px] text-white/30 uppercase tracking-wider">© 2025</div>
@@ -1288,7 +1329,7 @@ const LandingPage = () => {
                                     <span className="text-lg font-bold uppercase tracking-[0.1em]">English Daily</span>
                                 </div>
                                 <p className="text-sm text-white/40 leading-relaxed mb-8 max-w-sm">
-                                    Transforming language learning through engaging stories from around the world. 
+                                    Transforming language learning through engaging stories from around the world.
                                     90 days of curated content to help you achieve fluency.
                                 </p>
                                 {/* Creator */}
@@ -1304,26 +1345,26 @@ const LandingPage = () => {
                                         <div className="text-xs text-white/40">Educator & Developer</div>
                                     </div>
                                 </div>
-                                
+
                                 {/* Social Links */}
                                 <div className="flex items-center gap-3">
-                                    <a 
-                                        href="https://github.com/azaynz" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://github.com/azaynz"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                     >
                                         <Github size={16} className="text-white/50 group-hover:text-white transition-colors" />
                                     </a>
-                                    <a 
-                                        href="https://instagram.com/azaynz" 
-                                        target="_blank" 
+                                    <a
+                                        href="https://instagram.com/azaynz"
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                     >
                                         <Instagram size={16} className="text-white/50 group-hover:text-white transition-colors" />
                                     </a>
-                                    <a 
+                                    <a
                                         href="mailto:contact.azaynz@gmail.com"
                                         className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                     >
