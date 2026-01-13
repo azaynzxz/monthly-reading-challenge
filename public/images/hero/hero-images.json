@@ -1,0 +1,68 @@
+[
+    {
+        "searchTerm": "Eiffel Tower",
+        "title": "Eiffel Tower",
+        "description": "The Eiffel Tower is a lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889.",
+        "localImage": "/images/hero/eiffel-tower.webp"
+    },
+    {
+        "searchTerm": "Statue of Liberty",
+        "title": "Statue of Liberty",
+        "description": "The Statue of Liberty is a colossal neoclassical sculpture of a robed and crowned woman on Liberty Island in New York Harbor, within New York City, U.S. The copper-clad statue, a gift to the United States from the people of France, was designed by French sculptor Frédéric Auguste Bartholdi, and its metal framework built by Gustave Eiffel. The statue was dedicated on October 28, 1886.",
+        "localImage": "/images/hero/statue-of-liberty.webp"
+    },
+    {
+        "searchTerm": "Machu Picchu",
+        "title": "Machu Picchu",
+        "description": "Machu Picchu is a 15th-century Inca citadel located in the Eastern Cordillera of southern Peru on a mountain ridge at 2,430 meters (7,970 ft). It is situated in the Machupicchu District of Urubamba Province about 80 kilometers northwest of Cusco, above the Sacred Valley and along the Urubamba River, which forms a deep canyon with a subtropical mountain climate.",
+        "localImage": "/images/hero/machu-picchu.webp"
+    },
+    {
+        "searchTerm": "Colosseum",
+        "title": "Colosseum",
+        "description": "The Colosseum is an elliptical amphitheatre in the centre of the city of Rome, Italy, just east of the Roman Forum. It is the largest ancient amphitheatre ever built, and is the largest standing amphitheatre in the world. Construction began under the Emperor Vespasian in 72 and was completed in AD 80 under his successor and heir, Titus. Further modifications were made during the reign of Domitian. The three emperors who were patrons of the work are known as the Flavian dynasty, and the amphitheatre was named the Flavian Amphitheatre by later classicists and archaeologists for its association with their family name (Flavius).",
+        "localImage": "/images/hero/colosseum.webp"
+    },
+    {
+        "searchTerm": "Big Ben",
+        "title": "Big Ben",
+        "description": "Big Ben is the nickname for the Great Bell of the Great Clock of Westminster, and, by extension, for the clock tower which stands at the north end of the Palace of Westminster in London, England. Originally named simply Clock Tower, the structure was renamed to Elizabeth Tower in 2012 to mark the Diamond Jubilee of Queen Elizabeth II. The clock is a striking clock with five bells.",
+        "localImage": "/images/hero/big-ben.webp"
+    },
+    {
+        "searchTerm": "Golden Gate Bridge",
+        "title": "Golden Gate Bridge",
+        "description": "The Golden Gate Bridge is a suspension bridge spanning the Golden Gate, the one-mile-wide (1.6 km) strait connecting San Francisco Bay and the Pacific Ocean in California, United States. The structure links San Francisco—the northern tip of the San Francisco Peninsula—to Marin County, carrying both U.S. Route 101 and California State Route 1 across the strait. It also carries pedestrian and bicycle traffic, and is designated as part of U.S. Bicycle Route 95. Recognized by the American Society of Civil Engineers as one of the Wonders of the Modern World, the bridge is one of the most internationally recognized symbols of San Francisco and California.",
+        "localImage": "/images/hero/golden-gate-bridge.webp"
+    },
+    {
+        "searchTerm": "Angkor Wat",
+        "title": "Angkor Wat",
+        "description": "Angkor Wat is a Theravada Buddhist temple complex and the largest religious complex in the world. Located on a site measuring 162.6 hectares within the ancient capital of Angkor, it was constructed between 1113 and 1150 CE during the reign of the Khmer king Suryavarman II. From the late 13th century onward, the complex continued to be a Buddhist temple and has remained an active center of Buddhist worship for centuries. Angkor Wat is noted for its monumental scale, extensive bas-reliefs, and architectural unity characteristic of Khmer architecture, and unlike most Angkorian temples it is oriented toward the west. It is a national symbol of Cambodia and appears on the Cambodian national flag.",
+        "localImage": "/images/hero/angkor-wat.webp"
+    },
+    {
+        "searchTerm": "Stonehenge",
+        "title": "Stonehenge",
+        "description": "Stonehenge is a prehistoric megalithic structure on Salisbury Plain in Wiltshire, England, two miles (3 km) west of Amesbury. It consists of an outer ring of vertical sarsen standing stones, each around 13 feet (4.0 m) high, seven feet (2.1 m) wide, and weighing around 25 tons, topped by connecting horizontal lintel stones which are held in place with mortise and tenon joints—a feature unique among contemporary monuments. Inside is a ring of smaller bluestones. Inside, these are free-standing trilithons, two bulkier vertical sarsens joined by a single lintel. The whole monument, now in ruins, is aligned towards the sunrise on the summer solstice and sunset on the winter solstice. The stones are set within earthworks in the middle of the densest complex of Neolithic and Bronze Age monuments in England, including several hundred tumuli.",
+        "localImage": "/images/hero/stonehenge.webp"
+    },
+    {
+        "searchTerm": "Mount Fuji",
+        "title": "Mount Fuji",
+        "description": "Mount Fuji  is an active stratovolcano located on the Japanese island of Honshu, with a summit elevation of 3,776.24 m. It is the highest mountain in Japan, the second-highest volcano on any Asian island, and the seventh-highest peak of an island on Earth. Mount Fuji last erupted from 1707 to 1708.",
+        "localImage": "/images/hero/mount-fuji.webp"
+    },
+    {
+        "searchTerm": "Sydney Opera House",
+        "title": "Sydney Opera House",
+        "description": "The Sydney Opera House is a multi-venue performing arts centre in Sydney, New South Wales, Australia. Located on the foreshore of Sydney Harbour, it is widely regarded as one of the world's most famous and distinctive buildings, and a masterpiece of 20th-century architecture.",
+        "localImage": "/images/hero/sydney-opera-house.webp"
+    },
+    {
+        "searchTerm": "Petra",
+        "title": "Petra",
+        "description": "Petra, originally known to its inhabitants as Raqmu, is an ancient city and archaeological site in southern Jordan. Famous for its rock-cut architecture and water conduit systems, Petra is also called the \"Rose City\" because of the colour of the sandstone from which it is carved. The city is one of the New 7 Wonders of the World and a UNESCO World Heritage Site.",
+        "localImage": "/images/hero/petra.webp"
+    }
+]
