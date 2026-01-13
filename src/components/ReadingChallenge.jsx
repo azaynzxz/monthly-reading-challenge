@@ -370,63 +370,22 @@ const ReadingChallenge = () => {
         setIsScrolling(false);
     };
 
-    const downloadImage = () => {
+    const downloadImage = async () => {
         setIsGenerating(true);
+        
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 1080;
-        canvas.height = 1920;
-        ctx.fillStyle = '#F2F2F2';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const margin = 80;
+        canvas.height = 1920; // 9:16 aspect ratio
+        
         const accentColor = '#880000';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(margin, margin, canvas.width - margin * 2, canvas.height - margin * 2);
-        const innerMargin = margin + 60;
-        const innerWidth = canvas.width - innerMargin * 2;
-        ctx.font = 'bold 24px Arial, sans-serif';
-        ctx.fillStyle = '#666666';
-        ctx.fillText(`30 DAY READING CHALLENGE`, innerMargin, innerMargin + 40);
-        ctx.fillText(`MONTH ${currentMonth}`, innerMargin, innerMargin + 80);
-        ctx.font = 'bold 200px Arial, sans-serif';
-        ctx.fillStyle = accentColor;
-        ctx.textAlign = 'right';
-        ctx.fillText(`${currentDay < 10 ? '0' : ''}${currentDay}`, canvas.width - innerMargin, innerMargin + 140);
-        ctx.textAlign = 'left';
-        let yPos = innerMargin + 250;
-        ctx.font = 'bold 30px Arial, sans-serif';
-        ctx.fillStyle = accentColor;
-        ctx.fillText(activeData.country.toUpperCase(), innerMargin, yPos);
-        yPos += 80;
-        ctx.font = 'bold 70px Arial, sans-serif';
-        ctx.fillStyle = '#000000';
-        const titleWords = activeData.title.split(' ');
-        let titleLine = '';
-        for (let i = 0; i < titleWords.length; i++) {
-            const testLine = titleLine + titleWords[i] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > innerWidth && i > 0) {
-                ctx.fillText(titleLine, innerMargin, yPos);
-                titleLine = titleWords[i] + ' ';
-                yPos += 80;
-            } else {
-                titleLine = testLine;
-            }
-        }
-        ctx.fillText(titleLine, innerMargin, yPos);
-        yPos += 60;
-        ctx.strokeStyle = '#333333';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(innerMargin, yPos);
-        ctx.lineTo(canvas.width - innerMargin, yPos);
-        ctx.stroke();
-        yPos += 80;
-        ctx.fillStyle = '#333333';
-
-        // Auto-fit text function - calculates lines and total height for a given font size
-        const calculateTextLayout = (context, text, maxWidth, fontSize) => {
-            context.font = `${fontSize}px Arial, sans-serif`;
+        const contentPadding = 60;
+        const contentWidth = canvas.width - contentPadding * 2;
+        const footerHeight = 100; // Fixed footer space
+        
+        // Helper function to wrap text
+        const wrapText = (context, text, maxWidth, fontSize, fontWeight = 'normal') => {
+            context.font = `${fontWeight} ${fontSize}px Arial, sans-serif`;
             const words = text.split(' ');
             const lines = [];
             let line = '';
@@ -441,111 +400,280 @@ const ReadingChallenge = () => {
                 }
             }
             if (line.trim()) lines.push(line.trim());
-            const lineHeight = fontSize * 1.5;
-            return { lines, lineHeight, totalHeight: lines.length * lineHeight };
+            return lines;
         };
-
-        // Calculate available space for story text (leave room for practice note and footer)
-        const footerReserve = 280; // Space for practice note + footer
-        const availableHeight = canvas.height - margin - yPos - footerReserve;
-
-        // Find optimal font size that fits the text within available space
-        let optimalFontSize = 36;
-        const minFontSize = 18;
-        let layout = calculateTextLayout(ctx, activeData.text, innerWidth, optimalFontSize);
-
-        while (layout.totalHeight > availableHeight && optimalFontSize > minFontSize) {
-            optimalFontSize -= 2;
-            layout = calculateTextLayout(ctx, activeData.text, innerWidth, optimalFontSize);
+        
+        // Prepare story chunks
+        const sentences = activeData.text.match(/[^.!?]+[.!?]+/g) || [activeData.text];
+        const chunks = [];
+        for (let i = 0; i < sentences.length; i += 2) {
+            chunks.push(sentences.slice(i, i + 2).join(' ').trim());
         }
-
-        // Render the text with optimal font size
-        ctx.font = `${optimalFontSize}px Arial, sans-serif`;
-        const lineHeight = optimalFontSize * 1.5;
-        layout.lines.forEach(line => {
-            ctx.fillText(line, innerMargin, yPos);
-            yPos += lineHeight;
-        });
-
-        // Add practice note text with auto-resize so it always fits
-        yPos += 40; // spacing after main text
+        
+        // Practice note text
         const practiceNote = `This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.`;
-        const finalFooterY = canvas.height - innerMargin - 20;
-        const noteAreaTop = yPos;
-        const noteAreaMaxHeight = Math.max(80, finalFooterY - 120 - noteAreaTop); // leave room for footer
-
-        const drawAutoFitNote = (context, text, x, y, maxWidth, maxHeight) => {
-            const baseFontSize = 32;
-            const minFontSize = 16;
-            let chosenFontSize = minFontSize;
-            let chosenLines = [];
-
-            const wrapText = (fontSize) => {
-                context.font = `italic ${fontSize}px Arial, sans-serif`;
-                const words = text.split(' ');
-                const lines = [];
-                let line = '';
-                for (let n = 0; n < words.length; n++) {
-                    const testLine = line + words[n] + ' ';
-                    const metrics = context.measureText(testLine);
-                    if (metrics.width > maxWidth && n > 0) {
-                        lines.push(line.trim());
-                        line = words[n] + ' ';
-                    } else {
-                        line = testLine;
-                    }
-                }
-                if (line) lines.push(line.trim());
-                return lines;
-            };
-
-            for (let fontSize = baseFontSize; fontSize >= minFontSize; fontSize -= 2) {
-                const lines = wrapText(fontSize);
-                const lineHeight = fontSize * 1.4;
-                const neededHeight = lines.length * lineHeight;
-                if (neededHeight <= maxHeight) {
-                    chosenFontSize = fontSize;
-                    chosenLines = lines;
-                    break;
-                }
-            }
-
-            if (chosenLines.length === 0) {
-                chosenLines = wrapText(minFontSize);
-                chosenFontSize = minFontSize;
-            }
-
-            context.font = `italic ${chosenFontSize}px Arial, sans-serif`;
-            context.fillStyle = '#666666';
-            context.textAlign = 'left';
-            const lineHeight = chosenFontSize * 1.4;
-            let currentY = y;
-            chosenLines.forEach(line => {
-                if (currentY + lineHeight <= y + maxHeight) {
-                    context.fillText(line, x, currentY);
-                    currentY += lineHeight;
-                }
+        
+        // Calculate content height needed for a given font size
+        const calculateContentHeight = (fontSize) => {
+            const lineHeight = fontSize * 1.75;
+            let totalHeight = 80; // Header space (READ ALOUD)
+            
+            // Story chunks
+            chunks.forEach((chunk) => {
+                const lines = wrapText(ctx, chunk, contentWidth - 60, fontSize);
+                totalHeight += lines.length * lineHeight + 40;
             });
+            
+            // Practice note (exact same style as story chunks)
+            const noteLines = wrapText(ctx, practiceNote, contentWidth - 60, fontSize);
+            totalHeight += noteLines.length * lineHeight + 35;
+            
+            return totalHeight;
         };
-
-        if (noteAreaMaxHeight > 0) {
-            drawAutoFitNote(ctx, practiceNote, innerMargin, noteAreaTop, innerWidth, noteAreaMaxHeight);
+        
+        // Find optimal image height and font size
+        let imageHeight = 595; // Start with default
+        const minImageHeight = 350; // Minimum image height
+        let textFontSize = 32;
+        const minFontSize = 20;
+        
+        // Calculate available space for content
+        let availableForContent = canvas.height - imageHeight - footerHeight;
+        let neededHeight = calculateContentHeight(textFontSize);
+        
+        // First try reducing font size
+        while (neededHeight > availableForContent && textFontSize > minFontSize) {
+            textFontSize -= 2;
+            neededHeight = calculateContentHeight(textFontSize);
         }
-
-        ctx.fillStyle = accentColor;
-        ctx.fillRect(innerMargin, finalFooterY - 50, 60, 6);
-        ctx.font = 'bold 24px Arial, sans-serif';
-        ctx.fillStyle = '#000000';
-        ctx.fillText('ENGLISH FLUENCY JOURNEY', innerMargin, finalFooterY);
-        ctx.font = 'normal 24px Arial, sans-serif';
-        ctx.fillStyle = '#666666';
-        ctx.textAlign = 'right';
-        ctx.fillText('By Zayn', canvas.width - innerMargin, finalFooterY);
-        const link = document.createElement('a');
-        link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.9);
-        link.click();
-        setIsGenerating(false);
+        
+        // If still doesn't fit, reduce image height
+        while (neededHeight > availableForContent && imageHeight > minImageHeight) {
+            imageHeight -= 30;
+            availableForContent = canvas.height - imageHeight - footerHeight;
+        }
+        
+        // Final font size adjustment if needed
+        while (neededHeight > availableForContent && textFontSize > minFontSize) {
+            textFontSize -= 1;
+            neededHeight = calculateContentHeight(textFontSize);
+        }
+        
+        const textLineHeight = textFontSize * 1.75;
+        
+        // Draw poster content (with or without image)
+        const drawPoster = (img = null) => {
+            // Fill background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // === HERO IMAGE SECTION ===
+            if (img) {
+                const imgAspect = img.width / img.height;
+                const heroAspect = canvas.width / imageHeight;
+                let drawWidth, drawHeight, drawX, drawY;
+                
+                if (imgAspect > heroAspect) {
+                    drawHeight = imageHeight;
+                    drawWidth = imageHeight * imgAspect;
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 0;
+                } else {
+                    drawWidth = canvas.width;
+                    drawHeight = canvas.width / imgAspect;
+                    drawX = 0;
+                    drawY = (imageHeight - drawHeight) / 2;
+                }
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(0, 0, canvas.width, imageHeight);
+                ctx.clip();
+                ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                ctx.restore();
+                
+                // Dark gradient overlay
+                const gradient = ctx.createLinearGradient(0, 0, 0, imageHeight);
+                gradient.addColorStop(0, 'rgba(0,0,0,0.3)');
+                gradient.addColorStop(0.5, 'rgba(0,0,0,0.4)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0.85)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, imageHeight);
+            } else {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, canvas.width, imageHeight);
+            }
+            
+            // === TOP METADATA (over image) ===
+            const topPadding = 50;
+            const sidePadding = 60;
+            
+            // Day/Month badge
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            const badgeText = `M${currentMonth} · D${currentDay}`;
+            ctx.font = 'bold 28px Arial, sans-serif';
+            const badgeWidth = ctx.measureText(badgeText).width + 40;
+            ctx.fillRect(sidePadding, topPadding, badgeWidth, 50);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.textAlign = 'left';
+            ctx.fillText(badgeText, sidePadding + 20, topPadding + 35);
+            
+            // Country
+            if (activeData.country !== "TBD") {
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.font = 'bold 24px Arial, sans-serif';
+                ctx.fillText(`◉ ${activeData.country.toUpperCase()}`, sidePadding + badgeWidth + 25, topPadding + 35);
+            }
+            
+            // === HUGE DAY NUMBER ===
+            const dayNum = String(currentDay).padStart(2, '0');
+            ctx.font = 'bold 280px Arial, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.fillText(dayNum, canvas.width - sidePadding, Math.min(topPadding + 230, imageHeight - 50));
+            
+            // === TITLE ===
+            ctx.textAlign = 'left';
+            const titleBottomPadding = 60;
+            const titleMaxWidth = canvas.width - sidePadding * 2;
+            
+            // Accent line
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillRect(sidePadding, imageHeight - titleBottomPadding - 130, 60, 4);
+            
+            // Title text
+            ctx.fillStyle = '#FFFFFF';
+            const titleLines = wrapText(ctx, activeData.title, titleMaxWidth, 56, 'bold');
+            const titleLineHeight = 68;
+            let titleY = imageHeight - titleBottomPadding - (titleLines.length - 1) * titleLineHeight;
+            
+            ctx.font = 'bold 56px Arial, sans-serif';
+            titleLines.forEach((line, i) => {
+                ctx.fillText(line, sidePadding, titleY + i * titleLineHeight);
+            });
+            
+            // Wikipedia attribution
+            if (activeData.localImage || activeData.wikiSearch) {
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.font = 'bold 18px Arial, sans-serif';
+                ctx.fillText(`📷 ${activeData.wikiSearch || activeData.title} · Wikipedia`, sidePadding, imageHeight - 20);
+            }
+            
+            // === RED ACCENT BAR ===
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(0, 0, 8, canvas.height);
+            
+            // === CONTENT SECTION ===
+            let yPos = imageHeight + 50;
+            
+            // "READ ALOUD" header
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(contentPadding, yPos, 60, 4);
+            ctx.fillStyle = '#999999';
+            ctx.font = 'bold 20px Arial, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('READ ALOUD', contentPadding + 80, yPos + 3);
+            
+            yPos += 55;
+            
+            // Draw each chunk
+            chunks.forEach((chunk, chunkIndex) => {
+                // Chunk number
+                ctx.fillStyle = '#DDDDDD';
+                ctx.font = 'bold 18px Arial, sans-serif';
+                ctx.fillText(String(chunkIndex + 1).padStart(2, '0'), contentPadding, yPos + textFontSize * 0.3);
+                
+                // Chunk text
+                ctx.fillStyle = '#444444';
+                ctx.font = `${textFontSize}px Arial, sans-serif`;
+                const lines = wrapText(ctx, chunk, contentWidth - 60, textFontSize);
+                
+                // Left border
+                const chunkHeight = lines.length * textLineHeight;
+                ctx.fillStyle = '#F0F0F0';
+                ctx.fillRect(contentPadding + 40, yPos - 10, 2, chunkHeight + 10);
+                
+                ctx.fillStyle = '#444444';
+                lines.forEach((line, lineIndex) => {
+                    ctx.fillText(line, contentPadding + 55, yPos + lineIndex * textLineHeight);
+                });
+                
+                yPos += lines.length * textLineHeight + 35;
+            });
+            
+            // === PRACTICE NOTE (exact same style as paragraph chunks) ===
+            // Chunk number indicator
+            ctx.fillStyle = '#DDDDDD';
+            ctx.font = 'bold 18px Arial, sans-serif';
+            ctx.fillText('✦', contentPadding + 5, yPos + textFontSize * 0.3);
+            
+            // Note text
+            ctx.fillStyle = '#444444';
+            ctx.font = `${textFontSize}px Arial, sans-serif`;
+            const noteLines = wrapText(ctx, practiceNote, contentWidth - 60, textFontSize);
+            
+            // Left border
+            const noteHeight = noteLines.length * textLineHeight;
+            ctx.fillStyle = '#F0F0F0';
+            ctx.fillRect(contentPadding + 40, yPos - 10, 2, noteHeight + 10);
+            
+            ctx.fillStyle = '#444444';
+            noteLines.forEach((line, i) => {
+                ctx.fillText(line, contentPadding + 55, yPos + i * textLineHeight);
+            });
+            
+            yPos += noteLines.length * textLineHeight + 35;
+            
+            // === FOOTER ===
+            const footerY = canvas.height - 50;
+            
+            // Accent line
+            ctx.fillStyle = accentColor;
+            ctx.fillRect(contentPadding, footerY - 25, 60, 5);
+            
+            // Brand
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 24px Arial, sans-serif';
+            ctx.fillStyle = '#222222';
+            ctx.fillText('ENGLISH FLUENCY JOURNEY', contentPadding, footerY);
+            
+            // Right side
+            ctx.textAlign = 'right';
+            const byZaynText = '  |  By Zayn';
+            ctx.font = 'normal 22px Arial, sans-serif';
+            ctx.fillStyle = '#666666';
+            const byZaynWidth = ctx.measureText(byZaynText).width;
+            ctx.fillText(byZaynText, canvas.width - contentPadding, footerY);
+            
+            ctx.font = 'bold 22px Arial, sans-serif';
+            ctx.fillStyle = '#444444';
+            const domainText = 'myenglish.my.id';
+            const domainWidth = ctx.measureText(domainText).width;
+            ctx.fillText(domainText, canvas.width - contentPadding - byZaynWidth, footerY);
+            
+            ctx.font = 'normal 22px Arial, sans-serif';
+            ctx.fillStyle = '#666666';
+            ctx.fillText('Practice at: ', canvas.width - contentPadding - byZaynWidth - domainWidth, footerY);
+            
+            // Download the image
+            const link = document.createElement('a');
+            link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.92);
+            link.click();
+            setIsGenerating(false);
+        };
+        
+        // Try to load the local image
+        if (activeData.localImage) {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => drawPoster(img);
+            img.onerror = () => drawPoster(null); // Fallback without image
+            img.src = activeData.localImage;
+        } else {
+            // No local image, draw without
+            drawPoster(null);
+        }
     };
 
 

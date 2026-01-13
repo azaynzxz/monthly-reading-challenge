@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
@@ -1325,6 +1325,7 @@ ${shareLink}`;
                                 subtitle={activeData.country}
                                 meta={`Month ${currentMonth} · Day ${currentDay}`}
                                 text={activeData.text}
+                                localImage={activeData.localImage}
                                 statistics={statistics}
                                 progress={progress}
                                 month={currentMonth}

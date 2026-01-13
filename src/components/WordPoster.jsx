@@ -50,7 +50,7 @@ const WordPoster = ({
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, width, height);
 
-        const outerMargin = 80;
+        const outerMargin = 0;
         const cardRadius = 0;
         const cardX = outerMargin;
         const cardY = outerMargin;
@@ -141,7 +141,27 @@ const WordPoster = ({
         const normalize = (w) =>
             w.toLowerCase().replace(/[.,!?;:()"'\-]/g, '').trim();
 
-        const rawWords = text.split(/\s+/).map(normalize).filter(Boolean);
+        // Common stopwords to filter out
+        const stopwords = new Set([
+            'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were',
+            'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
+            'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall',
+            'can', 'need', 'dare', 'ought', 'used', 'to', 'of', 'in', 'for',
+            'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during',
+            'before', 'after', 'above', 'below', 'between', 'under', 'again',
+            'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
+            'how', 'all', 'each', 'few', 'more', 'most', 'other', 'some', 'such',
+            'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too',
+            'very', 'just', 'also', 'now', 'i', 'me', 'my', 'myself', 'we',
+            'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself',
+            'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers',
+            'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs',
+            'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these',
+            'those', 'am', 'about', 'against', 'any', 'because', 'both', 'but',
+            'if', 'while', 'until', 'although', 'unless', 'since', 'whether'
+        ]);
+
+        const rawWords = text.split(/\s+/).map(normalize).filter(w => w && !stopwords.has(w));
 
         const freqMap = new Map();
         rawWords.forEach((w) => {
@@ -370,13 +390,13 @@ const WordPoster = ({
 
         ctx.font = 'bold 22px Arial, sans-serif';
         ctx.fillStyle = '#222222';
-        ctx.fillText('ENGLISH READING PRACTICE', innerMargin, footerY);
+        ctx.fillText('ENGLISH FLUENCY JOURNEY', innerMargin, footerY);
 
-        // "By Zayn · English Daily" at the bottom right
+        // "By Zayn" at the bottom right
         ctx.font = 'normal 18px Arial, sans-serif';
         ctx.fillStyle = '#777777';
         ctx.textAlign = 'right';
-        ctx.fillText('By Zayn · English Daily', cardX + cardWidth - 60, footerY);
+        ctx.fillText('By Zayn', cardX + cardWidth - 60, footerY);
 
     }, [width, height, title, subtitle, meta, text, accentColor, backgroundColor, month, day, statistics, progress, onPosterReady]);
 
