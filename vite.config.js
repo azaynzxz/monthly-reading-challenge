@@ -13,7 +13,7 @@ export default defineConfig({
                 name: 'English Fluency Journey',
                 short_name: 'Fluency Journey',
                 description: 'Read the World, Speak with Confidence. 90-day English reading practice challenge.',
-                theme_color: '#921b1e',
+                theme_color: '#880000',
                 background_color: '#ffffff',
                 display: 'standalone',
                 start_url: '/',
