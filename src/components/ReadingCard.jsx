@@ -232,10 +232,10 @@ const ReadingCard = ({
             const localCacheKey = `${activeData.day}-${activeData.wikiSearch || activeData.title}`;
             const preloadCacheKey = `${currentMonth}-${activeData.day}`;
 
-            // Check preloaded images first (from parent component)
-            if (preloadedImages[preloadCacheKey]) {
+            // Check local cache first
+            if (imageCache.current[localCacheKey]) {
                 if (isMounted) {
-                    setWikiImage(preloadedImages[preloadCacheKey]);
+                    setWikiImage(imageCache.current[localCacheKey]);
                     setIsLoadingImage(false);
                     setTimeout(() => {
                         if (isMounted) {
@@ -247,10 +247,12 @@ const ReadingCard = ({
                 return;
             }
 
-            // Check local cache
-            if (imageCache.current[localCacheKey]) {
+            // Check preloaded images (only if it's a local image or no localImage field exists)
+            const preloadedImage = preloadedImages[preloadCacheKey];
+            if (preloadedImage && (preloadedImage.isLocal || !activeData.localImage)) {
                 if (isMounted) {
-                    setWikiImage(imageCache.current[localCacheKey]);
+                    imageCache.current[localCacheKey] = preloadedImage;
+                    setWikiImage(preloadedImage);
                     setIsLoadingImage(false);
                     setTimeout(() => {
                         if (isMounted) {

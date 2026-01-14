@@ -42,7 +42,8 @@ const ReadingChallenge = () => {
     const imagePreloadCache = useRef({});
     const preloadingRef = useRef(false);
 
-    // Preload Wikipedia images for all days in current month (background task)
+    // Preload local images for all days in current month (background task)
+    // Only uses Wikipedia API for metadata (title/description), NOT for image files
     useEffect(() => {
         const preloadImages = async () => {
             if (preloadingRef.current) return;
@@ -51,7 +52,7 @@ const ReadingChallenge = () => {
             const monthData = allMonthsData[currentMonth];
             if (!monthData) return;
 
-            // Preload in batches to avoid overwhelming the network
+            // Preload in batches
             const batchSize = 5;
             
             for (let i = 0; i < monthData.length; i += batchSize) {
@@ -64,6 +65,32 @@ const ReadingChallenge = () => {
                         // Skip if already cached
                         if (imagePreloadCache.current[cacheKey]) return;
 
+                        // PRIORITY 1: Use local image if available
+                        if (dayData.localImage) {
+                            await new Promise((resolve) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    imagePreloadCache.current[cacheKey] = {
+                                        url: dayData.localImage,
+                                        title: dayData.imageTitle || dayData.wikiSearch || dayData.title,
+                                        description: dayData.imageDescription || '',
+                                        searchTerm: dayData.wikiSearch || dayData.title,
+                                        isLocal: true
+                                    };
+                                    resolve();
+                                };
+                                img.onerror = resolve; // Continue even if image fails
+                                img.src = dayData.localImage;
+                            });
+                            
+                            // If local image loaded, we're done with this day
+                            if (imagePreloadCache.current[cacheKey]?.isLocal) {
+                                return;
+                            }
+                        }
+
+                        // PRIORITY 2: Fall back to Wikipedia API only if no local image
+                        // Only fetch metadata, not the actual image file
                         const searchTerms = [
                             dayData.wikiSearch,
                             dayData.title,
@@ -81,22 +108,16 @@ const ReadingChallenge = () => {
                                     const imageUrl = data.originalimage?.source || data.thumbnail?.source;
 
                                     if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
-                                        // Preload the actual image
-                                        await new Promise((resolve) => {
-                                            const img = new Image();
-                                            img.onload = () => {
-                                                imagePreloadCache.current[cacheKey] = {
-                                                    url: imageUrl,
-                                                    title: dayData.wikiSearch || data.title,
-                                                    description: data.extract,
-                                                    searchTerm: dayData.wikiSearch || term
-                                                };
-                                                resolve();
-                                            };
-                                            img.onerror = resolve; // Continue even if image fails
-                                            img.src = imageUrl;
-                                        });
-                                        break; // Found an image, move to next day
+                                        // Store image info WITHOUT preloading the actual image file
+                                        // The image will be loaded on-demand when the card is viewed
+                                        imagePreloadCache.current[cacheKey] = {
+                                            url: imageUrl,
+                                            title: dayData.wikiSearch || data.title,
+                                            description: data.extract,
+                                            searchTerm: dayData.wikiSearch || term,
+                                            isLocal: false
+                                        };
+                                        break; // Found image info, move to next day
                                     }
                                 }
                             } catch {
@@ -106,15 +127,15 @@ const ReadingChallenge = () => {
                     })
                 );
 
-                // Small delay between batches to be nice to the API
-                await new Promise(resolve => setTimeout(resolve, 100));
+                // Small delay between batches
+                await new Promise(resolve => setTimeout(resolve, 50));
             }
 
             preloadingRef.current = false;
         };
 
         // Start preloading after a short delay to not block initial render
-        const timer = setTimeout(preloadImages, 1000);
+        const timer = setTimeout(preloadImages, 500);
         return () => clearTimeout(timer);
     }, [currentMonth]);
 
