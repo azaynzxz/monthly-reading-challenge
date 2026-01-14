@@ -401,17 +401,25 @@ const MistakeCards = ({ onClose }) => {
         // Footer - clean Swiss style
         const footerY = height - footerHeight + 30;
         
-        // Right side text
+        // Right side text - draw as single line
         ctx.textAlign = 'right';
-        ctx.font = 'bold 18px Arial, sans-serif';
-        ctx.fillStyle = textColor;
-        ctx.fillText('myenglish.my.id', baseWidth - margin, footerY + 15);
         
+        // Measure domain width first with bold font
+        ctx.font = 'bold 18px Arial, sans-serif';
+        const domainText = 'myenglish.my.id';
+        const domainWidth = ctx.measureText(domainText).width;
+        
+        // Draw domain
+        ctx.fillStyle = textColor;
+        ctx.fillText(domainText, baseWidth - margin, footerY + 15);
+        
+        // Draw "Practice at:" before domain
         ctx.font = '16px Arial, sans-serif';
         ctx.fillStyle = lightMuted;
-        ctx.fillText('Practice at:', baseWidth - margin - ctx.measureText('myenglish.my.id').width - 8, footerY + 15);
+        ctx.fillText('Practice at: ', baseWidth - margin - domainWidth, footerY + 15);
         
-        ctx.fillText('| by Zayn', baseWidth - margin, footerY + 40);
+        // By Zayn on second line
+        ctx.fillText('by Zayn', baseWidth - margin, footerY + 40);
 
         // Load and draw logo on left
         const logo = new Image();
