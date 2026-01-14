@@ -3,15 +3,84 @@
 
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#880000" />
+    <meta name="theme-color" content="#921b1e" />
+    <meta name="description" content="90-day English reading practice challenge. Read the World, Speak with Confidence." />
     <title>English Fluency Journey</title>
+    <style>
+        /* Loading screen styles */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #loading-logo {
+            width: 120px;
+            height: 120px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        #loading-text {
+            margin-top: 24px;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #921b1e;
+        }
+        #loading-slogan {
+            margin-top: 8px;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            color: #666;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <img id="loading-logo" src="/logo-icon.svg" alt="English Fluency Journey" />
+        <div id="loading-text">English Fluency Journey</div>
+        <div id="loading-slogan">Read the World, Speak with Confidence</div>
+    </div>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+        // Hide loading screen when app is ready
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('fade-out');
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 800);
+        });
+    </script>
 </body>
 
 </html>

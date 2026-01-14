@@ -11,22 +11,22 @@ export default defineConfig({
             includeAssets: ['favicon.ico', 'images/**/*'],
             manifest: {
                 name: 'English Fluency Journey',
-                short_name: 'English Daily',
-                description: '90-day English reading practice challenge',
-                theme_color: '#880000',
+                short_name: 'Fluency Journey',
+                description: 'Read the World, Speak with Confidence. 90-day English reading practice challenge.',
+                theme_color: '#921b1e',
                 background_color: '#ffffff',
                 display: 'standalone',
                 start_url: '/',
                 icons: [
                     {
-                        src: '/images/hero/globe.webp',
+                        src: '/favicon.svg',
                         sizes: '192x192',
-                        type: 'image/webp'
+                        type: 'image/svg+xml'
                     },
                     {
-                        src: '/images/hero/globe.webp',
+                        src: '/favicon.svg',
                         sizes: '512x512',
-                        type: 'image/webp'
+                        type: 'image/svg+xml'
                     }
                 ]
             },

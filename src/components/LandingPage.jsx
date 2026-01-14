@@ -194,11 +194,9 @@ const LandingPage = () => {
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center justify-between h-16">
                         {/* Logo */}
-                        <Link to="/" className="flex items-center gap-3 group">
-                            <div className="w-8 h-8 bg-[#880000] flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">E</span>
-                            </div>
-                            <span className="text-sm font-bold text-slate-900 uppercase tracking-[0.15em]">English Daily</span>
+                        <Link to="/" className="flex items-center gap-2 group">
+                            <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-10 h-10" />
+                            <span className="text-sm font-bold text-slate-900 uppercase tracking-[0.1em]">Fluency Journey</span>
                         </Link>
 
                         {/* Center Links */}
@@ -240,10 +238,8 @@ const LandingPage = () => {
                     <div className="md:hidden flex items-center justify-between h-14">
                         {/* Logo - Compact */}
                         <Link to="/" className="flex items-center gap-2">
-                            <div className="w-7 h-7 bg-[#880000] flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">E</span>
-                            </div>
-                            <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.1em]">English Daily</span>
+                            <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-9 h-9" />
+                            <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.08em]">Fluency Journey</span>
                         </Link>
 
                         {/* Right Side - Menu Toggle + CTA */}
@@ -374,7 +370,7 @@ const LandingPage = () => {
                         >
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="w-12 h-1 bg-[#880000]"></div>
-                                <span className="text-[10px] text-white/60 uppercase tracking-[0.3em] font-medium">English Reading Practice</span>
+                                <span className="text-[10px] text-white/60 uppercase tracking-[0.3em] font-medium">English Fluency Journey</span>
                             </div>
                         </div>
 
@@ -602,7 +598,7 @@ const LandingPage = () => {
                         {/* Description */}
                         <div className="pl-4 border-l-2 border-slate-200 mb-10">
                             <p className="text-base text-slate-500 leading-relaxed">
-                                English Reading Practice was created to help learners build fluency through consistent, engaging daily practice with stories from around the world.
+                                English Fluency Journey was created to help learners build fluency through consistent, engaging daily practice with stories from around the world.
                             </p>
                         </div>
 
@@ -644,7 +640,7 @@ const LandingPage = () => {
                                 {/* Description with left border */}
                                 <div className="pl-8 border-l border-slate-200 mb-12">
                                     <p className="text-lg text-slate-500 leading-relaxed max-w-xl">
-                                        English Reading Practice was created to help learners build fluency through consistent,
+                                        English Fluency Journey was created to help learners build fluency through consistent,
                                         engaging daily practice. Each story is carefully selected to expose you to new vocabulary,
                                         cultural insights, and authentic English from around the world.
                                     </p>
@@ -1155,11 +1151,9 @@ const LandingPage = () => {
                 {/* Mobile Footer */}
                 <div className="md:hidden px-6 py-10">
                     {/* Logo */}
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="w-8 h-8 bg-[#880000] flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">E</span>
-                        </div>
-                        <span className="text-sm font-bold uppercase tracking-[0.1em]">English Daily</span>
+                    <div className="flex items-center gap-2 mb-8">
+                        <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-10 h-10" />
+                        <span className="text-sm font-bold uppercase tracking-[0.08em]">Fluency Journey</span>
                     </div>
 
                     {/* Quick Links */}
@@ -1228,11 +1222,9 @@ const LandingPage = () => {
                         <div className="flex flex-wrap justify-between gap-8 py-16">
                             {/* Logo & Description */}
                             <div className="max-w-xs">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="w-10 h-10 bg-[#880000] flex items-center justify-center">
-                                        <span className="text-white font-bold text-lg">E</span>
-                                    </div>
-                                    <span className="text-lg font-bold uppercase tracking-[0.1em]">English Daily</span>
+                                <div className="flex items-center gap-2 mb-6">
+                                    <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-12 h-12" />
+                                    <span className="text-lg font-bold uppercase tracking-[0.08em]">Fluency Journey</span>
                                 </div>
                                 <p className="text-sm text-white/40 leading-relaxed mb-8 max-w-sm">
                                     Transforming language learning through engaging stories from around the world.
@@ -1337,7 +1329,7 @@ const LandingPage = () => {
                         {/* Bottom Bar */}
                         <div className="flex items-center justify-between py-6 border-t border-white/10">
                             <div className="text-xs text-white/30 uppercase tracking-wider">
-                                © 2025 English Daily • All Rights Reserved
+                                © 2025 English Fluency Journey • All Rights Reserved
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-[#880000]"></div>
