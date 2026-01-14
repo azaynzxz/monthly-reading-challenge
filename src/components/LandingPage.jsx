@@ -1150,7 +1150,7 @@ const LandingPage = () => {
                 <div className="md:hidden px-6 py-10">
                     {/* Logo */}
                     <div className="mb-8">
-                        <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-10" />
+                        <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-10 brightness-0 invert" />
                     </div>
 
                     {/* Quick Links */}
@@ -1220,7 +1220,7 @@ const LandingPage = () => {
                             {/* Logo & Description */}
                             <div className="max-w-xs">
                                 <div className="mb-6">
-                                    <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-12" />
+                                    <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-12 brightness-0 invert" />
                                 </div>
                                 <p className="text-sm text-white/40 leading-relaxed mb-8 max-w-sm">
                                     Transforming language learning through engaging stories from around the world.
