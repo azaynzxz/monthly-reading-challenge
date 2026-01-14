@@ -375,15 +375,15 @@ const MistakeCards = ({ onClose }) => {
         ctx.fillStyle = accentColor;
         ctx.fillRect(0, height - footerHeight, baseWidth, footerHeight);
 
-        // Load and draw logo
+        // Load and draw white logo
         const logo = new Image();
         logo.onload = () => {
-            // Draw logo (height 35px, maintain aspect ratio)
-            const logoHeight = 35;
+            // Draw logo (height 45px, maintain aspect ratio)
+            const logoHeight = 45;
             const logoWidth = (logo.width / logo.height) * logoHeight;
             ctx.drawImage(logo, margin, height - footerHeight + (footerHeight - logoHeight) / 2, logoWidth, logoHeight);
         };
-        logo.src = '/logo-horizontal.svg';
+        logo.src = '/logo-white.svg';
 
         ctx.font = '16px Arial, sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.8)';

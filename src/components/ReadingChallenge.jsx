@@ -614,10 +614,6 @@ const ReadingChallenge = () => {
             // === FOOTER ===
             const footerY = canvas.height - 50;
             
-            // Accent line
-            ctx.fillStyle = accentColor;
-            ctx.fillRect(contentPadding, footerY - 25, 60, 5);
-            
             // Right side text (draw first so logo can overlay if needed)
             ctx.textAlign = 'right';
             const byZaynText = '  |  By Zayn';
@@ -639,10 +635,10 @@ const ReadingChallenge = () => {
             // Load logo and then download
             const logo = new Image();
             logo.onload = () => {
-                // Draw logo (height 30px, maintain aspect ratio)
-                const logoHeight = 30;
+                // Draw logo (height 40px, maintain aspect ratio)
+                const logoHeight = 40;
                 const logoWidth = (logo.width / logo.height) * logoHeight;
-                ctx.drawImage(logo, contentPadding, footerY - 24, logoWidth, logoHeight);
+                ctx.drawImage(logo, contentPadding, footerY - 30, logoWidth, logoHeight);
                 
                 // Download the image after logo is drawn
                 const link = document.createElement('a');

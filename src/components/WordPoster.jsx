@@ -383,18 +383,15 @@ const WordPoster = ({
         qrImage.src = qrApiUrl;
 
         // Footer band
-        ctx.fillStyle = accentColor;
         ctx.textAlign = 'left';
-        // Thin accent line positioned just above footer label
-        ctx.fillRect(innerMargin, footerY - 34, 80, 6);
 
         // Load and draw logo
         const logo = new Image();
         logo.onload = () => {
-            // Draw logo (height 28px, maintain aspect ratio)
-            const logoHeight = 28;
+            // Draw logo (height 38px, maintain aspect ratio)
+            const logoHeight = 38;
             const logoWidth = (logo.width / logo.height) * logoHeight;
-            ctx.drawImage(logo, innerMargin, footerY - 22, logoWidth, logoHeight);
+            ctx.drawImage(logo, innerMargin, footerY - 28, logoWidth, logoHeight);
         };
         logo.src = '/logo-horizontal.svg';
 
