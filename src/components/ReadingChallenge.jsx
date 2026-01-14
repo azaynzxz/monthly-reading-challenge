@@ -1032,12 +1032,9 @@ const ReadingChallenge = () => {
                             {/* Logo */}
                             <button
                                 onClick={() => navigate('/')}
-                                className="flex items-center gap-2 md:gap-3 cursor-pointer group"
+                                className="cursor-pointer group"
                             >
-                                <div className="w-7 h-7 md:w-8 md:h-8 bg-[#880000] flex items-center justify-center">
-                                    <span className="text-white font-bold text-xs md:text-sm">E</span>
-                                </div>
-                                <span className="text-xs md:text-sm font-bold text-slate-900 uppercase tracking-[0.1em] md:tracking-[0.15em]">English Daily</span>
+                                <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-8 md:h-10" />
                             </button>
 
                             {/* Desktop Actions */}

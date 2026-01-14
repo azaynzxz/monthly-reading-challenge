@@ -194,9 +194,8 @@ const LandingPage = () => {
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center justify-between h-16">
                         {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2 group">
-                            <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-10 h-10" />
-                            <span className="text-sm font-bold text-slate-900 uppercase tracking-[0.1em]">Fluency Journey</span>
+                        <Link to="/" className="group">
+                            <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-10" />
                         </Link>
 
                         {/* Center Links */}
@@ -237,9 +236,8 @@ const LandingPage = () => {
                     {/* Mobile Navigation */}
                     <div className="md:hidden flex items-center justify-between h-14">
                         {/* Logo - Compact */}
-                        <Link to="/" className="flex items-center gap-2">
-                            <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-9 h-9" />
-                            <span className="text-xs font-bold text-slate-900 uppercase tracking-[0.08em]">Fluency Journey</span>
+                        <Link to="/" className="block">
+                            <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-8" />
                         </Link>
 
                         {/* Right Side - Menu Toggle + CTA */}
@@ -1151,9 +1149,8 @@ const LandingPage = () => {
                 {/* Mobile Footer */}
                 <div className="md:hidden px-6 py-10">
                     {/* Logo */}
-                    <div className="flex items-center gap-2 mb-8">
-                        <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-10 h-10" />
-                        <span className="text-sm font-bold uppercase tracking-[0.08em]">Fluency Journey</span>
+                    <div className="mb-8">
+                        <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-10" />
                     </div>
 
                     {/* Quick Links */}
@@ -1222,9 +1219,8 @@ const LandingPage = () => {
                         <div className="flex flex-wrap justify-between gap-8 py-16">
                             {/* Logo & Description */}
                             <div className="max-w-xs">
-                                <div className="flex items-center gap-2 mb-6">
-                                    <img src="/logo-icon.svg" alt="English Fluency Journey" className="w-12 h-12" />
-                                    <span className="text-lg font-bold uppercase tracking-[0.08em]">Fluency Journey</span>
+                                <div className="mb-6">
+                                    <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-12" />
                                 </div>
                                 <p className="text-sm text-white/40 leading-relaxed mb-8 max-w-sm">
                                     Transforming language learning through engaging stories from around the world.
