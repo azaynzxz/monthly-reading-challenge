@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon } from 'lucide-react';
+import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon, Minus, Plus, Type } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 import { shareToSocial, generateShareImage, generateShareLink } from '../utils/socialShare';
@@ -58,6 +58,10 @@ const ReadingCard = ({
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [transitionDirection, setTransitionDirection] = useState('none'); // 'left', 'right', 'none'
     const [hasAnimated, setHasAnimated] = useState(false);
+    const [readingFontSize, setReadingFontSize] = useState(() => {
+        const settings = getStorage(StorageKeys.SETTINGS, {});
+        return settings.readingFontSize || 'normal'; // 'small', 'normal', 'large', 'xlarge'
+    });
     const prevDayRef = useRef(currentDay);
     const practiceButtonRef = useRef(null);
     const posterCanvasRef = useRef(null);
@@ -108,6 +112,30 @@ const ReadingCard = ({
             return () => clearTimeout(timer);
         }
     }, [isContentReady, hasAnimated]);
+
+    // Save font size preference
+    useEffect(() => {
+        const settings = getStorage(StorageKeys.SETTINGS, {});
+        setStorage(StorageKeys.SETTINGS, { ...settings, readingFontSize });
+    }, [readingFontSize]);
+
+    // Font size classes mapping
+    const fontSizeClasses = {
+        small: 'text-base md:text-lg leading-[1.75] md:leading-[1.85]',
+        normal: 'text-lg md:text-xl leading-[1.85] md:leading-[1.95]',
+        large: 'text-xl md:text-2xl leading-[1.9] md:leading-[2]',
+        xlarge: 'text-2xl md:text-3xl leading-[1.95] md:leading-[2.05]'
+    };
+
+    const cycleFontSize = (direction) => {
+        const sizes = ['small', 'normal', 'large', 'xlarge'];
+        const currentIndex = sizes.indexOf(readingFontSize);
+        if (direction === 'up' && currentIndex < sizes.length - 1) {
+            setReadingFontSize(sizes[currentIndex + 1]);
+        } else if (direction === 'down' && currentIndex > 0) {
+            setReadingFontSize(sizes[currentIndex - 1]);
+        }
+    };
     const utteranceRef = useRef(null);
     const selectedVoiceNameRef = useRef(null);
     const typingTimeoutRef = useRef(null);
@@ -913,14 +941,41 @@ ${shareLink}`;
                             <div className="w-8 h-0.5 bg-[#880000]"></div>
                             <span className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">Read Aloud</span>
                         </div>
-                        {focusedChunk !== null && (
-                            <button
-                                onClick={() => setFocusedChunk(null)}
-                                className="text-[10px] md:text-xs text-slate-400 hover:text-[#880000] font-medium uppercase tracking-wider transition-colors"
-                            >
-                                Show All
-                            </button>
-                        )}
+                        <div className="flex items-center gap-4">
+                            {/* Font Size Control */}
+                            <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1">
+                                <button
+                                    onClick={() => cycleFontSize('down')}
+                                    disabled={readingFontSize === 'small'}
+                                    className={`p-1.5 rounded transition-all ${readingFontSize === 'small' ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-[#880000] hover:bg-white'}`}
+                                    title="Decrease font size"
+                                >
+                                    <Minus className="w-3.5 h-3.5" />
+                                </button>
+                                <div className="flex items-center gap-1 px-2">
+                                    <Type className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider min-w-[40px] text-center">
+                                        {readingFontSize === 'small' ? 'S' : readingFontSize === 'normal' ? 'M' : readingFontSize === 'large' ? 'L' : 'XL'}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => cycleFontSize('up')}
+                                    disabled={readingFontSize === 'xlarge'}
+                                    className={`p-1.5 rounded transition-all ${readingFontSize === 'xlarge' ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-[#880000] hover:bg-white'}`}
+                                    title="Increase font size"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                            {focusedChunk !== null && (
+                                <button
+                                    onClick={() => setFocusedChunk(null)}
+                                    className="text-[10px] md:text-xs text-slate-400 hover:text-[#880000] font-medium uppercase tracking-wider transition-colors"
+                                >
+                                    Show All
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Reading Chunks - Swiss Typography with Wipe Animation */}
@@ -958,7 +1013,7 @@ ${shareLink}`;
                                         </div>
 
                                         {/* Text Content - Highlight entire chunk when being read */}
-                                        <p className={`text-lg md:text-xl leading-[1.85] md:leading-[1.95] font-normal pl-4 md:pl-6 transition-all duration-300 ${isBeingRead
+                                        <p className={`${fontSizeClasses[readingFontSize]} font-normal pl-4 md:pl-6 transition-all duration-300 ${isBeingRead
                                                 ? 'border-l-4 border-[#880000] bg-[#880000]/5 py-4 -my-2 text-slate-900'
                                                 : isActive
                                                     ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2 text-slate-700'

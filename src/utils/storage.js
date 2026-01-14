@@ -5,7 +5,8 @@ export const StorageKeys = {
     STATISTICS: 'english_practice_statistics',
     PROGRESS: 'english_practice_progress',
     PRACTICE_SESSIONS: 'english_practice_sessions',
-    PRACTICED_DAYS: 'english_practice_practiced_days'
+    PRACTICED_DAYS: 'english_practice_practiced_days',
+    SETTINGS: 'english_practice_settings'
 };
 
 export const getStorage = (key, defaultValue = null) => {

@@ -21,8 +21,8 @@ const ReadingChallenge = () => {
     const [isTeleprompterActive, setIsTeleprompterActive] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [isScrolling, setIsScrolling] = useState(false);
-    const [scrollSpeed, setScrollSpeed] = useState(0.8);
-    const scrollSpeedRef = useRef(0.8);
+    const [scrollSpeed, setScrollSpeed] = useState(0.15);
+    const scrollSpeedRef = useRef(0.15);
     const [fontSize, setFontSize] = useState(48);
     const [countdown, setCountdown] = useState(null);
     const [isControlsExpanded, setIsControlsExpanded] = useState(false);
@@ -130,13 +130,13 @@ const ReadingChallenge = () => {
                     const currentSpeed = scrollSpeedRef.current;
 
                     // Speed in pixels per interval (16ms)
-                    // Speed 0.3 = 0.6px per 16ms = ~36px/sec (very slow)
-                    // Speed 0.5 = 1.0px per 16ms = ~60px/sec (slow)
-                    // Speed 0.8 = 1.6px per 16ms = ~96px/sec (normal)
-                    // Speed 1.5 = 3.0px per 16ms = ~180px/sec (fast)
-                    // Speed 2.0 = 4.0px per 16ms = ~240px/sec (very fast)
-                    // Use multiplier of 2.0 to ensure even slowest speeds produce visible scrolling
-                    const scrollAmount = currentSpeed * 2.0;
+                    // Speed 0.1 = 0.1px per 16ms = ~6px/sec (ultra slow - for careful reading)
+                    // Speed 0.15 = 0.15px per 16ms = ~9px/sec (very slow - default)
+                    // Speed 0.25 = 0.25px per 16ms = ~15px/sec (slow)
+                    // Speed 0.4 = 0.4px per 16ms = ~24px/sec (moderate)
+                    // Speed 0.8 = 0.8px per 16ms = ~48px/sec (normal)
+                    // Speed 1.5 = 1.5px per 16ms = ~90px/sec (fast)
+                    const scrollAmount = currentSpeed;
 
                     if (scrollContainerRef.current && scrollAmount > 0) {
                         const container = scrollContainerRef.current;
@@ -805,10 +805,10 @@ const ReadingChallenge = () => {
                                         {/* Speed Presets - Swiss Grid */}
                                         <div className="grid grid-cols-4 gap-0 border border-white/10 mb-4">
                                             {[
-                                                { value: 0.3, label: '0.3x' },
-                                                { value: 0.5, label: '0.5x' },
-                                                { value: 0.8, label: '0.8x' },
-                                                { value: 1.5, label: '1.5x' }
+                                                { value: 0.1, label: '0.1x' },
+                                                { value: 0.15, label: '0.15x' },
+                                                { value: 0.25, label: '0.25x' },
+                                                { value: 0.5, label: '0.5x' }
                                             ].map((preset, i) => (
                                                 <button
                                                     key={preset.value}
@@ -834,8 +834,8 @@ const ReadingChallenge = () => {
                                         <div className="relative">
                                             <input
                                                 type="range"
-                                                min="0.3"
-                                                max="2"
+                                                min="0.1"
+                                                max="1"
                                                 step="0.05"
                                                 value={scrollSpeed}
                                                 onChange={(e) => {
