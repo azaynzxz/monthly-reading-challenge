@@ -124,21 +124,30 @@ const ReadingChallenge = () => {
 
         if (isScrolling && isTeleprompterActive && countdown === null) {
             // Use interval-based scrolling for reliable speed control
-            // Update every 16ms (~60fps) for smooth scrolling
+            // Accumulate sub-pixel amounts to handle very slow speeds
+            let accumulatedScroll = 0;
+            
             intervalId = setInterval(() => {
                 if (scrollContainerRef.current && isScrolling && isTeleprompterActive) {
                     const currentSpeed = scrollSpeedRef.current;
 
-                    // Speed in pixels per interval (16ms)
-                    // Speed 0.1 = 0.1px per 16ms = ~6px/sec (ultra slow - for careful reading)
-                    // Speed 0.15 = 0.15px per 16ms = ~9px/sec (very slow - default)
-                    // Speed 0.25 = 0.25px per 16ms = ~15px/sec (slow)
-                    // Speed 0.4 = 0.4px per 16ms = ~24px/sec (moderate)
-                    // Speed 0.8 = 0.8px per 16ms = ~48px/sec (normal)
-                    // Speed 1.5 = 1.5px per 16ms = ~90px/sec (fast)
-                    const scrollAmount = currentSpeed;
-
-                    if (scrollContainerRef.current && scrollAmount > 0) {
+                    // Speed mapping (pixels per second):
+                    // 0.1 = ~15px/sec (ultra slow - for careful reading)
+                    // 0.15 = ~22px/sec (very slow - default)
+                    // 0.25 = ~38px/sec (slow)
+                    // 0.5 = ~75px/sec (moderate)
+                    // 1.0 = ~150px/sec (fast)
+                    // Multiply by 2.5 to get reasonable speeds, then by interval (16ms/1000)
+                    const pixelsPerFrame = currentSpeed * 2.5;
+                    
+                    // Accumulate fractional pixels
+                    accumulatedScroll += pixelsPerFrame;
+                    
+                    // Only scroll when we have at least 1 pixel
+                    if (accumulatedScroll >= 1) {
+                        const scrollAmount = Math.floor(accumulatedScroll);
+                        accumulatedScroll -= scrollAmount;
+                        
                         const container = scrollContainerRef.current;
                         container.scrollTop += scrollAmount;
 
