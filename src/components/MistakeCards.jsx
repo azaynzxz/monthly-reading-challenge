@@ -177,7 +177,7 @@ const MistakeCards = ({ onClose }) => {
         // Base dimensions
         const baseWidth = 1080;
         const margin = 60;
-        const headerHeight = 160;
+        const headerHeight = 140;
         const footerHeight = 100;
         const cardGap = 16;
 
@@ -292,32 +292,30 @@ const MistakeCards = ({ onClose }) => {
         // Header Section - Swiss minimal style
         ctx.textAlign = 'left';
 
-        // Meta line (date)
+        // Meta line: date + word count
         const today = new Date().toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
-        ctx.font = 'bold 22px Arial, sans-serif';
+        ctx.font = 'bold 20px Arial, sans-serif';
         ctx.fillStyle = lightMuted;
-        ctx.fillText(today.toUpperCase(), margin, margin + 10);
-
-        // Title - large Swiss typography
-        ctx.font = 'bold 64px Arial, sans-serif';
-        ctx.fillStyle = textColor;
-        ctx.fillText('Review Cards', margin, margin + 80);
-
-        // Subtitle with accent
-        ctx.font = '24px Arial, sans-serif';
-        ctx.fillStyle = mutedColor;
-        const subtitleText = `${words.length} Word${words.length > 1 ? 's' : ''} · `;
-        ctx.fillText(subtitleText, margin, margin + 115);
+        const metaText = `${today.toUpperCase()} · `;
+        ctx.fillText(metaText, margin, margin + 10);
         
-        // "TO REVIEW" in accent color
-        const subtitleWidth = ctx.measureText(subtitleText).width;
+        // Word count in accent
+        const metaWidth = ctx.measureText(metaText).width;
         ctx.fillStyle = accentColor;
-        ctx.font = 'bold 24px Arial, sans-serif';
-        ctx.fillText('TO REVIEW', margin + subtitleWidth, margin + 115);
+        ctx.fillText(`${words.length} WORD${words.length > 1 ? 'S' : ''}`, margin + metaWidth, margin + 10);
+
+        // Title - Swiss typography (more restrained)
+        ctx.font = 'bold 48px Arial, sans-serif';
+        ctx.fillStyle = textColor;
+        ctx.fillText('REVIEW CARDS', margin, margin + 70);
+
+        // Thin accent line under title
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(margin, margin + 85, 80, 5);
 
         // Calculate cumulative Y positions for each row
         const rowYPositions = [startY];
