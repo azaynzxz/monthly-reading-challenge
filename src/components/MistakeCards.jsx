@@ -163,18 +163,8 @@ const MistakeCards = ({ onClose }) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Poster dimensions (3:4 ratio)
-        const width = 1080;
-        const height = 1440;
-        canvas.width = width;
-        canvas.height = height;
-
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-
-        // Background
-        ctx.fillStyle = '#FAFAFA';
-        ctx.fillRect(0, 0, width, height);
 
         // Brand colors
         const accentColor = '#880000';
@@ -182,48 +172,42 @@ const MistakeCards = ({ onClose }) => {
         const mutedColor = '#666666';
         const cardBg = '#FFFFFF';
 
-        // Grid settings
+        // Base dimensions
+        const baseWidth = 1080;
         const margin = 60;
-        const innerWidth = width - margin * 2;
-
-        // Header Section
-        ctx.fillStyle = accentColor;
-        ctx.fillRect(0, 0, width, 180);
-
-        // Title
-        ctx.font = 'bold 48px Arial, sans-serif';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'left';
-        ctx.fillText('REVIEW CARDS', margin, 100);
-
-        // Subtitle
-        ctx.font = '24px Arial, sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.fillText(`${words.length} Words to Review`, margin, 140);
-
-        // Date
-        ctx.textAlign = 'right';
-        ctx.font = '20px Arial, sans-serif';
-        const today = new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-        ctx.fillText(today, width - margin, 110);
-
-        // Cards Section
-        const startY = 220;
-        const columns = words.length <= 6 ? 2 : 3;
+        const headerHeight = 180;
+        const footerHeight = 80;
         const cardGap = 14;
-        const cardWidth = (innerWidth - cardGap * (columns - 1)) / columns;
-        const lineHeight = 16;
-        const defFontSize = 13;
-        const baseCardHeight = 115; // Height without definition (word + phonetic + part of speech + padding)
 
-        // Helper function to calculate definition lines
-        const getDefinitionLines = (definition, maxWidth) => {
+        // Determine optimal column count based on word count
+        let columns;
+        if (words.length <= 3) {
+            columns = 1;
+        } else if (words.length <= 6) {
+            columns = 2;
+        } else if (words.length <= 12) {
+            columns = 3;
+        } else {
+            columns = 4;
+        }
+
+        const innerWidth = baseWidth - margin * 2;
+        const cardWidth = (innerWidth - cardGap * (columns - 1)) / columns;
+
+        // Font sizes - scale based on column count
+        const wordFontSize = columns === 1 ? 36 : columns === 2 ? 28 : columns === 3 ? 24 : 18;
+        const phoneticFontSize = columns === 1 ? 22 : columns === 2 ? 18 : columns === 3 ? 15 : 12;
+        const posFontSize = columns === 1 ? 16 : columns === 2 ? 14 : columns === 3 ? 11 : 10;
+        const defFontSize = columns === 1 ? 16 : columns === 2 ? 13 : columns === 3 ? 11 : 10;
+        const lineHeight = defFontSize + 2;
+
+        // Base card height (without definition)
+        const baseCardHeight = columns === 1 ? 140 : columns === 2 ? 115 : columns === 3 ? 95 : 85;
+
+        // Helper function to calculate definition lines (full text, no truncation)
+        const getDefinitionLines = (definition, maxWidth, fontSize) => {
             if (!definition) return [];
-            ctx.font = `${defFontSize}px Arial, sans-serif`;
+            ctx.font = `${fontSize}px Arial, sans-serif`;
             const defWords = definition.split(' ');
             const lines = [];
             let currentLine = '';
@@ -242,14 +226,15 @@ const MistakeCards = ({ onClose }) => {
             if (currentLine) {
                 lines.push(currentLine);
             }
+            
             return lines;
         };
 
-        // First pass: calculate required height for each card
-        const maxDefWidth = cardWidth - 36;
+        // Calculate required height for each card - more padding for safety
+        const maxDefWidth = cardWidth - 44;
         const cardHeights = words.map(wordData => {
-            const defLines = getDefinitionLines(wordData.definition, maxDefWidth);
-            return baseCardHeight + (defLines.length * lineHeight) + 15; // 15px bottom padding
+            const defLines = getDefinitionLines(wordData.definition, maxDefWidth, defFontSize);
+            return baseCardHeight + (defLines.length * lineHeight) + 15;
         });
 
         // Group cards by row and find max height per row
@@ -266,6 +251,48 @@ const MistakeCards = ({ onClose }) => {
             rowHeights.push(maxRowHeight);
         }
 
+        // Calculate total content height
+        const totalCardsHeight = rowHeights.reduce((sum, h) => sum + h, 0) + (cardGap * (rowCount - 1));
+        const startY = headerHeight + 40;
+
+        // Calculate canvas height to fit content (no max limit - expand as needed)
+        const calculatedHeight = startY + totalCardsHeight + 40 + footerHeight;
+        const minHeight = 600;
+        const height = Math.max(minHeight, calculatedHeight);
+
+        // Set canvas dimensions
+        canvas.width = baseWidth;
+        canvas.height = height;
+
+        // Background
+        ctx.fillStyle = '#FAFAFA';
+        ctx.fillRect(0, 0, baseWidth, height);
+
+        // Header Section
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(0, 0, baseWidth, headerHeight);
+
+        // Title
+        ctx.font = 'bold 48px Arial, sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'left';
+        ctx.fillText('REVIEW CARDS', margin, 100);
+
+        // Subtitle
+        ctx.font = '24px Arial, sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillText(`${words.length} Word${words.length > 1 ? 's' : ''} to Review`, margin, 140);
+
+        // Date
+        ctx.textAlign = 'right';
+        ctx.font = '20px Arial, sans-serif';
+        const today = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        ctx.fillText(today, baseWidth - margin, 110);
+
         // Calculate cumulative Y positions for each row
         const rowYPositions = [startY];
         for (let row = 1; row < rowCount; row++) {
@@ -280,8 +307,8 @@ const MistakeCards = ({ onClose }) => {
             const y = rowYPositions[row];
             const cardHeight = rowHeights[row];
 
-            // Check if card would overflow
-            if (y + cardHeight > height - 100) return;
+            // Skip if would overflow (safety check)
+            if (y + cardHeight > height - footerHeight - 20) return;
 
             // Card shadow
             ctx.fillStyle = 'rgba(0,0,0,0.08)';
@@ -295,10 +322,11 @@ const MistakeCards = ({ onClose }) => {
 
             // Card left accent bar
             ctx.fillStyle = accentColor;
-            ctx.fillRect(x, y + 12, 6, cardHeight - 24);
+            const barWidth = columns === 1 ? 8 : 6;
+            ctx.fillRect(x, y + 12, barWidth, cardHeight - 24);
 
             // Word
-            ctx.font = 'bold 28px Arial, sans-serif';
+            ctx.font = `bold ${wordFontSize}px Arial, sans-serif`;
             ctx.fillStyle = textColor;
             ctx.textAlign = 'left';
 
@@ -310,49 +338,52 @@ const MistakeCards = ({ onClose }) => {
             }
             if (displayWord !== wordData.word.charAt(0).toUpperCase() + wordData.word.slice(1)) displayWord += '…';
 
-            ctx.fillText(displayWord, x + 20, y + 45);
+            const wordY = columns === 1 ? y + 50 : columns === 4 ? y + 38 : y + 45;
+            ctx.fillText(displayWord, x + 18, wordY);
 
             // Phonetic
             if (wordData.phonetic) {
-                ctx.font = 'italic 18px Arial, sans-serif';
+                ctx.font = `italic ${phoneticFontSize}px Arial, sans-serif`;
                 ctx.fillStyle = accentColor;
-                ctx.fillText(wordData.phonetic, x + 20, y + 75);
+                const phoneticY = columns === 1 ? y + 85 : columns === 4 ? y + 58 : y + 75;
+                ctx.fillText(wordData.phonetic, x + 18, phoneticY);
             }
 
             // Part of speech
             if (wordData.partOfSpeech) {
-                ctx.font = '14px Arial, sans-serif';
+                ctx.font = `${posFontSize}px Arial, sans-serif`;
                 ctx.fillStyle = mutedColor;
-                ctx.fillText(wordData.partOfSpeech, x + 20, y + 100);
+                const posY = columns === 1 ? y + 110 : columns === 4 ? y + 75 : y + 100;
+                ctx.fillText(wordData.partOfSpeech, x + 18, posY);
             }
 
-            // Definition (full text, no truncation)
+            // Definition
             if (wordData.definition) {
                 ctx.font = `${defFontSize}px Arial, sans-serif`;
                 ctx.fillStyle = mutedColor;
 
-                const lines = getDefinitionLines(wordData.definition, maxDefWidth);
+                const lines = getDefinitionLines(wordData.definition, maxDefWidth, defFontSize);
+                const defStartY = columns === 1 ? y + 135 : columns === 4 ? y + 90 : y + 118;
 
-                // Draw each line
                 lines.forEach((line, lineIndex) => {
-                    ctx.fillText(line, x + 18, y + 118 + (lineIndex * lineHeight));
+                    ctx.fillText(line, x + 18, defStartY + (lineIndex * lineHeight));
                 });
             }
         });
 
         // Footer
         ctx.fillStyle = accentColor;
-        ctx.fillRect(0, height - 80, width, 80);
+        ctx.fillRect(0, height - footerHeight, baseWidth, footerHeight);
 
         ctx.font = 'bold 20px Arial, sans-serif';
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'left';
-        ctx.fillText('ENGLISH DAILY', margin, height - 35);
+        ctx.fillText('ENGLISH FLUENCY JOURNEY', margin, height - 35);
 
         ctx.font = '16px Arial, sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.textAlign = 'right';
-        ctx.fillText('By Mr. Zayn', width - margin, height - 35);
+        ctx.fillText('By Zayn', baseWidth - margin, height - 35);
     }, [words]);
 
     // Draw poster when words change
