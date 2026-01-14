@@ -43,7 +43,7 @@ const ReadingChallenge = () => {
     const preloadingRef = useRef(false);
 
     // Preload local images for all days in current month (background task)
-    // Only uses Wikipedia API for metadata (title/description), NOT for image files
+    // NO Wikipedia API - all data comes from local JSON files
     useEffect(() => {
         const preloadImages = async () => {
             if (preloadingRef.current) return;
@@ -62,68 +62,25 @@ const ReadingChallenge = () => {
                     batch.map(async (dayData) => {
                         const cacheKey = `${currentMonth}-${dayData.day}`;
                         
-                        // Skip if already cached
-                        if (imagePreloadCache.current[cacheKey]) return;
+                        // Skip if already cached or no local image
+                        if (imagePreloadCache.current[cacheKey] || !dayData.localImage) return;
 
-                        // PRIORITY 1: Use local image if available
-                        if (dayData.localImage) {
-                            await new Promise((resolve) => {
-                                const img = new Image();
-                                img.onload = () => {
-                                    imagePreloadCache.current[cacheKey] = {
-                                        url: dayData.localImage,
-                                        title: dayData.imageTitle || dayData.wikiSearch || dayData.title,
-                                        description: dayData.imageDescription || '',
-                                        searchTerm: dayData.wikiSearch || dayData.title,
-                                        isLocal: true
-                                    };
-                                    resolve();
+                        // Preload local image only
+                        await new Promise((resolve) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                imagePreloadCache.current[cacheKey] = {
+                                    url: dayData.localImage,
+                                    title: dayData.imageTitle || dayData.wikiSearch || dayData.title,
+                                    description: dayData.imageDescription || '',
+                                    searchTerm: dayData.wikiSearch || dayData.title,
+                                    isLocal: true
                                 };
-                                img.onerror = resolve; // Continue even if image fails
-                                img.src = dayData.localImage;
-                            });
-                            
-                            // If local image loaded, we're done with this day
-                            if (imagePreloadCache.current[cacheKey]?.isLocal) {
-                                return;
-                            }
-                        }
-
-                        // PRIORITY 2: Fall back to Wikipedia API only if no local image
-                        // Only fetch metadata, not the actual image file
-                        const searchTerms = [
-                            dayData.wikiSearch,
-                            dayData.title,
-                            dayData.country !== "TBD" ? dayData.country : null
-                        ].filter(Boolean);
-
-                        for (const term of searchTerms) {
-                            try {
-                                const response = await fetch(
-                                    `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`
-                                );
-
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    const imageUrl = data.originalimage?.source || data.thumbnail?.source;
-
-                                    if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
-                                        // Store image info WITHOUT preloading the actual image file
-                                        // The image will be loaded on-demand when the card is viewed
-                                        imagePreloadCache.current[cacheKey] = {
-                                            url: imageUrl,
-                                            title: dayData.wikiSearch || data.title,
-                                            description: data.extract,
-                                            searchTerm: dayData.wikiSearch || term,
-                                            isLocal: false
-                                        };
-                                        break; // Found image info, move to next day
-                                    }
-                                }
-                            } catch {
-                                // Silent fail, continue to next term
-                            }
-                        }
+                                resolve();
+                            };
+                            img.onerror = resolve;
+                            img.src = dayData.localImage;
+                        });
                     })
                 );
 

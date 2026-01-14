@@ -264,7 +264,8 @@ const ReadingCard = ({
                 return;
             }
 
-            // PRIORITY 1: Check if activeData has a localImage (downloaded image)
+            // Use local image only - NO Wikipedia API
+            // All data (image, title, description) comes from local JSON files
             if (activeData.localImage) {
                 const imageData = {
                     url: activeData.localImage,
@@ -292,73 +293,21 @@ const ReadingCard = ({
                         resolve();
                     };
                     img.onerror = () => {
-                        // Local image failed, will fall back to API
+                        // Local image failed - show UI without image
+                        if (isMounted) {
+                            setWikiImage(null);
+                            setIsLoadingImage(false);
+                            setIsContentReady(true);
+                            onReady?.();
+                        }
                         resolve();
                     };
                     img.src = activeData.localImage;
                 });
-
-                // If local image loaded successfully, we're done
-                if (imageCache.current[localCacheKey]?.isLocal) {
-                    return;
-                }
+                return;
             }
 
-            // PRIORITY 2: Fall back to Wikipedia API (for images not yet downloaded)
-            const searchTerms = [
-                activeData.wikiSearch,
-                activeData.title,
-                activeData.country !== "TBD" ? activeData.country : null
-            ].filter(Boolean);
-
-            for (const term of searchTerms) {
-                try {
-                    const response = await fetch(
-                        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`
-                    );
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        const imageUrl = data.originalimage?.source || data.thumbnail?.source;
-
-                        if (imageUrl && !imageUrl.includes('.svg') && !imageUrl.toLowerCase().includes('flag')) {
-                            // Preload the image before showing UI
-                            await new Promise((resolve) => {
-                                const img = new Image();
-                                img.onload = () => {
-                                    if (isMounted) {
-                                        const imageData = {
-                                            url: imageUrl,
-                                            title: activeData.wikiSearch || data.title,
-                                            description: data.extract,
-                                            searchTerm: activeData.wikiSearch || term
-                                        };
-                                        imageCache.current[localCacheKey] = imageData;
-                                        setWikiImage(imageData);
-                                        setIsLoadingImage(false);
-                                        setTimeout(() => {
-                                            if (isMounted) {
-                                                setIsContentReady(true);
-                                                onReady?.();
-                                            }
-                                        }, 50);
-                                    }
-                                    resolve();
-                                };
-                                img.onerror = () => {
-                                    resolve(); // Continue even if image fails
-                                };
-                                img.src = imageUrl;
-                            });
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.log('Wikipedia API error for', term);
-                }
-            }
-
-            // No image found - still show UI
+            // No local image available - show UI without image
             if (isMounted) {
                 setWikiImage(null);
                 setIsLoadingImage(false);

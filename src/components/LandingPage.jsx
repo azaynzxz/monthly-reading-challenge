@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { BookOpen, Target, TrendingUp, Globe, ArrowRight, Users, Award, HeadphonesIcon, Github, Instagram, Mail } from 'lucide-react';
 
-// Image cache
-const imageCache = new Map();
-
 const LandingPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -74,42 +71,6 @@ const LandingPage = () => {
 
 
 
-    // Fetch Wikipedia image with caching
-    const fetchWikipediaImage = async (searchTerm) => {
-        if (!searchTerm) return null;
-
-        // Check cache first
-        if (imageCache.has(searchTerm)) {
-            return imageCache.get(searchTerm);
-        }
-
-        try {
-            const response = await fetch(
-                `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchTerm)}`
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                const imageUrl = data.originalimage?.source || data.thumbnail?.source;
-
-                // Skip if no image or if it's an SVG
-                if (imageUrl && !imageUrl.includes('.svg')) {
-                    const imageData = {
-                        url: imageUrl,
-                        title: data.title,
-                        description: data.extract
-                    };
-                    imageCache.set(searchTerm, imageData);
-                    return imageData;
-                }
-            }
-        } catch (error) {
-            console.log('Wikipedia API error:', error.message);
-        }
-
-        return null;
-    };
-
     // Handle hash navigation
     useEffect(() => {
         if (location.hash) {
@@ -167,62 +128,7 @@ const LandingPage = () => {
                     }
                 }
 
-                // PRIORITY 2: Fall back to Wikipedia API
-                const landmarkKeywords = [
-                    'Eiffel Tower',
-                    'Statue of Liberty',
-                    'Machu Picchu',
-                    'Colosseum',
-                    'Big Ben',
-                    'Golden Gate Bridge',
-                    'Christ the Redeemer',
-                    'Angkor Wat',
-                    'Stonehenge',
-                    'Mount Fuji',
-                    'Sydney Opera House',
-                    'Petra'
-                ];
-
-                // Randomly select 5 landmarks
-                const shuffled = [...landmarkKeywords].sort(() => Math.random() - 0.5);
-                const selected = shuffled.slice(0, 5);
-
-                const results = await Promise.all(
-                    selected.map(async (keyword) => {
-                        const imageData = await fetchWikipediaImage(keyword);
-                        if (imageData) {
-                            return {
-                                ...imageData,
-                                searchTerm: keyword
-                            };
-                        }
-                        return null;
-                    })
-                );
-
-                const validSlides = results.filter(slide => slide !== null);
-
-                if (validSlides.length > 0) {
-                    // Preload all images before showing carousel
-                    const preloadPromises = validSlides.map(slide => {
-                        return new Promise((resolve) => {
-                            const img = new Image();
-                            img.onload = () => resolve(slide);
-                            img.onerror = () => resolve(null);
-                            img.src = slide.url;
-                        });
-                    });
-
-                    const loadedSlides = await Promise.all(preloadPromises);
-                    const successfulSlides = loadedSlides.filter(s => s !== null);
-
-                    if (successfulSlides.length > 0) {
-                        setHeroSlides(successfulSlides);
-                        setImagesLoaded(true);
-                        setTimeout(() => setShowCarousel(true), 100);
-                        return;
-                    }
-                }
+                // No local images found - show carousel without images
                 setImagesLoaded(true);
                 setShowCarousel(true);
             } catch (error) {
