@@ -177,7 +177,7 @@ const MistakeCards = ({ onClose }) => {
         // Base dimensions
         const baseWidth = 1080;
         const margin = 60;
-        const headerHeight = 140;
+        const headerHeight = 120;
         const footerHeight = 100;
         const cardGap = 16;
 
@@ -290,32 +290,35 @@ const MistakeCards = ({ onClose }) => {
         ctx.restore();
 
         // Header Section - Swiss minimal style
+        // Title on left
         ctx.textAlign = 'left';
+        ctx.font = 'bold 48px Arial, sans-serif';
+        ctx.fillStyle = textColor;
+        ctx.fillText('REVIEW CARDS', margin, margin + 45);
 
-        // Meta line: date + word count
+        // Date and word count on right (same row as title)
+        ctx.textAlign = 'right';
         const today = new Date().toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
-        ctx.font = 'bold 20px Arial, sans-serif';
-        ctx.fillStyle = lightMuted;
-        const metaText = `${today.toUpperCase()} · `;
-        ctx.fillText(metaText, margin, margin + 10);
         
         // Word count in accent
-        const metaWidth = ctx.measureText(metaText).width;
+        ctx.font = 'bold 20px Arial, sans-serif';
         ctx.fillStyle = accentColor;
-        ctx.fillText(`${words.length} WORD${words.length > 1 ? 'S' : ''}`, margin + metaWidth, margin + 10);
-
-        // Title - Swiss typography (more restrained)
-        ctx.font = 'bold 48px Arial, sans-serif';
-        ctx.fillStyle = textColor;
-        ctx.fillText('REVIEW CARDS', margin, margin + 70);
+        const wordCountText = `${words.length} WORD${words.length > 1 ? 'S' : ''}`;
+        ctx.fillText(wordCountText, baseWidth - margin, margin + 25);
+        
+        // Date below word count
+        ctx.font = '18px Arial, sans-serif';
+        ctx.fillStyle = lightMuted;
+        ctx.fillText(today.toUpperCase(), baseWidth - margin, margin + 50);
 
         // Thin accent line under title
+        ctx.textAlign = 'left';
         ctx.fillStyle = accentColor;
-        ctx.fillRect(margin, margin + 85, 80, 5);
+        ctx.fillRect(margin, margin + 65, 80, 5);
 
         // Calculate cumulative Y positions for each row
         const rowYPositions = [startY];
@@ -395,24 +398,29 @@ const MistakeCards = ({ onClose }) => {
             }
         });
 
-        // Footer - clean Swiss style (no colored background)
-        ctx.textAlign = 'left';
+        // Footer - clean Swiss style
+        const footerY = height - footerHeight + 30;
+        
+        // Right side text
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 18px Arial, sans-serif';
+        ctx.fillStyle = textColor;
+        ctx.fillText('myenglish.my.id', baseWidth - margin, footerY + 15);
+        
+        ctx.font = '16px Arial, sans-serif';
+        ctx.fillStyle = lightMuted;
+        ctx.fillText('Practice at:', baseWidth - margin - ctx.measureText('myenglish.my.id').width - 8, footerY + 15);
+        
+        ctx.fillText('| by Zayn', baseWidth - margin, footerY + 40);
 
-        // Load and draw logo
+        // Load and draw logo on left
         const logo = new Image();
         logo.onload = () => {
-            // Draw logo (height 40px, maintain aspect ratio)
-            const logoHeight = 40;
+            const logoHeight = 38;
             const logoWidth = (logo.width / logo.height) * logoHeight;
-            ctx.drawImage(logo, margin, height - footerHeight + 25, logoWidth, logoHeight);
+            ctx.drawImage(logo, margin, footerY, logoWidth, logoHeight);
         };
         logo.src = '/logo-horizontal.svg';
-
-        // "By Zayn" at the bottom right
-        ctx.font = 'normal 18px Arial, sans-serif';
-        ctx.fillStyle = lightMuted;
-        ctx.textAlign = 'right';
-        ctx.fillText('By Zayn', baseWidth - margin, height - footerHeight + 55);
     }, [words]);
 
     // Draw poster when words change
