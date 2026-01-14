@@ -375,10 +375,15 @@ const MistakeCards = ({ onClose }) => {
         ctx.fillStyle = accentColor;
         ctx.fillRect(0, height - footerHeight, baseWidth, footerHeight);
 
-        ctx.font = 'bold 20px Arial, sans-serif';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'left';
-        ctx.fillText('ENGLISH FLUENCY JOURNEY', margin, height - 35);
+        // Load and draw logo
+        const logo = new Image();
+        logo.onload = () => {
+            // Draw logo (height 35px, maintain aspect ratio)
+            const logoHeight = 35;
+            const logoWidth = (logo.width / logo.height) * logoHeight;
+            ctx.drawImage(logo, margin, height - footerHeight + (footerHeight - logoHeight) / 2, logoWidth, logoHeight);
+        };
+        logo.src = '/logo-horizontal.svg';
 
         ctx.font = '16px Arial, sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.8)';

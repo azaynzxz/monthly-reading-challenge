@@ -388,9 +388,15 @@ const WordPoster = ({
         // Thin accent line positioned just above footer label
         ctx.fillRect(innerMargin, footerY - 34, 80, 6);
 
-        ctx.font = 'bold 22px Arial, sans-serif';
-        ctx.fillStyle = '#222222';
-        ctx.fillText('ENGLISH FLUENCY JOURNEY', innerMargin, footerY);
+        // Load and draw logo
+        const logo = new Image();
+        logo.onload = () => {
+            // Draw logo (height 28px, maintain aspect ratio)
+            const logoHeight = 28;
+            const logoWidth = (logo.width / logo.height) * logoHeight;
+            ctx.drawImage(logo, innerMargin, footerY - 22, logoWidth, logoHeight);
+        };
+        logo.src = '/logo-horizontal.svg';
 
         // "By Zayn" at the bottom right
         ctx.font = 'normal 18px Arial, sans-serif';

@@ -618,13 +618,7 @@ const ReadingChallenge = () => {
             ctx.fillStyle = accentColor;
             ctx.fillRect(contentPadding, footerY - 25, 60, 5);
             
-            // Brand
-            ctx.textAlign = 'left';
-            ctx.font = 'bold 24px Arial, sans-serif';
-            ctx.fillStyle = '#222222';
-            ctx.fillText('ENGLISH FLUENCY JOURNEY', contentPadding, footerY);
-            
-            // Right side
+            // Right side text (draw first so logo can overlay if needed)
             ctx.textAlign = 'right';
             const byZaynText = '  |  By Zayn';
             ctx.font = 'normal 22px Arial, sans-serif';
@@ -642,12 +636,30 @@ const ReadingChallenge = () => {
             ctx.fillStyle = '#666666';
             ctx.fillText('Practice at: ', canvas.width - contentPadding - byZaynWidth - domainWidth, footerY);
             
-            // Download the image
-            const link = document.createElement('a');
-            link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.92);
-            link.click();
-            setIsGenerating(false);
+            // Load logo and then download
+            const logo = new Image();
+            logo.onload = () => {
+                // Draw logo (height 30px, maintain aspect ratio)
+                const logoHeight = 30;
+                const logoWidth = (logo.width / logo.height) * logoHeight;
+                ctx.drawImage(logo, contentPadding, footerY - 24, logoWidth, logoHeight);
+                
+                // Download the image after logo is drawn
+                const link = document.createElement('a');
+                link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.92);
+                link.click();
+                setIsGenerating(false);
+            };
+            logo.onerror = () => {
+                // Fallback: download without logo if it fails to load
+                const link = document.createElement('a');
+                link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.92);
+                link.click();
+                setIsGenerating(false);
+            };
+            logo.src = '/logo-horizontal.svg';
         };
         
         // Try to load the local image
