@@ -4,6 +4,7 @@ import ReadingCard from './ReadingCard';
 import Dashboard from './Dashboard';
 import Flashcards from './Flashcards';
 import MistakeCards from './MistakeCards';
+import SEO from './SEO';
 import month1Data from '../data/month1.json';
 import month2Data from '../data/month2.json';
 import month3Data from '../data/month3.json';
@@ -54,14 +55,14 @@ const ReadingChallenge = () => {
 
             // Preload in batches
             const batchSize = 5;
-            
+
             for (let i = 0; i < monthData.length; i += batchSize) {
                 const batch = monthData.slice(i, i + batchSize);
-                
+
                 await Promise.allSettled(
                     batch.map(async (dayData) => {
                         const cacheKey = `${currentMonth}-${dayData.day}`;
-                        
+
                         // Skip if already cached or no local image
                         if (imagePreloadCache.current[cacheKey] || !dayData.localImage) return;
 
@@ -126,7 +127,7 @@ const ReadingChallenge = () => {
             // Use interval-based scrolling for reliable speed control
             // Accumulate sub-pixel amounts to handle very slow speeds
             let accumulatedScroll = 0;
-            
+
             intervalId = setInterval(() => {
                 if (scrollContainerRef.current && isScrolling && isTeleprompterActive) {
                     const currentSpeed = scrollSpeedRef.current;
@@ -139,15 +140,15 @@ const ReadingChallenge = () => {
                     // 1.0 = ~150px/sec (fast)
                     // Multiply by 2.5 to get reasonable speeds, then by interval (16ms/1000)
                     const pixelsPerFrame = currentSpeed * 2.5;
-                    
+
                     // Accumulate fractional pixels
                     accumulatedScroll += pixelsPerFrame;
-                    
+
                     // Only scroll when we have at least 1 pixel
                     if (accumulatedScroll >= 1) {
                         const scrollAmount = Math.floor(accumulatedScroll);
                         accumulatedScroll -= scrollAmount;
-                        
+
                         const container = scrollContainerRef.current;
                         container.scrollTop += scrollAmount;
 
@@ -359,17 +360,17 @@ const ReadingChallenge = () => {
 
     const downloadImage = async () => {
         setIsGenerating(true);
-        
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 1080;
         canvas.height = 1920; // 9:16 aspect ratio
-        
+
         const accentColor = '#880000';
         const contentPadding = 60;
         const contentWidth = canvas.width - contentPadding * 2;
         const footerHeight = 100; // Fixed footer space
-        
+
         // Helper function to wrap text
         const wrapText = (context, text, maxWidth, fontSize, fontWeight = 'normal') => {
             context.font = `${fontWeight} ${fontSize}px Arial, sans-serif`;
@@ -389,77 +390,77 @@ const ReadingChallenge = () => {
             if (line.trim()) lines.push(line.trim());
             return lines;
         };
-        
+
         // Prepare story chunks
         const sentences = activeData.text.match(/[^.!?]+[.!?]+/g) || [activeData.text];
         const chunks = [];
         for (let i = 0; i < sentences.length; i += 2) {
             chunks.push(sentences.slice(i, i + 2).join(' ').trim());
         }
-        
+
         // Practice note text
         const practiceNote = `This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.`;
-        
+
         // Calculate content height needed for a given font size
         const calculateContentHeight = (fontSize) => {
             const lineHeight = fontSize * 1.75;
             let totalHeight = 80; // Header space (READ ALOUD)
-            
+
             // Story chunks
             chunks.forEach((chunk) => {
                 const lines = wrapText(ctx, chunk, contentWidth - 60, fontSize);
                 totalHeight += lines.length * lineHeight + 40;
             });
-            
+
             // Practice note (exact same style as story chunks)
             const noteLines = wrapText(ctx, practiceNote, contentWidth - 60, fontSize);
             totalHeight += noteLines.length * lineHeight + 35;
-            
+
             return totalHeight;
         };
-        
+
         // Find optimal image height and font size
         let imageHeight = 595; // Start with default
         const minImageHeight = 350; // Minimum image height
         let textFontSize = 32;
         const minFontSize = 20;
-        
+
         // Calculate available space for content
         let availableForContent = canvas.height - imageHeight - footerHeight;
         let neededHeight = calculateContentHeight(textFontSize);
-        
+
         // First try reducing font size
         while (neededHeight > availableForContent && textFontSize > minFontSize) {
             textFontSize -= 2;
             neededHeight = calculateContentHeight(textFontSize);
         }
-        
+
         // If still doesn't fit, reduce image height
         while (neededHeight > availableForContent && imageHeight > minImageHeight) {
             imageHeight -= 30;
             availableForContent = canvas.height - imageHeight - footerHeight;
         }
-        
+
         // Final font size adjustment if needed
         while (neededHeight > availableForContent && textFontSize > minFontSize) {
             textFontSize -= 1;
             neededHeight = calculateContentHeight(textFontSize);
         }
-        
+
         const textLineHeight = textFontSize * 1.75;
-        
+
         // Draw poster content (with or without image)
         const drawPoster = (img = null) => {
             // Fill background
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             // === HERO IMAGE SECTION ===
             if (img) {
                 const imgAspect = img.width / img.height;
                 const heroAspect = canvas.width / imageHeight;
                 let drawWidth, drawHeight, drawX, drawY;
-                
+
                 if (imgAspect > heroAspect) {
                     drawHeight = imageHeight;
                     drawWidth = imageHeight * imgAspect;
@@ -471,14 +472,14 @@ const ReadingChallenge = () => {
                     drawX = 0;
                     drawY = (imageHeight - drawHeight) / 2;
                 }
-                
+
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(0, 0, canvas.width, imageHeight);
                 ctx.clip();
                 ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
                 ctx.restore();
-                
+
                 // Dark gradient overlay
                 const gradient = ctx.createLinearGradient(0, 0, 0, imageHeight);
                 gradient.addColorStop(0, 'rgba(0,0,0,0.3)');
@@ -490,11 +491,11 @@ const ReadingChallenge = () => {
                 ctx.fillStyle = '#1a1a1a';
                 ctx.fillRect(0, 0, canvas.width, imageHeight);
             }
-            
+
             // === TOP METADATA (over image) ===
             const topPadding = 50;
             const sidePadding = 60;
-            
+
             // Day/Month badge
             ctx.fillStyle = 'rgba(255,255,255,0.2)';
             const badgeText = `M${currentMonth} · D${currentDay}`;
@@ -504,55 +505,55 @@ const ReadingChallenge = () => {
             ctx.fillStyle = '#FFFFFF';
             ctx.textAlign = 'left';
             ctx.fillText(badgeText, sidePadding + 20, topPadding + 35);
-            
+
             // Country
             if (activeData.country !== "TBD") {
                 ctx.fillStyle = 'rgba(255,255,255,0.6)';
                 ctx.font = 'bold 24px Arial, sans-serif';
                 ctx.fillText(`◉ ${activeData.country.toUpperCase()}`, sidePadding + badgeWidth + 25, topPadding + 35);
             }
-            
+
             // === HUGE DAY NUMBER ===
             const dayNum = String(currentDay).padStart(2, '0');
             ctx.font = 'bold 280px Arial, sans-serif';
             ctx.textAlign = 'right';
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
             ctx.fillText(dayNum, canvas.width - sidePadding, Math.min(topPadding + 230, imageHeight - 50));
-            
+
             // === TITLE ===
             ctx.textAlign = 'left';
             const titleBottomPadding = 60;
             const titleMaxWidth = canvas.width - sidePadding * 2;
-            
+
             // Accent line
             ctx.fillStyle = 'rgba(255,255,255,0.4)';
             ctx.fillRect(sidePadding, imageHeight - titleBottomPadding - 130, 60, 4);
-            
+
             // Title text
             ctx.fillStyle = '#FFFFFF';
             const titleLines = wrapText(ctx, activeData.title, titleMaxWidth, 56, 'bold');
             const titleLineHeight = 68;
             let titleY = imageHeight - titleBottomPadding - (titleLines.length - 1) * titleLineHeight;
-            
+
             ctx.font = 'bold 56px Arial, sans-serif';
             titleLines.forEach((line, i) => {
                 ctx.fillText(line, sidePadding, titleY + i * titleLineHeight);
             });
-            
+
             // Wikipedia attribution
             if (activeData.localImage || activeData.wikiSearch) {
                 ctx.fillStyle = 'rgba(255,255,255,0.35)';
                 ctx.font = 'bold 18px Arial, sans-serif';
                 ctx.fillText(`📷 ${activeData.wikiSearch || activeData.title} · Wikipedia`, sidePadding, imageHeight - 20);
             }
-            
+
             // === RED ACCENT BAR ===
             ctx.fillStyle = accentColor;
             ctx.fillRect(0, 0, 8, canvas.height);
-            
+
             // === CONTENT SECTION ===
             let yPos = imageHeight + 50;
-            
+
             // "READ ALOUD" header
             ctx.fillStyle = accentColor;
             ctx.fillRect(contentPadding, yPos, 60, 4);
@@ -560,60 +561,60 @@ const ReadingChallenge = () => {
             ctx.font = 'bold 20px Arial, sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText('READ ALOUD', contentPadding + 80, yPos + 3);
-            
+
             yPos += 55;
-            
+
             // Draw each chunk
             chunks.forEach((chunk, chunkIndex) => {
                 // Chunk number
                 ctx.fillStyle = '#DDDDDD';
                 ctx.font = 'bold 18px Arial, sans-serif';
                 ctx.fillText(String(chunkIndex + 1).padStart(2, '0'), contentPadding, yPos + textFontSize * 0.3);
-                
+
                 // Chunk text
                 ctx.fillStyle = '#444444';
                 ctx.font = `${textFontSize}px Arial, sans-serif`;
                 const lines = wrapText(ctx, chunk, contentWidth - 60, textFontSize);
-                
+
                 // Left border
                 const chunkHeight = lines.length * textLineHeight;
                 ctx.fillStyle = '#F0F0F0';
                 ctx.fillRect(contentPadding + 40, yPos - 10, 2, chunkHeight + 10);
-                
+
                 ctx.fillStyle = '#444444';
                 lines.forEach((line, lineIndex) => {
                     ctx.fillText(line, contentPadding + 55, yPos + lineIndex * textLineHeight);
                 });
-                
+
                 yPos += lines.length * textLineHeight + 35;
             });
-            
+
             // === PRACTICE NOTE (exact same style as paragraph chunks) ===
             // Chunk number indicator
             ctx.fillStyle = '#DDDDDD';
             ctx.font = 'bold 18px Arial, sans-serif';
             ctx.fillText('✦', contentPadding + 5, yPos + textFontSize * 0.3);
-            
+
             // Note text
             ctx.fillStyle = '#444444';
             ctx.font = `${textFontSize}px Arial, sans-serif`;
             const noteLines = wrapText(ctx, practiceNote, contentWidth - 60, textFontSize);
-            
+
             // Left border
             const noteHeight = noteLines.length * textLineHeight;
             ctx.fillStyle = '#F0F0F0';
             ctx.fillRect(contentPadding + 40, yPos - 10, 2, noteHeight + 10);
-            
+
             ctx.fillStyle = '#444444';
             noteLines.forEach((line, i) => {
                 ctx.fillText(line, contentPadding + 55, yPos + i * textLineHeight);
             });
-            
+
             yPos += noteLines.length * textLineHeight + 35;
-            
+
             // === FOOTER ===
             const footerY = canvas.height - 50;
-            
+
             // Right side text (draw first so logo can overlay if needed)
             ctx.textAlign = 'right';
             const byZaynText = '  |  By Zayn';
@@ -621,17 +622,17 @@ const ReadingChallenge = () => {
             ctx.fillStyle = '#666666';
             const byZaynWidth = ctx.measureText(byZaynText).width;
             ctx.fillText(byZaynText, canvas.width - contentPadding, footerY);
-            
+
             ctx.font = 'bold 22px Arial, sans-serif';
             ctx.fillStyle = '#444444';
             const domainText = 'myenglish.my.id';
             const domainWidth = ctx.measureText(domainText).width;
             ctx.fillText(domainText, canvas.width - contentPadding - byZaynWidth, footerY);
-            
+
             ctx.font = 'normal 22px Arial, sans-serif';
             ctx.fillStyle = '#666666';
             ctx.fillText('Practice at: ', canvas.width - contentPadding - byZaynWidth - domainWidth, footerY);
-            
+
             // Load logo and then download
             const logo = new Image();
             logo.onload = () => {
@@ -639,7 +640,7 @@ const ReadingChallenge = () => {
                 const logoHeight = 40;
                 const logoWidth = (logo.width / logo.height) * logoHeight;
                 ctx.drawImage(logo, contentPadding, footerY - 30, logoWidth, logoHeight);
-                
+
                 // Download the image after logo is drawn
                 const link = document.createElement('a');
                 link.download = `Reading-Challenge-M${currentMonth}-D${currentDay}.jpg`;
@@ -657,7 +658,7 @@ const ReadingChallenge = () => {
             };
             logo.src = '/logo-horizontal.svg';
         };
-        
+
         // Try to load the local image
         if (activeData.localImage) {
             const img = new Image();
@@ -723,6 +724,18 @@ const ReadingChallenge = () => {
 
     return (
         <>
+            {/* Dynamic SEO for each story page */}
+            {activeData && (
+                <SEO
+                    title={`${activeData.title} - Day ${currentDay} | English Fluency Journey`}
+                    description={`Read "${activeData.title}" from ${activeData.country}. ${activeData.text.substring(0, 150)}... Practice English reading with our free 90-day challenge.`}
+                    keywords={`English reading, ${activeData.country}, ${activeData.title}, learn English, ESL practice, day ${currentDay}, month ${currentMonth}`}
+                    ogImage={activeData.localImage ? `https://myenglish.my.id${activeData.localImage}` : 'https://myenglish.my.id/og-image.jpg'}
+                    url={`https://myenglish.my.id/m${currentMonth}-day${currentDay}`}
+                    type="article"
+                />
+            )}
+
             {isTeleprompterActive && (
                 <div
                     className={`fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}
@@ -733,12 +746,12 @@ const ReadingChallenge = () => {
                         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md">
                             {/* Swiss Grid Pattern Background */}
                             <div className="absolute inset-0 opacity-5">
-                                <div className="absolute inset-0" style={{ 
+                                <div className="absolute inset-0" style={{
                                     backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
                                     backgroundSize: '40px 40px'
                                 }}></div>
                             </div>
-                            
+
                             {/* Countdown Number */}
                             <div className="relative">
                                 <div className="text-[14rem] md:text-[18rem] font-bold text-[#880000] leading-none tracking-tighter animate-pulse">
@@ -747,7 +760,7 @@ const ReadingChallenge = () => {
                                 {/* Accent Bar */}
                                 <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-white/20"></div>
                             </div>
-                            
+
                             {/* Label */}
                             <div className="mt-12 text-[10px] md:text-xs text-white/40 uppercase tracking-[0.3em]">
                                 Starting in
@@ -796,8 +809,8 @@ const ReadingChallenge = () => {
                                 >
                                     <Settings size={18} className={`transition-transform duration-300 ${isControlsExpanded ? 'rotate-90' : ''}`} />
                                 </button>
-                                <button 
-                                    onClick={toggleTeleprompter} 
+                                <button
+                                    onClick={toggleTeleprompter}
                                     className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center text-white/40 hover:text-white hover:bg-[#880000] transition-all"
                                 >
                                     <X size={18} />
@@ -818,7 +831,7 @@ const ReadingChallenge = () => {
                                             </div>
                                             <span className="text-sm font-bold text-white bg-white/10 px-2 py-0.5">{scrollSpeed.toFixed(1)}x</span>
                                         </div>
-                                        
+
                                         {/* Speed Presets - Swiss Grid */}
                                         <div className="grid grid-cols-4 gap-0 border border-white/10 mb-4">
                                             {[
@@ -836,11 +849,10 @@ const ReadingChallenge = () => {
                                                         setScrollSpeed(preset.value);
                                                         scrollSpeedRef.current = preset.value;
                                                     }}
-                                                    className={`py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                                        Math.abs(scrollSpeed - preset.value) < 0.05
-                                                            ? 'bg-[#880000] text-white'
-                                                            : 'text-white/50 hover:text-white hover:bg-white/5'
-                                                    } ${i < 3 ? 'border-r border-white/10' : ''}`}
+                                                    className={`py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${Math.abs(scrollSpeed - preset.value) < 0.05
+                                                        ? 'bg-[#880000] text-white'
+                                                        : 'text-white/50 hover:text-white hover:bg-white/5'
+                                                        } ${i < 3 ? 'border-r border-white/10' : ''}`}
                                                 >
                                                     {preset.label}
                                                 </button>
@@ -895,11 +907,10 @@ const ReadingChallenge = () => {
                                                         e.stopPropagation();
                                                         setFontSize(preset.value);
                                                     }}
-                                                    className={`py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                                        fontSize === preset.value
-                                                            ? 'bg-white text-slate-900'
-                                                            : 'text-white/50 hover:text-white hover:bg-white/5'
-                                                    } ${i < 3 ? 'border-r border-white/10' : ''}`}
+                                                    className={`py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${fontSize === preset.value
+                                                        ? 'bg-white text-slate-900'
+                                                        : 'text-white/50 hover:text-white hover:bg-white/5'
+                                                        } ${i < 3 ? 'border-r border-white/10' : ''}`}
                                                 >
                                                     {preset.label}
                                                 </button>
@@ -929,9 +940,9 @@ const ReadingChallenge = () => {
                     </div>
 
                     {/* Reading Area - Swiss Typography */}
-                    <div 
-                        ref={scrollContainerRef} 
-                        className="flex-1 overflow-y-auto relative no-scrollbar" 
+                    <div
+                        ref={scrollContainerRef}
+                        className="flex-1 overflow-y-auto relative no-scrollbar"
                         style={{ paddingBottom: '50vh', paddingTop: '50vh', scrollBehavior: 'auto' }}
                     >
                         {/* Center Guide Line */}
@@ -944,21 +955,21 @@ const ReadingChallenge = () => {
                         </div>
 
                         {/* Content */}
-                        <div 
-                            className="max-w-4xl mx-auto px-6 md:px-10 text-center transition-all duration-300" 
+                        <div
+                            className="max-w-4xl mx-auto px-6 md:px-10 text-center transition-all duration-300"
                             style={{ fontSize: `${fontSize}px` }}
                         >
                             {/* Title - Swiss Style */}
                             <div className="mb-16 md:mb-20">
                                 <div className="w-12 h-0.5 bg-[#880000] mx-auto mb-6"></div>
-                                <h2 
+                                <h2
                                     className="text-[#880000] uppercase tracking-[0.25em] font-bold leading-tight"
                                     style={{ fontSize: `${Math.max(fontSize * 0.5, 14)}px` }}
                                 >
                                     {activeData.title}
                                 </h2>
                                 <div className="flex items-center justify-center gap-3 mt-4">
-                                    <span 
+                                    <span
                                         className="text-white/30 uppercase tracking-[0.15em]"
                                         style={{ fontSize: `${Math.max(fontSize * 0.25, 10)}px` }}
                                     >
@@ -984,14 +995,13 @@ const ReadingChallenge = () => {
                     <div className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none">
                         <div className="flex flex-col items-center pb-8 md:pb-10">
                             {/* Play/Pause Button - Swiss Square */}
-                            <button 
-                                onClick={handlePlayPause} 
-                                disabled={countdown !== null} 
-                                className={`pointer-events-auto w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                    isScrolling 
-                                        ? 'bg-white text-slate-900 hover:bg-white/90' 
-                                        : 'bg-[#880000] text-white hover:bg-[#aa0000]'
-                                }`}
+                            <button
+                                onClick={handlePlayPause}
+                                disabled={countdown !== null}
+                                className={`pointer-events-auto w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isScrolling
+                                    ? 'bg-white text-slate-900 hover:bg-white/90'
+                                    : 'bg-[#880000] text-white hover:bg-[#aa0000]'
+                                    }`}
                             >
                                 {isScrolling ? (
                                     <Pause size={28} className="md:w-8 md:h-8" fill="currentColor" />
@@ -1126,11 +1136,10 @@ const ReadingChallenge = () => {
                                             <button
                                                 key={month}
                                                 onClick={() => changeMonth(month)}
-                                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all ${
-                                                    currentMonth === month 
-                                                        ? 'text-[#880000] border-b-2 border-[#880000]' 
-                                                        : 'text-slate-400 hover:text-slate-600'
-                                                }`}
+                                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all ${currentMonth === month
+                                                    ? 'text-[#880000] border-b-2 border-[#880000]'
+                                                    : 'text-slate-400 hover:text-slate-600'
+                                                    }`}
                                             >
                                                 Month {month}
                                             </button>
@@ -1181,15 +1190,14 @@ const ReadingChallenge = () => {
                                                 <button
                                                     key={d.day}
                                                     onClick={() => handleDayClick(d.day)}
-                                                    className={`aspect-square text-xs font-bold transition-all ${
-                                                        currentDay === d.day
-                                                            ? 'bg-[#880000] text-white'
-                                                            : isPracticed
-                                                                ? 'bg-green-50 text-green-600 border border-green-200'
-                                                                : isLocked
-                                                                    ? 'bg-slate-50 text-slate-300'
-                                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                    }`}
+                                                    className={`aspect-square text-xs font-bold transition-all ${currentDay === d.day
+                                                        ? 'bg-[#880000] text-white'
+                                                        : isPracticed
+                                                            ? 'bg-green-50 text-green-600 border border-green-200'
+                                                            : isLocked
+                                                                ? 'bg-slate-50 text-slate-300'
+                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                        }`}
                                                 >
                                                     {d.day}
                                                 </button>
@@ -1283,12 +1291,11 @@ const ReadingChallenge = () => {
                             style={{ transition: 'opacity 0.3s ease-out' }}
                             onClick={() => { setIsMonthSelectorClosing(true); setTimeout(() => { setIsMonthSelectorOpen(false); setIsMonthSelectorClosing(false); }, 300); }}
                         />
-                        
+
                         {/* Dropdown Panel - Swiss */}
                         <div
-                            className={`fixed z-50 bg-white shadow-2xl overflow-hidden border-l-4 border-[#880000] ${
-                                isMonthSelectorClosing ? 'opacity-0 -translate-y-4' : isMounting ? 'opacity-0 -translate-y-8' : 'opacity-100 translate-y-0'
-                            } left-2 right-2 sm:left-4 sm:right-4 md:left-1/2 md:right-auto md:w-[400px] md:-translate-x-1/2`}
+                            className={`fixed z-50 bg-white shadow-2xl overflow-hidden border-l-4 border-[#880000] ${isMonthSelectorClosing ? 'opacity-0 -translate-y-4' : isMounting ? 'opacity-0 -translate-y-8' : 'opacity-100 translate-y-0'
+                                } left-2 right-2 sm:left-4 sm:right-4 md:left-1/2 md:right-auto md:w-[400px] md:-translate-x-1/2`}
                             style={{
                                 top: '64px',
                                 transition: 'opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)'
@@ -1314,17 +1321,16 @@ const ReadingChallenge = () => {
                                     <button
                                         key={month}
                                         onClick={() => changeMonth(month)}
-                                        className={`flex-1 py-4 md:py-3 text-xs md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.15em] transition-all ${
-                                            currentMonth === month 
-                                                ? 'text-[#880000] bg-slate-50 border-b-2 border-[#880000]' 
-                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                                        }`}
+                                        className={`flex-1 py-4 md:py-3 text-xs md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.15em] transition-all ${currentMonth === month
+                                            ? 'text-[#880000] bg-slate-50 border-b-2 border-[#880000]'
+                                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                            }`}
                                     >
                                         Month {month}
                                     </button>
                                 ))}
                             </div>
-                            
+
                             {/* Days Grid - Swiss - Larger on mobile */}
                             <div className="p-3 sm:p-4">
                                 <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
@@ -1339,15 +1345,14 @@ const ReadingChallenge = () => {
                                                     setIsMonthSelectorClosing(true);
                                                     setTimeout(() => { setIsMonthSelectorOpen(false); setIsMonthSelectorClosing(false); }, 300);
                                                 }}
-                                                className={`aspect-square text-sm font-bold transition-all ${
-                                                    currentDay === d.day
-                                                        ? 'bg-[#880000] text-white'
-                                                        : isPracticed
-                                                            ? 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
-                                                            : isLocked
-                                                                ? 'bg-slate-50 text-slate-200 cursor-not-allowed'
-                                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
-                                                }`}
+                                                className={`aspect-square text-sm font-bold transition-all ${currentDay === d.day
+                                                    ? 'bg-[#880000] text-white'
+                                                    : isPracticed
+                                                        ? 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
+                                                        : isLocked
+                                                            ? 'bg-slate-50 text-slate-200 cursor-not-allowed'
+                                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
+                                                    }`}
                                                 disabled={isLocked}
                                             >
                                                 {d.day}
@@ -1356,7 +1361,7 @@ const ReadingChallenge = () => {
                                     })}
                                 </div>
                             </div>
-                            
+
                             {/* Legend - Swiss Minimal */}
                             <div className="px-4 pb-4 pt-3 border-t border-slate-100">
                                 <div className="flex items-center justify-center gap-4 md:gap-6 text-[10px] md:text-[9px] text-slate-400 uppercase tracking-wider">

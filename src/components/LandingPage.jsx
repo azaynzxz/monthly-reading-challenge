@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { BookOpen, Target, TrendingUp, Globe, ArrowRight, Users, Award, HeadphonesIcon, Github, Instagram, Mail, Heart } from 'lucide-react';
+import SEO from './SEO';
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -182,6 +183,16 @@ const LandingPage = () => {
 
     return (
         <div className={`min-h-screen bg-white transition-opacity duration-700 ${isPageReady ? 'opacity-100' : 'opacity-0'}`}>
+            {/* SEO Meta Tags for Homepage */}
+            <SEO
+                title="English Fluency Journey | Free 90-Day Reading Challenge to Master English"
+                description="Master English fluency through daily reading practice. Explore 90 engaging stories from 30+ countries with vocabulary building, pronunciation tools, and progress tracking. 100% free forever."
+                keywords="learn English, English reading practice, ESL reading, English fluency, vocabulary building, English stories, daily English practice, free English course, improve English reading, language learning, reading comprehension, English for beginners, intermediate English"
+                ogImage="https://myenglish.my.id/og-image.jpg"
+                url="https://myenglish.my.id/"
+                type="website"
+            />
+
             {/* Header/Navigation - Swiss Design */}
             <header
                 className="w-full bg-white/95 backdrop-blur-sm border-b border-slate-100 fixed top-0 z-[100] transition-all duration-500 ease-out"
