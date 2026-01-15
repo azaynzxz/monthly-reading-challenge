@@ -1,3 +1,8 @@
+# Serve static SEO files directly (don't redirect to SPA)
+/sitemap.xml    /sitemap.xml    200
+/robots.txt     /robots.txt     200
+
+# All other routes go to the SPA
 /*    /index.html   200
 
 
