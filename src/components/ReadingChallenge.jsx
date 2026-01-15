@@ -7,7 +7,7 @@ import MistakeCards from './MistakeCards';
 import month1Data from '../data/month1.json';
 import month2Data from '../data/month2.json';
 import month3Data from '../data/month3.json';
-import { ChevronRight, ChevronLeft, BookOpen, Globe, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, BookOpen, Globe, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw, Sparkles, Heart } from 'lucide-react';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 
 const ReadingChallenge = () => {
@@ -1061,6 +1061,15 @@ const ReadingChallenge = () => {
                                         <span className="hidden md:inline">{item.label}</span>
                                     </button>
                                 ))}
+                                <a
+                                    href="https://ko-fi.com/X8X01SBFAD"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 px-3 md:px-4 py-2 bg-[#880000] text-white hover:bg-[#660000] transition-colors text-[10px] md:text-xs font-medium uppercase tracking-wider ml-2"
+                                >
+                                    <Heart size={14} className="md:w-4 md:h-4" />
+                                    <span className="hidden md:inline">Donate</span>
+                                </a>
                             </div>
 
                             {/* Mobile Menu Toggle */}
@@ -1146,6 +1155,17 @@ const ReadingChallenge = () => {
                                         </button>
                                     ))}
                                 </div>
+
+                                {/* Donate Button */}
+                                <a
+                                    href="https://ko-fi.com/X8X01SBFAD"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#880000] text-white hover:bg-[#660000] transition-colors text-xs font-bold uppercase tracking-wider"
+                                >
+                                    <Heart size={16} />
+                                    Support This Project
+                                </a>
 
                                 {/* Day Grid - Swiss */}
                                 <div>

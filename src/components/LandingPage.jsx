@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { BookOpen, Target, TrendingUp, Globe, ArrowRight, Users, Award, HeadphonesIcon, Github, Instagram, Mail } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Globe, ArrowRight, Users, Award, HeadphonesIcon, Github, Instagram, Mail, Heart } from 'lucide-react';
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -220,6 +220,17 @@ const LandingPage = () => {
                             </button>
                         </div>
 
+                        {/* Donate Button */}
+                        <a
+                            href="https://ko-fi.com/X8X01SBFAD"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group bg-[#880000] text-white px-4 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#660000] transition-all duration-300 flex items-center gap-2 relative z-[102]"
+                        >
+                            <Heart size={14} className="group-hover:scale-110 transition-transform" />
+                            Donate
+                        </a>
+
                         {/* CTA Button */}
                         <button
                             onClick={(e) => {
@@ -241,7 +252,15 @@ const LandingPage = () => {
                         </Link>
 
                         {/* Right Side - Menu Toggle + CTA */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <a
+                                href="https://ko-fi.com/X8X01SBFAD"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-[#880000] text-white p-1.5 hover:bg-[#660000] transition-colors"
+                            >
+                                <Heart size={14} />
+                            </a>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -1199,6 +1218,14 @@ const LandingPage = () => {
                             >
                                 <Mail size={14} className="text-white/60 hover:text-white" />
                             </a>
+                            <a
+                                href="https://ko-fi.com/X8X01SBFAD"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-8 h-8 bg-[#880000] hover:bg-[#660000] flex items-center justify-center transition-colors"
+                            >
+                                <Heart size={14} className="text-white" />
+                            </a>
                         </div>
                     </div>
 
@@ -1263,6 +1290,14 @@ const LandingPage = () => {
                                         className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                     >
                                         <Mail size={16} className="text-white/50 group-hover:text-white transition-colors" />
+                                    </a>
+                                    <a
+                                        href="https://ko-fi.com/X8X01SBFAD"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-9 h-9 bg-[#880000] hover:bg-[#660000] flex items-center justify-center transition-colors group"
+                                    >
+                                        <Heart size={16} className="text-white transition-colors" />
                                     </a>
                                 </div>
                             </div>
