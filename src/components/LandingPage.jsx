@@ -224,7 +224,7 @@ const LandingPage = () => {
                         <div className="flex items-center gap-2">
                             {/* Donate Button */}
                             <a
-                                href="https://ko-fi.com/X8X01SBFAD"
+                                href="https://ko-fi.com/mrzayn"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="group bg-[#880000] text-white px-4 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#660000] transition-all duration-300 flex items-center gap-2 relative z-[102]"
@@ -1222,7 +1222,7 @@ const LandingPage = () => {
                                 <Mail size={14} className="text-white/60 hover:text-white" />
                             </a>
                             <a
-                                href="https://ko-fi.com/X8X01SBFAD"
+                                href="https://ko-fi.com/mrzayn"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-8 h-8 bg-[#880000] hover:bg-[#660000] flex items-center justify-center transition-colors"

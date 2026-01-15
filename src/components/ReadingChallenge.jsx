@@ -1158,7 +1158,7 @@ const ReadingChallenge = () => {
 
                                 {/* Donate Button */}
                                 <a
-                                    href="https://ko-fi.com/X8X01SBFAD"
+                                    href="https://ko-fi.com/mrzayn"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2 w-full py-3 bg-[#880000] text-white hover:bg-[#660000] transition-colors text-xs font-bold uppercase tracking-wider"
