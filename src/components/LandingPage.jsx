@@ -220,28 +220,31 @@ const LandingPage = () => {
                             </button>
                         </div>
 
-                        {/* Donate Button */}
-                        <a
-                            href="https://ko-fi.com/X8X01SBFAD"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group bg-[#880000] text-white px-4 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#660000] transition-all duration-300 flex items-center gap-2 relative z-[102]"
-                        >
-                            <Heart size={14} className="group-hover:scale-110 transition-transform" />
-                            Donate
-                        </a>
+                        {/* Right Side Actions */}
+                        <div className="flex items-center gap-2">
+                            {/* Donate Button */}
+                            <a
+                                href="https://ko-fi.com/X8X01SBFAD"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group bg-[#880000] text-white px-4 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#660000] transition-all duration-300 flex items-center gap-2 relative z-[102]"
+                            >
+                                <Heart size={14} className="group-hover:scale-110 transition-transform" />
+                                Donate
+                            </a>
 
-                        {/* CTA Button */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                navigate('/m1-day1');
-                            }}
-                            className="group bg-slate-900 text-white px-5 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#880000] transition-all duration-300 flex items-center gap-2 relative z-[102] cursor-pointer"
-                        >
-                            Start
-                            <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                        </button>
+                            {/* CTA Button */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate('/m1-day1');
+                                }}
+                                className="group bg-slate-900 text-white px-5 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#880000] transition-all duration-300 flex items-center gap-2 relative z-[102] cursor-pointer"
+                            >
+                                Start
+                                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Mobile Navigation */}
