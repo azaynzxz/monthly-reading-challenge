@@ -257,7 +257,7 @@ const LandingPage = () => {
                         {/* Right Side - Menu Toggle + CTA */}
                         <div className="flex items-center gap-2">
                             <a
-                                href="https://ko-fi.com/X8X01SBFAD"
+                                href="https://ko-fi.com/mrzayn"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="bg-[#880000] text-white p-1.5 hover:bg-[#660000] transition-colors"
@@ -1295,7 +1295,7 @@ const LandingPage = () => {
                                         <Mail size={16} className="text-white/50 group-hover:text-white transition-colors" />
                                     </a>
                                     <a
-                                        href="https://ko-fi.com/X8X01SBFAD"
+                                        href="https://ko-fi.com/mrzayn"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-9 h-9 bg-[#880000] hover:bg-[#660000] flex items-center justify-center transition-colors group"
