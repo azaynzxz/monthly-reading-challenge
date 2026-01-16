@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import ReadingCard from './ReadingCard';
 import Dashboard from './Dashboard';
 import Flashcards from './Flashcards';
@@ -1079,15 +1079,13 @@ const ReadingChallenge = () => {
                                         <span className="hidden md:inline">{item.label}</span>
                                     </button>
                                 ))}
-                                <a
-                                    href="https://ko-fi.com/X8X01SBFAD"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <Link
+                                    to="/donate"
                                     className="flex items-center gap-1.5 px-3 md:px-4 py-2 bg-[#880000] text-white hover:bg-[#660000] transition-colors text-[10px] md:text-xs font-medium uppercase tracking-wider ml-2"
                                 >
                                     <Heart size={14} className="md:w-4 md:h-4" />
                                     <span className="hidden md:inline">Donate</span>
-                                </a>
+                                </Link>
                             </div>
 
                             {/* Mobile Menu Toggle */}
@@ -1174,15 +1172,13 @@ const ReadingChallenge = () => {
                                 </div>
 
                                 {/* Donate Button */}
-                                <a
-                                    href="https://ko-fi.com/mrzayn"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <Link
+                                    to="/donate"
                                     className="flex items-center justify-center gap-2 w-full py-3 bg-[#880000] text-white hover:bg-[#660000] transition-colors text-xs font-bold uppercase tracking-wider"
                                 >
                                     <Heart size={16} />
                                     Support This Project
-                                </a>
+                                </Link>
 
                                 {/* Day Grid - Swiss */}
                                 <div>

@@ -35,7 +35,7 @@ const Footer = () => {
                             href="https://github.com/azaynz"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
+                            className="w-9 h-9 bg-slate-800 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                         >
                             <Github size={16} className="text-white/50 group-hover:text-white transition-colors" />
                         </a>
@@ -43,13 +43,13 @@ const Footer = () => {
                             href="https://instagram.com/azaynz"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
+                            className="w-9 h-9 bg-slate-800 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                         >
                             <Instagram size={16} className="text-white/50 group-hover:text-white transition-colors" />
                         </a>
                         <a
                             href="mailto:contact.azaynz@gmail.com"
-                            className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
+                            className="w-9 h-9 bg-slate-800 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                         >
                             <Mail size={16} className="text-white/50 group-hover:text-white transition-colors" />
                         </a>
@@ -108,7 +108,7 @@ const Footer = () => {
                                     href="https://github.com/azaynz"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
+                                    className="w-9 h-9 bg-slate-800 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                 >
                                     <Github size={16} className="text-white/50 group-hover:text-white transition-colors" />
                                 </a>
@@ -116,13 +116,13 @@ const Footer = () => {
                                     href="https://instagram.com/azaynz"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
+                                    className="w-9 h-9 bg-slate-800 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                 >
                                     <Instagram size={16} className="text-white/50 group-hover:text-white transition-colors" />
                                 </a>
                                 <a
                                     href="mailto:contact.azaynz@gmail.com"
-                                    className="w-9 h-9 bg-white/5 hover:bg-[#880000] flex items-center justify-center transition-colors group"
+                                    className="w-9 h-9 bg-slate-800 hover:bg-[#880000] flex items-center justify-center transition-colors group"
                                 >
                                     <Mail size={16} className="text-white/50 group-hover:text-white transition-colors" />
                                 </a>

@@ -367,7 +367,7 @@ const Donate = () => {
                         {faqs.map((faq, index) => {
                             const Icon = faq.icon;
                             return (
-                                <div key={index} className="bg-white p-6 border-l-4 border-slate-200">
+                                <div key={index} className="bg-stone-50 p-6 border-l-4 border-slate-200">
                                     <div className="flex items-start gap-3 mb-3">
                                         <Icon className="text-[#880000] mt-1 flex-shrink-0" size={24} />
                                         <h3 className="font-bold text-slate-900 text-lg">{faq.question}</h3>

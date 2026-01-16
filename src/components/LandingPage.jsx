@@ -265,14 +265,12 @@ const LandingPage = () => {
 
                         {/* Right Side - Menu Toggle + CTA */}
                         <div className="flex items-center gap-2">
-                            <a
-                                href="https://ko-fi.com/mrzayn"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                to="/donate"
                                 className="bg-[#880000] text-white p-1.5 hover:bg-[#660000] transition-colors"
                             >
                                 <Heart size={14} />
-                            </a>
+                            </Link>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -1231,14 +1229,12 @@ const LandingPage = () => {
                             >
                                 <Mail size={14} className="text-white/60 hover:text-white" />
                             </a>
-                            <a
-                                href="https://ko-fi.com/mrzayn"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                to="/donate"
                                 className="w-8 h-8 bg-[#880000] hover:bg-[#660000] flex items-center justify-center transition-colors"
                             >
                                 <Heart size={14} className="text-white" />
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
