@@ -211,12 +211,12 @@ const LandingPage = () => {
 
                         {/* Center Links */}
                         <div className="flex items-center gap-8">
-                            <button
-                                onClick={() => scrollToSection('about')}
+                            <Link
+                                to="/about"
                                 className="text-xs text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-[0.2em] relative z-[102]"
                             >
                                 About
-                            </button>
+                            </Link>
                             <button
                                 onClick={() => scrollToSection('features')}
                                 className="text-xs text-slate-500 hover:text-slate-900 transition-colors uppercase tracking-[0.2em] relative z-[102]"
@@ -234,15 +234,13 @@ const LandingPage = () => {
                         {/* Right Side Actions */}
                         <div className="flex items-center gap-2">
                             {/* Donate Button */}
-                            <a
-                                href="https://ko-fi.com/mrzayn"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                to="/donate"
                                 className="group bg-[#880000] text-white px-4 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#660000] transition-all duration-300 flex items-center gap-2 relative z-[102]"
                             >
                                 <Heart size={14} className="group-hover:scale-110 transition-transform" />
                                 Donate
-                            </a>
+                            </Link>
 
                             {/* CTA Button */}
                             <button
@@ -301,12 +299,13 @@ const LandingPage = () => {
                     className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${isMobileMenuOpen ? 'max-h-64 border-t border-slate-100' : 'max-h-0'}`}
                 >
                     <div className="px-4 py-6 bg-white space-y-1">
-                        <button
-                            onClick={() => { setIsMobileMenuOpen(false); setTimeout(() => scrollToSection('about'), 100); }}
+                        <Link
+                            to="/about"
+                            onClick={() => setIsMobileMenuOpen(false)}
                             className="block w-full text-left py-3 text-xs text-slate-500 uppercase tracking-[0.2em] border-b border-slate-50"
                         >
                             About
-                        </button>
+                        </Link>
                         <button
                             onClick={() => { setIsMobileMenuOpen(false); setTimeout(() => scrollToSection('features'), 100); }}
                             className="block w-full text-left py-3 text-xs text-slate-500 uppercase tracking-[0.2em] border-b border-slate-50"

@@ -14,6 +14,7 @@ import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 const ReadingChallenge = () => {
     const navigate = useNavigate();
     const [isPageReady, setIsPageReady] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(1);
     const [currentDay, setCurrentDay] = useState(1);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -215,7 +216,11 @@ const ReadingChallenge = () => {
             if (monthParam) setCurrentMonth(parseInt(monthParam));
             if (dayParam) setCurrentDay(parseInt(dayParam));
         }
+
+        // Mark as initialized after reading from URL
+        setIsInitialized(true);
     }, []);
+
 
     // Track teleprompter completion and update statistics
     useEffect(() => {
@@ -307,12 +312,15 @@ const ReadingChallenge = () => {
     }, [isTeleprompterActive, isClosing, currentMonth, currentDay]);
 
     // Update URL when month or day changes (format: /m1-day1)
+    // Only run after initialization to avoid overwriting the URL on first load
     useEffect(() => {
+        if (!isInitialized) return; // Don't update URL until we've read from it first
+
         const newPath = `/m${currentMonth}-day${currentDay}`;
         if (window.location.pathname !== newPath) {
             navigate(newPath, { replace: true });
         }
-    }, [currentMonth, currentDay, navigate]);
+    }, [currentMonth, currentDay, navigate, isInitialized]);
 
     const isDayPracticed = (month, day) => {
         const dayKey = `${month}-${day}`;
