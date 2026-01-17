@@ -1262,7 +1262,7 @@ const ReadingChallenge = () => {
                                     <div className="max-w-xl mx-auto px-4">
                                         <div className="border-l-2 border-slate-200 pl-4">
                                             <p className="text-sm md:text-base text-slate-400 leading-relaxed">
-                                                "This is my practice today about <span className="text-slate-600 font-medium">{activeData.title}</span> from {activeData.country}, cannot wait to improve my English with the next reading challenge."
+                                                "This is my practice today about <span className="text-slate-600 font-medium">{activeData.title}</span> from <span className="text-slate-600 font-medium">{activeData.country}</span>, cannot wait to improve my English with the next reading challenge."
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2 mt-4 pl-4">
