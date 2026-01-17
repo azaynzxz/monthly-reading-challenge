@@ -296,7 +296,8 @@ const WordPoster = ({
         });
 
         // --- Progress stats and QR (bottom band above footer) ---
-        const footerY = cardY + cardHeight - 80;
+        const footerHeight = 140;
+        const footerY = cardY + cardHeight - footerHeight + 40;
         // Move stats block a bit higher to create more breathing room above the footer
         const statsTop = footerY - 130;
 
@@ -382,24 +383,44 @@ const WordPoster = ({
         };
         qrImage.src = qrApiUrl;
 
-        // Footer band
-        ctx.textAlign = 'left';
+        // === FOOTER - Swiss Design ===
+        // Horizontal divider line above footer
+        ctx.fillStyle = '#E0E0E0';
+        ctx.fillRect(innerMargin, cardY + cardHeight - footerHeight, innerWidth, 1);
 
-        // Load and draw logo
+        // Right side - Two-line layout
+        ctx.textAlign = 'right';
+
+        // Line 1: "PRACTICE AT" + "myenglish.my.id"
+        const line1Y = footerY + 10;
+
+        // Domain (bold, larger, dark)
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.fillStyle = '#111111';
+        const domainText = 'myenglish.my.id';
+        ctx.fillText(domainText, cardX + cardWidth - 60, line1Y);
+
+        // "PRACTICE AT" label (small, uppercase, muted)
+        const domainWidth = ctx.measureText(domainText).width;
+        ctx.font = 'bold 14px Arial, sans-serif';
+        ctx.fillStyle = '#999999';
+        ctx.fillText('PRACTICE AT  ', cardX + cardWidth - 60 - domainWidth, line1Y);
+
+        // Line 2: "Mr. Zayn" (medium, muted)
+        const line2Y = footerY + 45;
+        ctx.font = 'normal 20px Arial, sans-serif';
+        ctx.fillStyle = '#777777';
+        ctx.fillText('Mr. Zayn', cardX + cardWidth - 60, line2Y);
+
+        // Load and draw logo (Swiss prominence)
         const logo = new Image();
         logo.onload = () => {
-            // Draw logo (height 38px, maintain aspect ratio)
-            const logoHeight = 38;
+            // Draw logo (height 60px, maintain aspect ratio)
+            const logoHeight = 60;
             const logoWidth = (logo.width / logo.height) * logoHeight;
-            ctx.drawImage(logo, innerMargin, footerY - 28, logoWidth, logoHeight);
+            ctx.drawImage(logo, innerMargin, footerY - 10, logoWidth, logoHeight);
         };
         logo.src = '/logo-horizontal.svg';
-
-        // "By Zayn" at the bottom right
-        ctx.font = 'normal 18px Arial, sans-serif';
-        ctx.fillStyle = '#777777';
-        ctx.textAlign = 'right';
-        ctx.fillText('By Zayn', cardX + cardWidth - 60, footerY);
 
     }, [width, height, title, subtitle, meta, text, accentColor, backgroundColor, month, day, statistics, progress, onPosterReady]);
 

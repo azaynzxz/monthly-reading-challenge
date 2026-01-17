@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Download, Loader2, AlertCircle, Volume2, Sparkles, Edit3, Check, Copy, ChevronDown } from 'lucide-react';
+import { X, Download, Loader2, AlertCircle, Volume2, Sparkles, Edit3, Check, Copy, ChevronDown, Languages } from 'lucide-react';
 
 const MistakeCards = ({ onClose }) => {
     const [inputText, setInputText] = useState('');
@@ -13,6 +13,7 @@ const MistakeCards = ({ onClose }) => {
     const [editPhonetic, setEditPhonetic] = useState('');
     const [voices, setVoices] = useState([]);
     const [selectedVoice, setSelectedVoice] = useState(null);
+    const [showTranslation, setShowTranslation] = useState(true); // Translation toggle (on by default)
     const canvasRef = useRef(null);
     const selectedVoiceNameRef = useRef(null);
 
@@ -63,6 +64,57 @@ const MistakeCards = ({ onClose }) => {
         setVoices(availableVoices);
     };
 
+    // Translation caching functions
+    const getCachedTranslation = (word) => {
+        try {
+            const cache = JSON.parse(localStorage.getItem('translation_cache') || '{}');
+            return cache[word.toLowerCase()];
+        } catch (error) {
+            console.log('Cache read error:', error);
+            return null;
+        }
+    };
+
+    const cacheTranslation = (word, translation) => {
+        try {
+            const cache = JSON.parse(localStorage.getItem('translation_cache') || '{}');
+            cache[word.toLowerCase()] = translation;
+            localStorage.setItem('translation_cache', JSON.stringify(cache));
+        } catch (error) {
+            console.log('Cache write error:', error);
+        }
+    };
+
+    // Fetch translation from MyMemory Translation API (free, no CORS issues)
+    const fetchTranslation = async (word) => {
+        // Check cache first
+        const cached = getCachedTranslation(word);
+        if (cached) return cached;
+
+        try {
+            // MyMemory Translation API - free, no API key needed, no CORS
+            const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|id`;
+            const res = await fetch(url);
+
+            if (!res.ok) {
+                console.log('Translation API error:', res.status);
+                return '';
+            }
+
+            const data = await res.json();
+            const translation = data.responseData?.translatedText || '';
+
+            // Cache the result
+            if (translation && translation.toLowerCase() !== word.toLowerCase()) {
+                cacheTranslation(word, translation);
+            }
+            return translation;
+        } catch (error) {
+            console.log('Translation API error for:', word, error);
+            return '';
+        }
+    };
+
     // Fetch pronunciation from Dictionary API
     const fetchPronunciation = async (word) => {
         const cleanWord = word.toLowerCase().replace(/[.,!?;:()"'-]/g, '').trim();
@@ -73,11 +125,15 @@ const MistakeCards = ({ onClose }) => {
             if (response.ok) {
                 const data = await response.json();
                 if (data && data[0]) {
+                    // Fetch translation in parallel
+                    const translation = await fetchTranslation(cleanWord);
+
                     return {
                         word: cleanWord,
                         phonetic: data[0].phonetic || data[0].phonetics?.find(p => p.text)?.text || '',
                         partOfSpeech: data[0].meanings?.[0]?.partOfSpeech || '',
-                        definition: data[0].meanings?.[0]?.definitions?.[0]?.definition || ''
+                        definition: data[0].meanings?.[0]?.definitions?.[0]?.definition || '',
+                        translation: translation
                     };
                 }
             }
@@ -85,11 +141,14 @@ const MistakeCards = ({ onClose }) => {
             console.log('Dictionary API error for:', cleanWord);
         }
 
+        // Fallback: still try to get translation even if dictionary fails
+        const translation = await fetchTranslation(cleanWord);
         return {
             word: cleanWord,
             phonetic: '',
             partOfSpeech: '',
-            definition: ''
+            definition: '',
+            translation: translation
         };
     };
 
@@ -178,7 +237,7 @@ const MistakeCards = ({ onClose }) => {
         const baseWidth = 1080;
         const margin = 60;
         const headerHeight = 120;
-        const footerHeight = 100;
+        const footerHeight = 140; // Swiss design - increased for better spacing
         const cardGap = 16;
 
         // Determine optimal column count based on word count
@@ -196,15 +255,16 @@ const MistakeCards = ({ onClose }) => {
         const innerWidth = baseWidth - margin * 2;
         const cardWidth = (innerWidth - cardGap * (columns - 1)) / columns;
 
-        // Font sizes - scale based on column count
-        const wordFontSize = columns === 1 ? 36 : columns === 2 ? 28 : columns === 3 ? 24 : 18;
-        const phoneticFontSize = columns === 1 ? 22 : columns === 2 ? 18 : columns === 3 ? 15 : 12;
-        const posFontSize = columns === 1 ? 16 : columns === 2 ? 14 : columns === 3 ? 11 : 10;
-        const defFontSize = columns === 1 ? 16 : columns === 2 ? 13 : columns === 3 ? 11 : 10;
-        const lineHeight = defFontSize + 2;
+        // Font sizes - matching web UI
+        const wordFontSize = columns === 1 ? 42 : columns === 2 ? 34 : columns === 3 ? 30 : 24;
+        const phoneticFontSize = columns === 1 ? 22 : columns === 2 ? 18 : columns === 3 ? 16 : 13;
+        const translationFontSize = columns === 1 ? 16 : columns === 2 ? 14 : columns === 3 ? 12 : 11;
+        const posFontSize = columns === 1 ? 14 : columns === 2 ? 12 : columns === 3 ? 11 : 9;
+        const defFontSize = columns === 1 ? 18 : columns === 2 ? 15 : columns === 3 ? 13 : 11;
+        const lineHeight = defFontSize + 4;
 
-        // Base card height (without definition)
-        const baseCardHeight = columns === 1 ? 140 : columns === 2 ? 115 : columns === 3 ? 95 : 85;
+        // Base card height - will be adjusted dynamically
+        const baseCardPadding = 40;
 
         // Helper function to calculate definition lines (full text, no truncation)
         const getDefinitionLines = (definition, maxWidth, fontSize) => {
@@ -228,15 +288,46 @@ const MistakeCards = ({ onClose }) => {
             if (currentLine) {
                 lines.push(currentLine);
             }
-            
+
             return lines;
         };
 
-        // Calculate required height for each card - more padding for safety
-        const maxDefWidth = cardWidth - 44;
+        // Calculate required height for each card dynamically
+        const maxDefWidth = cardWidth - 56;
         const cardHeights = words.map(wordData => {
-            const defLines = getDefinitionLines(wordData.definition, maxDefWidth, defFontSize);
-            return baseCardHeight + (defLines.length * lineHeight) + 15;
+            let height = baseCardPadding;
+
+            // Word height (with auto-resize)
+            let wordSize = wordFontSize;
+            ctx.font = `900 ${wordSize}px Arial, sans-serif`;
+            while (ctx.measureText(wordData.word.toUpperCase()).width > (cardWidth - 56) && wordSize > 14) {
+                wordSize -= 2;
+                ctx.font = `900 ${wordSize}px Arial, sans-serif`;
+            }
+            height += wordSize + 10;
+
+            // Translation height (if enabled)
+            if (showTranslation && wordData.translation) {
+                height += translationFontSize + 10;
+            }
+
+            // Phonetic height
+            if (wordData.phonetic) {
+                height += phoneticFontSize + 10;
+            }
+
+            // Part of speech height (with divider)
+            if (wordData.partOfSpeech) {
+                height += posFontSize + 22; // includes divider space
+            }
+
+            // Definition height
+            if (wordData.definition) {
+                const defLines = getDefinitionLines(wordData.definition, maxDefWidth, defFontSize);
+                height += (defLines.length * lineHeight) + 25; // includes divider space
+            }
+
+            return height;
         });
 
         // Group cards by row and find max height per row
@@ -303,13 +394,13 @@ const MistakeCards = ({ onClose }) => {
             month: 'short',
             day: 'numeric'
         });
-        
+
         // Word count in accent
         ctx.font = 'bold 20px Arial, sans-serif';
         ctx.fillStyle = accentColor;
         const wordCountText = `${words.length} WORD${words.length > 1 ? 'S' : ''}`;
         ctx.fillText(wordCountText, baseWidth - margin, margin + 25);
-        
+
         // Date below word count
         ctx.font = '18px Arial, sans-serif';
         ctx.fillStyle = lightMuted;
@@ -334,99 +425,120 @@ const MistakeCards = ({ onClose }) => {
             const y = rowYPositions[row];
             const cardHeight = rowHeights[row];
 
-            // Skip if would overflow (safety check)
-            if (y + cardHeight > height - footerHeight - 20) return;
+            // Card background - white like web UI
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x, y, cardWidth, cardHeight);
 
-            // Card shadow - subtle
-            ctx.fillStyle = 'rgba(0,0,0,0.06)';
-            drawRoundedRect(ctx, x + 3, y + 3, cardWidth, cardHeight, 8);
-            ctx.fill();
+            // Card border - subtle like web UI
+            ctx.strokeStyle = '#E5E7EB';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, cardWidth, cardHeight);
 
-            // Card background
-            ctx.fillStyle = backgroundColor;
-            drawRoundedRect(ctx, x, y, cardWidth, cardHeight, 8);
-            ctx.fill();
-
-            // Card left accent bar
-            ctx.fillStyle = accentColor;
-            const barWidth = columns === 1 ? 6 : 4;
-            ctx.fillRect(x, y + 8, barWidth, cardHeight - 16);
-
-            // Word
-            ctx.font = `bold ${wordFontSize}px Arial, sans-serif`;
-            ctx.fillStyle = textColor;
+            // Word - auto-resize if too long
+            let currentWordFontSize = wordFontSize;
+            ctx.font = `900 ${currentWordFontSize}px Arial, sans-serif`;
+            ctx.fillStyle = '#111827';
             ctx.textAlign = 'left';
 
-            // Truncate word if too long
-            let displayWord = wordData.word.charAt(0).toUpperCase() + wordData.word.slice(1);
-            const maxWordWidth = cardWidth - 40;
-            while (ctx.measureText(displayWord).width > maxWordWidth && displayWord.length > 3) {
-                displayWord = displayWord.slice(0, -1);
+            const maxWordWidth = cardWidth - 56;
+            let wordText = wordData.word.charAt(0).toUpperCase() + wordData.word.slice(1).toLowerCase(); // Capitalize first letter
+
+            // Auto-resize if word is too long
+            while (ctx.measureText(wordText).width > maxWordWidth && currentWordFontSize > 14) {
+                currentWordFontSize -= 2;
+                ctx.font = `900 ${currentWordFontSize}px Arial, sans-serif`;
             }
-            if (displayWord !== wordData.word.charAt(0).toUpperCase() + wordData.word.slice(1)) displayWord += '…';
 
-            const wordY = columns === 1 ? y + 50 : columns === 4 ? y + 38 : y + 45;
-            ctx.fillText(displayWord, x + 18, wordY);
+            let currentY = y + 50;
+            ctx.fillText(wordText, x + 28, currentY);
+            currentY += currentWordFontSize + 10;
 
-            // Phonetic
+            // Phonetic - red accent (after word, like web UI)
             if (wordData.phonetic) {
                 ctx.font = `italic ${phoneticFontSize}px Arial, sans-serif`;
                 ctx.fillStyle = accentColor;
-                const phoneticY = columns === 1 ? y + 85 : columns === 4 ? y + 58 : y + 75;
-                ctx.fillText(wordData.phonetic, x + 18, phoneticY);
+                ctx.fillText(wordData.phonetic, x + 28, currentY);
+                currentY += phoneticFontSize + 10;
+            }
+
+            // Translation - italic, gray (after phonetic, like web UI)
+            if (showTranslation && wordData.translation) {
+                ctx.font = `italic ${translationFontSize}px Arial, sans-serif`;
+                ctx.fillStyle = '#6B7280';
+                ctx.fillText(wordData.translation, x + 28, currentY);
+                currentY += translationFontSize + 10;
+            }
+
+            // Subtle divider
+            if (wordData.partOfSpeech) {
+                ctx.fillStyle = '#E5E7EB';
+                ctx.fillRect(x + 28, currentY, 40, 1);
+                currentY += 12;
             }
 
             // Part of speech
             if (wordData.partOfSpeech) {
-                ctx.font = `${posFontSize}px Arial, sans-serif`;
-                ctx.fillStyle = lightMuted;
-                const posY = columns === 1 ? y + 110 : columns === 4 ? y + 75 : y + 100;
-                ctx.fillText(wordData.partOfSpeech.toUpperCase(), x + 18, posY);
+                ctx.font = `bold ${posFontSize}px Arial, sans-serif`;
+                ctx.fillStyle = '#9CA3AF';
+                ctx.fillText(wordData.partOfSpeech.toUpperCase(), x + 28, currentY);
+                currentY += posFontSize + 10;
             }
 
             // Definition
             if (wordData.definition) {
+                // Horizontal divider
+                ctx.fillStyle = '#F3F4F6';
+                ctx.fillRect(x + 28, currentY, cardWidth - 56, 1);
+                currentY += 15;
+
                 ctx.font = `${defFontSize}px Arial, sans-serif`;
-                ctx.fillStyle = mutedColor;
+                ctx.fillStyle = '#4B5563';
 
-                const lines = getDefinitionLines(wordData.definition, maxDefWidth, defFontSize);
-                const defStartY = columns === 1 ? y + 135 : columns === 4 ? y + 90 : y + 118;
-
+                const lines = getDefinitionLines(wordData.definition, cardWidth - 56, defFontSize);
                 lines.forEach((line, lineIndex) => {
-                    ctx.fillText(line, x + 18, defStartY + (lineIndex * lineHeight));
+                    ctx.fillText(line, x + 28, currentY + (lineIndex * lineHeight));
                 });
             }
         });
 
-        // Footer - clean Swiss style
-        const footerY = height - footerHeight + 30;
-        
-        // Right side text - draw as single line
-        ctx.textAlign = 'right';
-        
-        // Measure domain width first with bold font
-        ctx.font = 'bold 18px Arial, sans-serif';
-        const domainText = 'myenglish.my.id';
-        const domainWidth = ctx.measureText(domainText).width;
-        
-        // Draw domain
-        ctx.fillStyle = textColor;
-        ctx.fillText(domainText, baseWidth - margin, footerY + 15);
-        
-        // Draw "Practice at:" before domain
-        ctx.font = '16px Arial, sans-serif';
-        ctx.fillStyle = lightMuted;
-        ctx.fillText('Practice at: ', baseWidth - margin - domainWidth, footerY + 15);
-        
-        // By Zayn on second line
-        ctx.fillText('by Zayn', baseWidth - margin, footerY + 40);
+        // === FOOTER - Swiss Design ===
+        const footerY = height - footerHeight + 40;
 
-        // Load and draw logo on left
+        // Horizontal divider line above footer
+        ctx.fillStyle = '#E0E0E0';
+        ctx.fillRect(margin, height - footerHeight, baseWidth - margin * 2, 1);
+
+        // Right side - Two-line layout
+        ctx.textAlign = 'right';
+
+        // Line 1: "PRACTICE AT" + "myenglish.my.id"
+        const line1Y = footerY + 10;
+
+        // Domain (bold, larger, dark)
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.fillStyle = '#111111';
+        const domainText = 'myenglish.my.id';
+        ctx.fillText(domainText, baseWidth - margin, line1Y);
+
+        // "PRACTICE AT" label (small, uppercase, muted)
+        const domainWidth = ctx.measureText(domainText).width;
+        ctx.font = 'bold 14px Arial, sans-serif';
+        ctx.fillStyle = '#999999';
+        ctx.fillText('PRACTICE AT  ', baseWidth - margin - domainWidth, line1Y);
+
+        // Line 2: "Mr. Zayn" (medium, muted)
+        const line2Y = footerY + 45;
+        ctx.font = 'normal 20px Arial, sans-serif';
+        ctx.fillStyle = '#777777';
+        ctx.fillText('Mr. Zayn', baseWidth - margin, line2Y);
+
+        // Load and draw logo on left (Swiss prominence)
         const logo = new Image();
         logo.onload = () => {
-            const logoHeight = 38;
+            // Draw logo (height 60px, maintain aspect ratio)
+            const logoHeight = 60;
             const logoWidth = (logo.width / logo.height) * logoHeight;
-            ctx.drawImage(logo, margin, footerY, logoWidth, logoHeight);
+            ctx.drawImage(logo, margin, footerY - 10, logoWidth, logoHeight);
         };
         logo.src = '/logo-horizontal.svg';
     }, [words]);
@@ -561,44 +673,59 @@ const MistakeCards = ({ onClose }) => {
                                     <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100">
                                         <div className="flex items-center gap-3">
                                             <div className="text-3xl font-bold text-slate-900 leading-none">{words.length}</div>
-                                            <div className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">Words<br/>Found</div>
+                                            <div className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">Words<br />Found</div>
                                         </div>
-                                        {/* Voice Selector - Swiss */}
-                                        {voices.length > 0 && (
-                                            <div className="flex items-center border border-slate-200">
-                                                <div className="px-2 py-1.5 border-r border-slate-200 flex items-center">
-                                                    <Volume2 size={12} className="text-slate-400" />
+                                        <div className="flex items-center gap-2">
+                                            {/* Voice Selector - Swiss */}
+                                            {voices.length > 0 && (
+                                                <div className="flex items-center border border-slate-200">
+                                                    <div className="px-2 py-1.5 border-r border-slate-200 flex items-center">
+                                                        <Volume2 size={12} className="text-slate-400" />
+                                                    </div>
+                                                    <div className="relative">
+                                                        <select
+                                                            value={selectedVoice?.name || ''}
+                                                            onChange={(e) => {
+                                                                const voice = voices.find(v => v.name === e.target.value);
+                                                                setSelectedVoice(voice);
+                                                                selectedVoiceNameRef.current = voice?.name || null;
+                                                            }}
+                                                            onFocus={refreshVoices}
+                                                            className="appearance-none bg-transparent border-none pl-2 pr-6 py-1.5 text-[10px] font-medium text-slate-600 focus:outline-none cursor-pointer uppercase tracking-wider"
+                                                        >
+                                                            {voices.map(v => (
+                                                                <option key={v.name} value={v.name}>
+                                                                    {v.name.replace(/Microsoft |Google |English |United States/g, '').replace(/\s*\(\s*\)/g, '').replace(/\s*-\s*$/, '').trim()}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                    </div>
                                                 </div>
-                                                <div className="relative">
-                                                    <select
-                                                        value={selectedVoice?.name || ''}
-                                                        onChange={(e) => {
-                                                            const voice = voices.find(v => v.name === e.target.value);
-                                                            setSelectedVoice(voice);
-                                                            selectedVoiceNameRef.current = voice?.name || null;
-                                                        }}
-                                                        onFocus={refreshVoices}
-                                                        className="appearance-none bg-transparent border-none pl-2 pr-6 py-1.5 text-[10px] font-medium text-slate-600 focus:outline-none cursor-pointer uppercase tracking-wider"
-                                                    >
-                                                        {voices.map(v => (
-                                                            <option key={v.name} value={v.name}>
-                                                                {v.name.replace(/Microsoft |Google |English |United States/g, '').replace(/\s*\(\s*\)/g, '').replace(/\s*-\s*$/, '').trim()}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                                </div>
-                                            </div>
-                                        )}
+                                            )}
+                                            {/* Translation Toggle - Swiss */}
+                                            <button
+                                                onClick={() => setShowTranslation(!showTranslation)}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all border ${showTranslation
+                                                    ? 'bg-[#880000] text-white border-[#880000]'
+                                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                                                    }`}
+                                                title={showTranslation ? 'Hide Indonesian translation' : 'Show Indonesian translation'}
+                                            >
+                                                <Languages size={12} />
+                                                <span>ID</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Word Cards Grid - Swiss */}
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                                         {words.map((wordData, index) => (
-                                            <div key={index} className="bg-white border border-slate-200 p-4 border-l-4 border-l-[#880000] hover:bg-slate-50 transition-colors">
-                                                <div className="flex items-start justify-between">
+                                            <div key={index} className="bg-white border border-slate-200 p-5 hover:border-slate-300 transition-all group">
+                                                <div className="flex items-start justify-between gap-3">
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className="font-bold text-slate-900 capitalize truncate text-sm tracking-tight">
+                                                        {/* Word - Large, Bold, Swiss */}
+                                                        <h4 className="font-black text-lg text-slate-900 capitalize tracking-tight leading-tight">
                                                             {wordData.word}
                                                         </h4>
 
@@ -622,13 +749,13 @@ const MistakeCards = ({ onClose }) => {
                                                                 </button>
                                                             </div>
                                                         ) : (
-                                                            <div className="flex items-center gap-1 mt-1">
+                                                            <div className="flex items-center gap-1.5 mt-2">
                                                                 <p className={`text-xs font-mono ${wordData.phonetic ? 'text-[#880000]' : 'text-slate-300'}`}>
                                                                     {wordData.phonetic || '—'}
                                                                 </p>
                                                                 <button
                                                                     onClick={() => startEditing(index)}
-                                                                    className="p-0.5 text-slate-300 hover:text-[#880000] transition-colors"
+                                                                    className="p-0.5 text-slate-300 hover:text-[#880000] transition-colors opacity-0 group-hover:opacity-100"
                                                                     title="Edit pronunciation"
                                                                 >
                                                                     <Edit3 size={10} />
@@ -636,48 +763,74 @@ const MistakeCards = ({ onClose }) => {
                                                             </div>
                                                         )}
 
+                                                        {/* Subtle Divider */}
                                                         {wordData.partOfSpeech && (
-                                                            <p className="text-[9px] text-slate-400 mt-1 uppercase tracking-wider">{wordData.partOfSpeech}</p>
+                                                            <div className="w-8 h-px bg-slate-200 my-2"></div>
+                                                        )}
+
+                                                        {/* Part of Speech - Small Caps */}
+                                                        {wordData.partOfSpeech && (
+                                                            <p className="text-[8px] text-slate-400 uppercase tracking-[0.15em] font-bold">
+                                                                {wordData.partOfSpeech}
+                                                            </p>
+                                                        )}
+
+                                                        {/* Indonesian Translation */}
+                                                        {showTranslation && wordData.translation && (
+                                                            <p className="text-[10px] text-slate-500 italic mt-2 leading-relaxed" title="Indonesian translation">
+                                                                🇮🇩 {wordData.translation}
+                                                            </p>
                                                         )}
                                                     </div>
+
+                                                    {/* Audio Button */}
                                                     <button
                                                         onClick={() => speakWord(wordData.word)}
-                                                        className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-[#880000] hover:bg-slate-100 transition-colors flex-shrink-0"
+                                                        className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-[#880000] hover:bg-slate-50 transition-all flex-shrink-0 rounded-sm"
                                                     >
                                                         <Volume2 size={14} />
                                                     </button>
                                                 </div>
+
+                                                {/* Definition - Below with Better Spacing */}
+                                                {wordData.definition && (
+                                                    <>
+                                                        <div className="w-full h-px bg-slate-100 my-3"></div>
+                                                        <p className="text-xs text-slate-600 leading-relaxed">
+                                                            {wordData.definition}
+                                                        </p>
+                                                    </>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
-                                </div>
 
-                                {/* Action Buttons - Swiss Grid */}
-                                <div className="grid grid-cols-2 gap-0 border border-slate-200">
-                                    {/* Download Button */}
-                                    <button
-                                        onClick={handleDownload}
-                                        disabled={isDownloading}
-                                        className="py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 border-r border-slate-700"
-                                    >
-                                        {isDownloading ? (
-                                            <Loader2 size={16} className="animate-spin" />
-                                        ) : (
-                                            <Download size={16} />
-                                        )}
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{isDownloading ? 'Saving' : 'Download'}</span>
-                                    </button>
+                                    {/* Action Buttons - Swiss Grid */}
+                                    <div className="grid grid-cols-2 gap-0 border border-slate-200">
+                                        {/* Download Button */}
+                                        <button
+                                            onClick={handleDownload}
+                                            disabled={isDownloading}
+                                            className="py-4 px-6 bg-slate-900 hover:bg-slate-800 text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 border-r border-slate-700"
+                                        >
+                                            {isDownloading ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                            ) : (
+                                                <Download size={16} />
+                                            )}
+                                            <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{isDownloading ? 'Saving' : 'Download'}</span>
+                                        </button>
 
-                                    {/* Copy Text Button */}
-                                    <button
-                                        onClick={handleCopyText}
-                                        className={`py-4 px-6 transition-all flex items-center justify-center gap-2 ${
-                                            copied ? 'bg-green-600 text-white' : 'bg-[#880000] hover:bg-[#770000] text-white'
-                                        }`}
-                                    >
-                                        {copied ? <Check size={16} /> : <Copy size={16} />}
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{copied ? 'Copied' : 'Copy Text'}</span>
-                                    </button>
+                                        {/* Copy Text Button */}
+                                        <button
+                                            onClick={handleCopyText}
+                                            className={`py-4 px-6 transition-all flex items-center justify-center gap-2 ${copied ? 'bg-green-600 text-white' : 'bg-[#880000] hover:bg-[#770000] text-white'
+                                                }`}
+                                        >
+                                            {copied ? <Check size={16} /> : <Copy size={16} />}
+                                            <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{copied ? 'Copied' : 'Copy Text'}</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

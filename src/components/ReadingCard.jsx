@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon, Minus, Plus, Type } from 'lucide-react';
+import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon, Minus, Plus, Type, Loader2 } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 import { shareToSocial, generateShareImage, generateShareLink } from '../utils/socialShare';
@@ -29,8 +29,8 @@ const ReadingCard = ({
     const navigate = useNavigate();
     const location = useLocation();
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [focusedChunk, setFocusedChunk] = useState(null);
     const [highlightIndex, setHighlightIndex] = useState(-1);
+    const [focusedChunk, setFocusedChunk] = useState(null);
     const [voices, setVoices] = useState([]);
     const [selectedVoice, setSelectedVoice] = useState(null);
     const [copied, setCopied] = useState(false);
@@ -635,20 +635,28 @@ const ReadingCard = ({
                 highlightTimerRef.current = null;
             }
         };
-
         utteranceRef.current = utterance;
         window.speechSynthesis.speak(utterance);
     };
 
     const handleCopy = () => {
         const shareLink = generateShareLink(currentMonth, currentDay);
+
+        // Split text into chunks (2 sentences each) - same as reading card display
+        const sentences = activeData.text.match(/[^.!?]+[.!?]+/g) || [activeData.text];
+        const chunks = [];
+        for (let i = 0; i < sentences.length; i += 2) {
+            chunks.push(sentences.slice(i, i + 2).join(' ').trim());
+        }
+        const formattedText = chunks.join('\n\n');
+
         const textToCopy =
             `Read and Record
 Practice day ${activeData.day}, a story from ${activeData.country}
 
 ${activeData.title}
 
-${activeData.text}
+${formattedText}
 
 This is my practice today about ${activeData.title} from ${activeData.country}, cannot wait to improve my English with the next reading challenge.
 
@@ -911,17 +919,14 @@ ${shareLink}`;
                                 </div>
                             )}
 
-                            {/* Divider */}
-                            <div className={`w-px h-6 ${wikiImage ? 'bg-white/20' : 'bg-slate-300'}`}></div>
-
                             {/* Listen Button */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleSpeak(); }}
                                 className={`flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 font-bold text-[10px] md:text-xs uppercase tracking-[0.1em] transition-all ${isSpeaking
-                                        ? 'bg-[#880000] text-white'
-                                        : wikiImage
-                                            ? 'text-white hover:bg-white/10'
-                                            : 'text-slate-700 hover:bg-slate-200'
+                                    ? 'bg-[#880000] text-white'
+                                    : wikiImage
+                                        ? 'text-white hover:bg-white/10'
+                                        : 'text-slate-700 hover:bg-slate-200'
                                     }`}
                             >
                                 {isSpeaking ? <Square size={10} className="md:w-3 md:h-3" fill="currentColor" /> : <Volume2 size={10} className="md:w-3 md:h-3" />}
@@ -1014,10 +1019,10 @@ ${shareLink}`;
 
                                         {/* Text Content - Highlight entire chunk when being read */}
                                         <p className={`${fontSizeClasses[readingFontSize]} font-normal pl-4 md:pl-6 transition-all duration-300 ${isBeingRead
-                                                ? 'border-l-4 border-[#880000] bg-[#880000]/5 py-4 -my-2 text-slate-900'
-                                                : isActive
-                                                    ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2 text-slate-700'
-                                                    : 'border-l border-transparent hover:border-slate-200 text-slate-700'
+                                            ? 'border-l-4 border-[#880000] bg-[#880000]/5 py-4 -my-2 text-slate-900'
+                                            : isActive
+                                                ? 'border-l-2 border-[#880000] bg-slate-50/50 py-4 -my-2 text-slate-700'
+                                                : 'border-l border-transparent hover:border-slate-200 text-slate-700'
                                             }`}>
                                             {chunkWords.map((word, wordIndexInChunk) => {
                                                 const index = startWordIndex + wordIndexInChunk;
@@ -1035,12 +1040,12 @@ ${shareLink}`;
                                                                 handleWordClick(word, e);
                                                             }}
                                                             className={`transition-all duration-150 cursor-pointer ${isSelected
-                                                                    ? 'bg-slate-900 text-white px-1'
-                                                                    : isSaved
-                                                                        ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2'
-                                                                        : isDifficult
-                                                                            ? 'text-[#880000] hover:bg-[#880000]/10'
-                                                                            : 'hover:bg-slate-100'
+                                                                ? 'bg-slate-900 text-white px-1'
+                                                                : isSaved
+                                                                    ? 'text-green-700 underline decoration-green-300 decoration-2 underline-offset-2'
+                                                                    : isDifficult
+                                                                        ? 'text-[#880000] hover:bg-[#880000]/10'
+                                                                        : 'hover:bg-slate-100'
                                                                 }`}
                                                             title={isSaved ? 'Saved to vocabulary' : isDifficult ? 'Difficult word' : 'Click for definition'}
                                                         >

@@ -407,7 +407,7 @@ const ReadingChallenge = () => {
         }
 
         // Practice note text
-        const practiceNote = `This is my practice today about ${activeData.title}, cannot wait to improve my English with the next training.`;
+        const practiceNote = `This is my practice today about ${activeData.title} from ${activeData.country}, cannot wait to improve my English with the next reading challenge.`;
 
         // Calculate content height needed for a given font size
         const calculateContentHeight = (fontSize) => {
@@ -620,34 +620,45 @@ const ReadingChallenge = () => {
 
             yPos += noteLines.length * textLineHeight + 35;
 
-            // === FOOTER ===
-            const footerY = canvas.height - 50;
+            // === FOOTER - Swiss Design ===
+            const footerHeight = 140;
+            const footerY = canvas.height - footerHeight + 40;
 
-            // Right side text (draw first so logo can overlay if needed)
+            // Horizontal divider line above footer
+            ctx.fillStyle = '#E0E0E0';
+            ctx.fillRect(contentPadding, canvas.height - footerHeight, canvas.width - contentPadding * 2, 1);
+
+            // Right side - Two-line layout
             ctx.textAlign = 'right';
-            const byZaynText = '  |  By Zayn';
-            ctx.font = 'normal 22px Arial, sans-serif';
-            ctx.fillStyle = '#666666';
-            const byZaynWidth = ctx.measureText(byZaynText).width;
-            ctx.fillText(byZaynText, canvas.width - contentPadding, footerY);
 
-            ctx.font = 'bold 22px Arial, sans-serif';
-            ctx.fillStyle = '#444444';
+            // Line 1: "PRACTICE AT" + "myenglish.my.id"
+            const line1Y = footerY + 10;
+
+            // Domain (bold, larger, dark)
+            ctx.font = 'bold 28px Arial, sans-serif';
+            ctx.fillStyle = '#111111';
             const domainText = 'myenglish.my.id';
-            const domainWidth = ctx.measureText(domainText).width;
-            ctx.fillText(domainText, canvas.width - contentPadding - byZaynWidth, footerY);
+            ctx.fillText(domainText, canvas.width - contentPadding, line1Y);
 
-            ctx.font = 'normal 22px Arial, sans-serif';
-            ctx.fillStyle = '#666666';
-            ctx.fillText('Practice at: ', canvas.width - contentPadding - byZaynWidth - domainWidth, footerY);
+            // "PRACTICE AT" label (small, uppercase, muted)
+            const domainWidth = ctx.measureText(domainText).width;
+            ctx.font = 'bold 14px Arial, sans-serif';
+            ctx.fillStyle = '#999999';
+            ctx.fillText('PRACTICE AT  ', canvas.width - contentPadding - domainWidth, line1Y);
+
+            // Line 2: "Mr. Zayn" (medium, muted)
+            const line2Y = footerY + 45;
+            ctx.font = 'normal 20px Arial, sans-serif';
+            ctx.fillStyle = '#777777';
+            ctx.fillText('Mr. Zayn', canvas.width - contentPadding, line2Y);
 
             // Load logo and then download
             const logo = new Image();
             logo.onload = () => {
-                // Draw logo (height 40px, maintain aspect ratio)
-                const logoHeight = 40;
+                // Draw logo (height 60px, maintain aspect ratio) - Swiss prominence
+                const logoHeight = 60;
                 const logoWidth = (logo.width / logo.height) * logoHeight;
-                ctx.drawImage(logo, contentPadding, footerY - 30, logoWidth, logoHeight);
+                ctx.drawImage(logo, contentPadding, footerY - 10, logoWidth, logoHeight);
 
                 // Download the image after logo is drawn
                 const link = document.createElement('a');
@@ -1251,7 +1262,7 @@ const ReadingChallenge = () => {
                                     <div className="max-w-xl mx-auto px-4">
                                         <div className="border-l-2 border-slate-200 pl-4">
                                             <p className="text-sm md:text-base text-slate-400 leading-relaxed">
-                                                "This is my practice today about <span className="text-slate-600 font-medium">{activeData.title}</span>, cannot wait to improve my English with the next training."
+                                                "This is my practice today about <span className="text-slate-600 font-medium">{activeData.title}</span> from {activeData.country}, cannot wait to improve my English with the next reading challenge."
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2 mt-4 pl-4">
