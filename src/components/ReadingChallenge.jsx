@@ -38,6 +38,7 @@ const ReadingChallenge = () => {
     const [isMonthSelectorOpen, setIsMonthSelectorOpen] = useState(false);
     const [isMonthSelectorClosing, setIsMonthSelectorClosing] = useState(false);
     const [isMounting, setIsMounting] = useState(false);
+    const [shouldOpenQuiz, setShouldOpenQuiz] = useState(false);
     const scrollContainerRef = useRef(null);
     const animationFrameRef = useRef(null);
     const practiceStartTimeRef = useRef(null);
@@ -208,6 +209,12 @@ const ReadingChallenge = () => {
             const dayParam = parseInt(pathMatch[2]);
             if (monthParam && monthParam >= 1 && monthParam <= 3) setCurrentMonth(monthParam);
             if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
+
+            // Check for quiz parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('openQuiz') === 'true') {
+                setShouldOpenQuiz(true);
+            }
         } else {
             // Fallback: Check for old query parameter format for backward compatibility
             const urlParams = new URLSearchParams(window.location.search);
@@ -1246,6 +1253,8 @@ const ReadingChallenge = () => {
                                     progress={progress}
                                     triggerPracticeTooltip={triggerPracticeTooltip}
                                     preloadedImages={imagePreloadCache.current}
+                                    shouldOpenQuiz={shouldOpenQuiz}
+                                    onQuizOpened={() => setShouldOpenQuiz(false)}
                                     onOpenMonthSelector={() => {
                                         setIsMounting(true);
                                         setIsMonthSelectorOpen(true);

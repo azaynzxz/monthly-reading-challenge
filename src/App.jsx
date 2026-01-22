@@ -15,6 +15,16 @@ const ReadingChallengeWrapper = () => {
         return <Navigate to="/" replace />;
     }
 
+    // Check for quiz URL pattern: /quiz-m{month}-day{day}
+    const quizMatch = location.pathname.match(/^\/quiz-m(\d+)-day(\d+)$/);
+    if (quizMatch) {
+        const month = quizMatch[1];
+        const day = quizMatch[2];
+        // Redirect to reading page with quiz parameter
+        return <Navigate to={`/m${month}-day${day}?openQuiz=true`} replace />;
+    }
+
+    // Check for reading challenge pattern: /m{month}-day{day}
     const pathMatch = location.pathname.match(/^\/m(\d+)-day(\d+)$/);
 
     // If path doesn't match reading challenge pattern, redirect to 404

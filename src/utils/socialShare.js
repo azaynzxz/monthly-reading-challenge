@@ -12,6 +12,11 @@ export const generateShareLink = (month, day) => {
     return `${baseUrl}/m${month}-day${day}`;
 };
 
+export const generateQuizShareLink = (month, day) => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/quiz-m${month}-day${day}`;
+};
+
 export const shareToSocial = async (month, day, statistics, progress, activeData) => {
     const shareLink = generateShareLink(month, day);
     const shareTextWithoutLink = `Today I learned about ${activeData?.country || 'a new place'}! 📚\n\n` +
@@ -20,7 +25,7 @@ export const shareToSocial = async (month, day, statistics, progress, activeData
         `📖 ${statistics?.totalWordsRead || 0} words read\n` +
         `⏱️ ${formatTime(statistics?.totalTimePracticed || 0)} practiced\n` +
         `🔥 ${progress?.currentStreak || 0} day streak`;
-    
+
     // For clipboard (fallback), include the link in text
     const shareTextWithLink = `${shareTextWithoutLink}\n\nPractice with me: ${shareLink}`;
 
@@ -78,7 +83,7 @@ export const generateShareImage = async (month, day, statistics, progress, activ
 
     const margin = 80;
     const accentColor = '#880000';
-    
+
     // White card
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(margin, margin, canvas.width - margin * 2, canvas.height - margin * 2);
@@ -105,14 +110,14 @@ export const generateShareImage = async (month, day, statistics, progress, activ
     ctx.font = 'bold 30px Arial, sans-serif';
     ctx.fillStyle = accentColor;
     ctx.fillText((activeData?.country || 'UNKNOWN').toUpperCase(), innerMargin, yPos);
-    
+
     yPos += 80;
     ctx.font = 'bold 70px Arial, sans-serif';
     ctx.fillStyle = '#000000';
     const titleWords = (activeData?.title || 'Reading Practice').split(' ');
     let currentLine = '';
     let lineHeight = 80;
-    
+
     for (let i = 0; i < titleWords.length; i++) {
         const testLine = currentLine + titleWords[i] + ' ';
         const metrics = ctx.measureText(testLine);
@@ -135,7 +140,7 @@ export const generateShareImage = async (month, day, statistics, progress, activ
     ctx.font = 'bold 24px Arial, sans-serif';
     ctx.fillStyle = '#666666';
     ctx.fillText('MY PROGRESS', innerMargin, yPos);
-    
+
     yPos += 100;
     const stats = [
         { label: 'WORDS READ', value: (statistics?.totalWordsRead || 0).toLocaleString() },
@@ -147,11 +152,11 @@ export const generateShareImage = async (month, day, statistics, progress, activ
         ctx.font = 'bold 60px Arial, sans-serif';
         ctx.fillStyle = accentColor;
         ctx.fillText(stat.value, innerMargin, yPos);
-        
+
         ctx.font = 'bold 20px Arial, sans-serif';
         ctx.fillStyle = '#666666';
         ctx.fillText(stat.label, innerMargin, yPos + 40);
-        
+
         yPos += 120;
     });
 
@@ -160,11 +165,11 @@ export const generateShareImage = async (month, day, statistics, progress, activ
     const qrCodeSize = 200;
     const qrCodeX = canvas.width - innerMargin - qrCodeSize;
     const qrCodeY = progressYPos;
-    
+
     try {
         // Use QR code API service (simple and reliable)
         const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrCodeSize}x${qrCodeSize}&data=${encodeURIComponent(shareLink)}&bgcolor=FFFFFF&color=000000&margin=2`;
-        
+
         const qrImage = new Image();
         qrImage.crossOrigin = 'anonymous';
         await new Promise((resolve, reject) => {
@@ -172,11 +177,11 @@ export const generateShareImage = async (month, day, statistics, progress, activ
             qrImage.onerror = reject;
             qrImage.src = qrApiUrl;
         });
-        
+
         // Draw white background
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(qrCodeX - 10, qrCodeY - 10, qrCodeSize + 20, qrCodeSize + 20);
-        
+
         // Draw QR code
         ctx.drawImage(qrImage, qrCodeX, qrCodeY, qrCodeSize, qrCodeSize);
     } catch (error) {
@@ -185,7 +190,7 @@ export const generateShareImage = async (month, day, statistics, progress, activ
 
     // Footer - adjusted positioning to avoid overlap
     const footerY = canvas.height - margin - 60;
-    
+
     // Accent line - positioned above the footer text with proper spacing
     ctx.fillStyle = accentColor;
     ctx.fillRect(innerMargin, footerY - 50, 60, 6);
@@ -195,11 +200,11 @@ export const generateShareImage = async (month, day, statistics, progress, activ
     ctx.fillStyle = accentColor;
     ctx.textAlign = 'left';
     ctx.fillText('ENGLISH FLUENCY JOURNEY', innerMargin, footerY - 20);
-    
+
     ctx.font = 'normal 18px Arial, sans-serif';
     ctx.fillStyle = '#666666';
     ctx.fillText(shareLink, innerMargin, footerY + 10);
-    
+
     ctx.font = 'normal 24px Arial, sans-serif';
     ctx.fillStyle = '#666666';
     ctx.textAlign = 'right';

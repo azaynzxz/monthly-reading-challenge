@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Globe, Download, Monitor, ChevronLeft, ChevronRight, Volume2, Square, ChevronDown, Mic, Copy, Check, BookOpen, X, Share2, Printer, FileText, PenLine, ClipboardCheck, ImageIcon, Minus, Plus, Type, Loader2 } from 'lucide-react';
 import { isDifficultWord, getWordDifficulty } from '../utils/vocabulary';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
-import { shareToSocial, generateShareImage, generateShareLink } from '../utils/socialShare';
+import { shareToSocial, generateShareImage, generateShareLink, generateQuizShareLink } from '../utils/socialShare';
 import WordPoster from './WordPoster';
 import StoryPrintView from './StoryPrintView';
 import OnlineAssessment from './OnlineAssessment';
@@ -24,6 +24,8 @@ const ReadingCard = ({
     triggerPracticeTooltip,
     onOpenMonthSelector,
     preloadedImages = {},
+    shouldOpenQuiz = false,
+    onQuizOpened,
     onReady
 }) => {
     const navigate = useNavigate();
@@ -349,6 +351,16 @@ const ReadingCard = ({
         return () => { isMounted = false; };
     }, [activeData?.wikiSearch, activeData?.title, activeData?.country, activeData?.day, currentMonth, preloadedImages]);
 
+    // Auto-open quiz if shouldOpenQuiz is true
+    useEffect(() => {
+        if (shouldOpenQuiz && isContentReady && !showAssessment) {
+            setShowAssessment(true);
+            if (onQuizOpened) {
+                onQuizOpened();
+            }
+        }
+    }, [shouldOpenQuiz, isContentReady, showAssessment, onQuizOpened]);
+
     // Fetch word definition using Free Dictionary API
     const fetchWordDefinition = async (word) => {
         const cleanWord = word.toLowerCase().replace(/[.,!?;:()\"'-]/g, '');
@@ -641,6 +653,7 @@ const ReadingCard = ({
 
     const handleCopy = () => {
         const shareLink = generateShareLink(currentMonth, currentDay);
+        const quizLink = generateQuizShareLink(currentMonth, currentDay);
 
         // Split text into chunks (2 sentences each) - same as reading card display
         const sentences = activeData.text.match(/[^.!?]+[.!?]+/g) || [activeData.text];
@@ -663,7 +676,10 @@ This is my practice today about ${activeData.title} from ${activeData.country}, 
 _By Zayn_
 
 Challenge yourself with daily reading challenge:
-${shareLink}`;
+${shareLink}
+
+Test your comprehension with the quiz:
+${quizLink}`;
         const textArea = document.createElement("textarea");
         textArea.value = textToCopy;
         document.body.appendChild(textArea);
