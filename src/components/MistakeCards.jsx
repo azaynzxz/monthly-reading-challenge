@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Download, Loader2, AlertCircle, Volume2, Sparkles, Edit3, Check, Copy, ChevronDown, Languages } from 'lucide-react';
 
-const MistakeCards = ({ onClose }) => {
-    const [inputText, setInputText] = useState('');
+const MistakeCards = ({ onClose, initialWords = '' }) => {
+    const [inputText, setInputText] = useState(initialWords);
     const [words, setWords] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -57,6 +57,17 @@ const MistakeCards = ({ onClose }) => {
             window.speechSynthesis.onvoiceschanged = null;
         };
     }, []);
+
+    // Auto-generate when initialWords is provided
+    useEffect(() => {
+        if (initialWords && initialWords.trim()) {
+            // Small delay to let voices load
+            const timer = setTimeout(() => {
+                handleGenerate();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Refresh voices
     const refreshVoices = () => {

@@ -2,6 +2,9 @@
 /sitemap.xml    /sitemap.xml    200
 /robots.txt     /robots.txt     200
 
+# Discord domain verification
+/.well-known/discord    /.well-known/discord    200
+
 # All other routes go to the SPA
 /*    /index.html   200
 
