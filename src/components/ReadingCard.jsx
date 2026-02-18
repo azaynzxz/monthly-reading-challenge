@@ -7,6 +7,7 @@ import { shareToSocial, generateShareImage, generateShareLink, generateQuizShare
 import WordPoster from './WordPoster';
 import StoryPrintView from './StoryPrintView';
 import OnlineAssessment from './OnlineAssessment';
+import generateVocabPDF from './VocabPrintGenerator';
 
 const ReadingCard = ({
     activeData,
@@ -52,6 +53,11 @@ const ReadingCard = ({
     const [isPrintModalClosing, setIsPrintModalClosing] = useState(false);
     const [isPrintGenerating, setIsPrintGenerating] = useState(false);
     const [showAssessment, setShowAssessment] = useState(false);
+    const [showVocabPrintModal, setShowVocabPrintModal] = useState(false);
+    const [isVocabPrintModalClosing, setIsVocabPrintModalClosing] = useState(false);
+    const [isVocabPrintGenerating, setIsVocabPrintGenerating] = useState(false);
+    const [vocabPrintProgress, setVocabPrintProgress] = useState({ current: 0, total: 0 });
+    const [vocabFillMeanings, setVocabFillMeanings] = useState(false);
     const [wikiImage, setWikiImage] = useState(null);
     const [isLoadingImage, setIsLoadingImage] = useState(true);
     const [showImageModal, setShowImageModal] = useState(false);
@@ -700,6 +706,41 @@ ${quizLink}`;
         setShowPrintModal(true);
     };
 
+    // Handle Vocab Print - Opens vocab print modal
+    const handleVocabPrint = () => {
+        setIsVocabPrintModalClosing(false);
+        setVocabPrintProgress({ current: 0, total: 0 });
+        setShowVocabPrintModal(true);
+    };
+
+    // Execute vocab PDF generation
+    const executeVocabPrint = async () => {
+        setIsVocabPrintGenerating(true);
+        try {
+            await generateVocabPDF({
+                storyData: activeData,
+                currentMonth: currentMonth,
+                currentDay: currentDay,
+                fillMeanings: vocabFillMeanings,
+                onProgress: (current, total) => {
+                    setVocabPrintProgress({ current, total });
+                },
+                onComplete: () => {
+                    setIsVocabPrintModalClosing(true);
+                    setTimeout(() => {
+                        setShowVocabPrintModal(false);
+                        setIsVocabPrintModalClosing(false);
+                        setIsVocabPrintGenerating(false);
+                        setVocabPrintProgress({ current: 0, total: 0 });
+                    }, 300);
+                }
+            });
+        } catch (error) {
+            console.error('Error generating vocab PDF:', error);
+            setIsVocabPrintGenerating(false);
+        }
+    };
+
     // Execute print using the StoryPrintView component (async for API calls)
     const executePrint = async () => {
         setIsPrintGenerating(true);
@@ -825,6 +866,14 @@ ${quizLink}`;
 
                         {/* Right: Action Buttons - Swiss Minimal */}
                         <div className="flex items-center gap-1 pointer-events-auto">
+                            {/* Vocab Print */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleVocabPrint(); }}
+                                className={`flex items-center justify-center w-8 h-8 md:w-9 md:h-9 transition-colors duration-200 ${wikiImage ? 'bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}`}
+                                title="Vocabulary PDF"
+                            >
+                                <FileText size={14} className="md:w-4 md:h-4" />
+                            </button>
                             {/* Print */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handlePrint(); }}
@@ -1499,6 +1548,181 @@ ${quizLink}`;
                                                 }, 300);
                                             }}
                                             className="w-full text-slate-400 hover:text-slate-600 py-3 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )
+            }
+
+            {/* Vocab Print Modal - Swiss Design */}
+            {
+                showVocabPrintModal && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className={`fixed inset-0 bg-black/60 z-50 ${isVocabPrintModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}
+                            onClick={() => {
+                                if (!isVocabPrintGenerating) {
+                                    setIsVocabPrintModalClosing(true);
+                                    setTimeout(() => {
+                                        setShowVocabPrintModal(false);
+                                        setIsVocabPrintModalClosing(false);
+                                    }, 300);
+                                }
+                            }}
+                        />
+
+                        {/* Modal - Swiss Design */}
+                        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                            <div className={`bg-white shadow-2xl max-w-md w-full mx-4 pointer-events-auto border-l-4 border-[#880000] ${isVocabPrintModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+                                {/* Header */}
+                                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-6 h-0.5 bg-[#880000]"></div>
+                                        <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Vocabulary PDF</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (!isVocabPrintGenerating) {
+                                                setIsVocabPrintModalClosing(true);
+                                                setTimeout(() => {
+                                                    setShowVocabPrintModal(false);
+                                                    setIsVocabPrintModalClosing(false);
+                                                }, 300);
+                                            }
+                                        }}
+                                        className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-slate-600 transition-colors"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-6">
+                                    {/* Icon + Title - Swiss Layout */}
+                                    <div className="flex items-start gap-4 mb-6">
+                                        <div className="w-12 h-12 bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                            <FileText size={24} className="text-slate-600" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg font-bold text-slate-900 mb-1 tracking-tight">
+                                                Vocabulary Practice Sheet
+                                            </h2>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                Download a PDF vocabulary table with Indonesian-friendly pronunciation.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Preview Info - Swiss Grid */}
+                                    <div className="grid grid-cols-3 gap-0 border border-slate-200 mb-6">
+                                        <div className="p-3 text-center border-r border-slate-200">
+                                            <div className="text-lg font-bold text-slate-900">M{currentMonth}</div>
+                                            <div className="text-[9px] text-slate-400 uppercase tracking-wider">Month</div>
+                                        </div>
+                                        <div className="p-3 text-center border-r border-slate-200">
+                                            <div className="text-lg font-bold text-slate-900">D{currentDay}</div>
+                                            <div className="text-[9px] text-slate-400 uppercase tracking-wider">Day</div>
+                                        </div>
+                                        <div className="p-3 text-center">
+                                            <div className="text-lg font-bold text-[#880000]">PDF</div>
+                                            <div className="text-[9px] text-slate-400 uppercase tracking-wider">Format</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Table Preview */}
+                                    <div className="border border-slate-200 mb-6">
+                                        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-0.5 bg-[#880000]"></div>
+                                                <span className="text-[9px] text-[#880000] font-bold uppercase tracking-wider">Table Preview</span>
+                                            </div>
+                                        </div>
+                                        <div className="p-3">
+                                            <div className="grid grid-cols-4 gap-0 text-[9px]">
+                                                <div className="p-1.5 font-bold text-white bg-[#880000]">No</div>
+                                                <div className="p-1.5 font-bold text-white bg-[#880000]">Words</div>
+                                                <div className="p-1.5 font-bold text-white bg-[#880000]">Pronunciation</div>
+                                                <div className="p-1.5 font-bold text-white bg-[#880000]">Meaning</div>
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-0 text-[9px] bg-slate-50">
+                                                <div className="p-1.5 text-[#880000] font-bold border-b border-slate-200">1</div>
+                                                <div className="p-1.5 font-bold border-b border-slate-200">example</div>
+                                                <div className="p-1.5 italic text-slate-500 border-b border-slate-200">eg-ZAM-pel</div>
+                                                <div className="p-1.5 text-slate-400 border-b border-slate-200">{vocabFillMeanings ? 'contoh' : '___________'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Fill Meanings Toggle */}
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 mb-6">
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-900 mb-0.5">Include Meanings</div>
+                                            <div className="text-[10px] text-slate-400">
+                                                {vocabFillMeanings ? 'Meanings will be filled in from dictionary' : 'Leave blank for exercise — student will fill in'}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setVocabFillMeanings(!vocabFillMeanings)}
+                                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${vocabFillMeanings ? 'bg-[#880000]' : 'bg-slate-300'}`}
+                                        >
+                                            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${vocabFillMeanings ? 'translate-x-[22px]' : 'translate-x-0.5'}`}></div>
+                                        </button>
+                                    </div>
+
+                                    {/* Progress Bar (shown during generation) */}
+                                    {isVocabPrintGenerating && vocabPrintProgress.total > 0 && (
+                                        <div className="mb-6">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[10px] text-slate-400 uppercase tracking-wider">Fetching Definitions</span>
+                                                <span className="text-[10px] font-bold text-[#880000]">{vocabPrintProgress.current}/{vocabPrintProgress.total}</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-slate-100 overflow-hidden">
+                                                <div
+                                                    className="h-full bg-[#880000] transition-all duration-300"
+                                                    style={{ width: `${(vocabPrintProgress.current / vocabPrintProgress.total) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons - Swiss */}
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={executeVocabPrint}
+                                            disabled={isVocabPrintGenerating}
+                                            className="w-full bg-slate-900 hover:bg-[#880000] text-white py-4 transition-all disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em]"
+                                        >
+                                            {isVocabPrintGenerating ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Generating PDF</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Download size={14} />
+                                                    <span>Download PDF</span>
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            onClick={() => {
+                                                if (!isVocabPrintGenerating) {
+                                                    setIsVocabPrintModalClosing(true);
+                                                    setTimeout(() => {
+                                                        setShowVocabPrintModal(false);
+                                                        setIsVocabPrintModalClosing(false);
+                                                    }, 300);
+                                                }
+                                            }}
+                                            disabled={isVocabPrintGenerating}
+                                            className="w-full text-slate-400 hover:text-slate-600 py-3 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors disabled:opacity-50"
                                         >
                                             Cancel
                                         </button>
