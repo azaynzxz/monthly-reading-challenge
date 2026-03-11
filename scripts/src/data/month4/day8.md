@@ -1,0 +1,14 @@
+01
+I stood completely shocked in the vibrant, colorful land of Oz after a terrifying tornado carried my farmhouse away from Kansas. My only goal was to find the great Wizard in the Emerald City so he could send me safely back home.
+
+02
+I walked along the bright yellow brick road and met a Scarecrow, a Tin Woodman, and a Cowardly Lion. We traveled through enchanted forests, crossed deep ravines, and fell asleep in a massive field of deadly poppies, which are bright red flowers that cause magical slumber.
+
+03
+We entered the dark, frightening castle of the Wicked Witch of the West to steal her magical broomstick. My palms sweated profusely, and my knees knocked together as her terrifying winged monkeys swooped down from the dark, cloudy sky.
+
+04
+I accidentally threw a bucket of cold water onto the witch, and she shockingly melted away into nothing but a puddle. We returned to the Wizard, only to discover he was just an ordinary man hiding behind a big green curtain.
+
+05
+I clicked my magical silver shoes together three times and woke up safely in my own bed. The vivid journey reminded me that courage, brains, and a loving heart are qualities we already possess inside ourselves.

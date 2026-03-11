@@ -3,15 +3,13 @@ import { Plus, X, Dices, ChevronLeft, BookOpen, Trash2, Volume2, AlertCircle, Ro
 import MistakeCards from './MistakeCards';
 
 // Import data
-import month1Data from '../data/month1.json';
-import month2Data from '../data/month2.json';
-import month3Data from '../data/month3.json';
+import { allMonthsDataObj } from '../data/index';
 import { useNavigate } from 'react-router-dom';
 
 const allStories = [
-    ...month1Data.map(s => ({ ...s, month: 1 })),
-    ...month2Data.map(s => ({ ...s, month: 2 })),
-    ...month3Data.map(s => ({ ...s, month: 3 }))
+    ...allMonthsDataObj[1].map(s => ({ ...s, month: 1 })),
+    ...allMonthsDataObj[2].map(s => ({ ...s, month: 2 })),
+    ...allMonthsDataObj[3].map(s => ({ ...s, month: 3 }))
 ];
 
 // ─── Slot machine reel component ─────────────────────────────
@@ -423,14 +421,14 @@ const StoryModal = ({ story, onClose }) => {
                                                                     handleWordClick(word, e);
                                                                 }}
                                                                 className={`transition-all duration-150 cursor-pointer select-none inline-block ${mode === 'review'
-                                                                        ? isMistake
-                                                                            ? 'bg-[#880000] text-white px-0.5 sm:px-1 py-0.5 rounded-sm mistake-word-pulse'
-                                                                            : 'hover:bg-slate-100 active:bg-slate-200'
-                                                                        : isDictActive
-                                                                            ? 'bg-slate-900 text-white px-0.5'
-                                                                            : isMistake
-                                                                                ? 'underline decoration-[#880000] decoration-2 underline-offset-2 hover:bg-[#880000]/10'
-                                                                                : 'hover:bg-slate-100'
+                                                                    ? isMistake
+                                                                        ? 'bg-[#880000] text-white px-0.5 sm:px-1 py-0.5 rounded-sm mistake-word-pulse'
+                                                                        : 'hover:bg-slate-100 active:bg-slate-200'
+                                                                    : isDictActive
+                                                                        ? 'bg-slate-900 text-white px-0.5'
+                                                                        : isMistake
+                                                                            ? 'underline decoration-[#880000] decoration-2 underline-offset-2 hover:bg-[#880000]/10'
+                                                                            : 'hover:bg-slate-100'
                                                                     }`}
                                                                 title={mode === 'review' ? (isMistake ? 'Tap to unmark' : 'Tap to mark') : 'Tap for definition'}
                                                             >

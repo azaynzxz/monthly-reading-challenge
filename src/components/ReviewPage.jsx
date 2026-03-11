@@ -4,11 +4,9 @@ import { Upload, Play, Pause, ChevronDown, ChevronLeft, AlertCircle, Sparkles, M
 import MistakeCards from './MistakeCards';
 
 // Import reading data
-import month1Data from '../data/month1.json';
-import month2Data from '../data/month2.json';
-import month3Data from '../data/month3.json';
+import { allMonthsDataObj } from '../data/index';
 
-const allMonths = { 1: month1Data, 2: month2Data, 3: month3Data };
+const allMonths = allMonthsDataObj;
 
 const ReviewPage = () => {
     const navigate = useNavigate();
@@ -238,7 +236,7 @@ const ReviewPage = () => {
                                     <div className="fixed inset-0 z-40" onClick={() => setShowDayPicker(false)} />
                                     <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 shadow-xl z-50 p-3 sm:p-4 w-[240px] sm:w-[280px] animate-modal-in">
                                         <div className="flex gap-0 border border-slate-200 mb-3">
-                                            {[1, 2, 3].map(m => (
+                                            {[1, 2, 3, 4].map(m => (
                                                 <button
                                                     key={m}
                                                     onClick={() => { setSelectedMonth(m); setSelectedDay(1); }}

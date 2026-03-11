@@ -5,9 +5,7 @@ import Dashboard from './Dashboard';
 import Flashcards from './Flashcards';
 import MistakeCards from './MistakeCards';
 import SEO from './SEO';
-import month1Data from '../data/month1.json';
-import month2Data from '../data/month2.json';
-import month3Data from '../data/month3.json';
+import { allMonthsDataObj } from '../data/index';
 import { ChevronRight, ChevronLeft, BookOpen, Globe, Square, Play, Pause, X, Type, Settings, Minus, Plus, Monitor, ExternalLink, Calendar, Download, Menu, ChevronDown, ChevronUp, Trophy, TrendingUp, Clock, MapPin, Share2, BarChart3, RotateCw, Sparkles, Heart } from 'lucide-react';
 import { getStorage, setStorage, StorageKeys } from '../utils/storage';
 
@@ -170,7 +168,7 @@ const ReadingChallenge = () => {
         };
     }, [isScrolling, isTeleprompterActive, countdown]);
 
-    const allMonthsData = { 1: month1Data, 2: month2Data, 3: month3Data };
+    const allMonthsData = allMonthsDataObj;
     const activeData = allMonthsData[currentMonth]?.find(d => d.day === currentDay) || null;
 
     // Load statistics and progress on mount
@@ -1156,7 +1154,7 @@ const ReadingChallenge = () => {
                                 {/* Month Tabs - Swiss */}
                                 <div>
                                     <div className="flex border-b border-slate-200">
-                                        {[1, 2, 3].map(month => (
+                                        {[1, 2, 3, 4].map(month => (
                                             <button
                                                 key={month}
                                                 onClick={() => changeMonth(month)}
@@ -1341,7 +1339,7 @@ const ReadingChallenge = () => {
 
                             {/* Month Tabs - Swiss Style */}
                             <div className="flex border-b border-slate-100">
-                                {[1, 2, 3].map(month => (
+                                {[1, 2, 3, 4].map(month => (
                                     <button
                                         key={month}
                                         onClick={() => changeMonth(month)}

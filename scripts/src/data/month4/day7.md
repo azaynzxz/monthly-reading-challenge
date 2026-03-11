@@ -1,0 +1,14 @@
+01
+I signed aboard the whaling ship Pequod, seeking adventure on the open ocean to escape my restless thoughts. The captain, Ahab, had only one obsessive goal: to hunt down the legendary, massive white whale that had previously taken his leg.
+
+02
+We sailed completely around the globe, enduring fierce gales and dangerous whale hunts. We encountered other ships from different nations, but Ahab ignored their warnings, pushing us further into isolated and treacherous waters in his relentless pursuit.
+
+03
+Suddenly, the monstrous white whale breached the surface, its massive jaw crashing down upon our small wooden boats. I fell backward as the water churned violently, and my lungs gasped for salty air while the ship splintered into floating debris around me.
+
+04
+The mighty whale dragged Ahab down into the dark, crushing depths of the sea. I floated completely alone on a wooden coffin for an entire day and night before a passing ship finally rescued me from the silent, empty ocean.
+
+05
+I returned to land as the sole survivor of the doomed and tragic voyage. The terrifying ordeal taught me that an obsessive desire for revenge will ultimately consume and destroy those who cannot let go of their anger.
