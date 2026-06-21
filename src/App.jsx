@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import ReadingChallenge from './components/ReadingChallenge';
+import PoemChallenge from './components/PoemChallenge';
 import About from './components/About';
 import Donate from './components/Donate';
 import NotFound from './components/NotFound';
@@ -45,6 +46,8 @@ function App() {
             <Route path="/donate" element={<Donate />} />
             <Route path="/review" element={<ReviewPage />} />
             <Route path="/roulette" element={<StoryRoulette />} />
+            <Route path="/poem" element={<PoemChallenge />} />
+            <Route path="/poem/:id" element={<PoemChallenge />} />
             {/* Match any path - ReadingChallengeWrapper will check if it's valid */}
             <Route path="/*" element={<ReadingChallengeWrapper />} />
         </Routes>

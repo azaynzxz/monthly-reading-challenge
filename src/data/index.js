@@ -2,6 +2,7 @@ import month1Data from './month1.json';
 import month2Data from './month2.json';
 import month3Data from './month3.json';
 import month4Data from './month4.json';
+import poemsDataRaw from './poems.json';
 
 const mdFiles = import.meta.glob('./*/*.md', { query: '?raw', import: 'default', eager: true });
 
@@ -24,3 +25,4 @@ export const month2 = processMonthData(month2Data, 2);
 export const month3 = processMonthData(month3Data, 3);
 export const month4 = processMonthData(month4Data, 4);
 export const allMonthsDataObj = { 1: month1, 2: month2, 3: month3, 4: month4 };
+export const poemsData = poemsDataRaw;
