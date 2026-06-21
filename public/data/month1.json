@@ -1,0 +1,302 @@
+[
+    {
+        "day": 1,
+        "country": "Indonesia",
+        "title": "Sunrise at Borobudur",
+        "wikiSearch": "Borobudur",
+        "wiki": "https://en.wikipedia.org/wiki/Borobudur",
+        "localImage": "/images/stories/month1/day1-borobudur.webp",
+        "imageTitle": "Borobudur",
+        "imageDescription": "Borobudur, also transcribed Barabudur, is a 9th-century Mahayana Buddhist temple in Magelang Regency, near the town of Muntilan, northwest of the city of Yogyakarta, in Central Java, Indonesia."
+    },
+    {
+        "day": 2,
+        "country": "Pakistan",
+        "title": "The Art of Chai",
+        "wikiSearch": "Masala chai",
+        "wiki": "https://en.wikipedia.org/wiki/Masala_chai",
+        "localImage": "/images/stories/month1/day2-masala-chai.webp",
+        "imageTitle": "Masala chai",
+        "imageDescription": "Masala chai is a popular beverage originating from India. It is made by adding aromatic herbs and spices to chai, which is made from brewing black tea in milk and water, and sweetening with sugar."
+    },
+    {
+        "day": 3,
+        "country": "Afghanistan",
+        "title": "The Kite Runner",
+        "wikiSearch": "Kite fighting",
+        "wiki": "https://en.wikipedia.org/wiki/Fighter_kite",
+        "localImage": "/images/stories/month1/day3-kite-fighting.webp",
+        "imageTitle": "Fighter kite",
+        "imageDescription": "Fighter kites are kites used for the sport of kite fighting. Traditionally, most are small, unstable single-line flat kites where line tension alone is used for control, at least part of which is manja, typically glass-coated cotton strands, to cut down the line of others."
+    },
+    {
+        "day": 4,
+        "country": "Nigeria",
+        "title": "The Jollof Debate",
+        "wikiSearch": "Jollof rice",
+        "wiki": "https://en.wikipedia.org/wiki/Jollof_rice",
+        "localImage": "/images/stories/month1/day4-jollof-rice.webp",
+        "imageTitle": "Jollof rice",
+        "imageDescription": "Jollof, or jollof rice, is a rice dish from Senegal, West Africa. It is typically made with long-grain rice, tomatoes, chilis, onions, spices, and sometimes other vegetables and/or meat in a single pot, although its ingredients and preparation methods vary across different regions."
+    },
+    {
+        "day": 5,
+        "country": "Indonesia",
+        "title": "Dragons of Komodo",
+        "wikiSearch": "Komodo dragon",
+        "wiki": "https://en.wikipedia.org/wiki/Komodo_dragon",
+        "localImage": "/images/stories/month1/day5-komodo-dragon.webp",
+        "imageTitle": "Komodo dragon",
+        "imageDescription": "The Komodo dragon, also known as the Komodo monitor, is a large reptile of the monitor lizard family Varanidae that is endemic to the Indonesian islands of Komodo, Rinca, Flores, Gili Dasami, and Gili Motang. The largest extant population lives within the Komodo National Park in Eastern Indonesia. It is the largest extant species of lizard, with the males growing to a maximum length of 3 m (10 ft) and weighing up to 150 kg (330 lb)."
+    },
+    {
+        "day": 6,
+        "country": "Egypt",
+        "title": "Guardians of History",
+        "wikiSearch": "Great Pyramid of Giza",
+        "wiki": "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza",
+        "localImage": "/images/stories/month1/day6-great-pyramid-of-giza.webp",
+        "imageTitle": "Great Pyramid of Giza",
+        "imageDescription": "The Great Pyramid of Giza is the largest Egyptian pyramid. It served as the tomb of pharaoh Khufu (\"Cheops\"), who ruled during the Fourth Dynasty of the Old Kingdom. Built c. 2600 BC over a period of about 26 years, the pyramid is the oldest of the Seven Wonders of the Ancient World, and the only wonder that has remained largely intact. It is the most famous monument of the Giza pyramid complex, which is part of the UNESCO World Heritage Site \"Memphis and its Necropolis\". It is situated at the northeastern end of the line of the three main pyramids at Giza."
+    },
+    {
+        "day": 7,
+        "country": "Pakistan",
+        "title": "Colors on Wheels",
+        "wikiSearch": "Truck art in South Asia",
+        "wiki": "https://en.wikipedia.org/wiki/Truck_art_in_South_Asia",
+        "localImage": "/images/stories/month1/day7-truck-art-in-south-asia.webp",
+        "imageTitle": "Truck art in South Asia",
+        "imageDescription": "Truck art in South Asia is a popular form of regional decoration, with trucks featuring elaborate floral patterns and calligraphy. It is especially common in Pakistan and India."
+    },
+    {
+        "day": 8,
+        "country": "Kenya",
+        "title": "The Morning Safari",
+        "wikiSearch": "Maasai Mara",
+        "wiki": "https://en.wikipedia.org/wiki/Maasai_Mara",
+        "localImage": "/images/stories/month1/day8-maasai-mara.webp",
+        "imageTitle": "Maasai Mara",
+        "imageDescription": "Maasai Mara, sometimes also spelt Masai Mara and locally known simply as The Mara, is a large national game reserve in Narok County, Kenya, contiguous with the Serengeti National Park in Tanzania. It is named in honour of the Maasai people, the ancestral inhabitants of the area, who migrated to the area from the Nile Basin. Their description of the area when looked at from afar: \"Mara\" means \"spotted\" in the Maa language because of the short bushy trees which dot the landscape."
+    },
+    {
+        "day": 9,
+        "country": "Afghanistan",
+        "title": "The Blue Mosque",
+        "wikiSearch": "Blue Mosque, Mazar-i-Sharif",
+        "wiki": "https://en.wikipedia.org/wiki/Blue_Mosque_(Mazar-i-Sharif)",
+        "localImage": "/images/stories/month1/day9-blue-mosque-mazar-i-sharif.webp",
+        "imageTitle": "Mausoleum of Imam Ali",
+        "imageDescription": "The Mausoleum of Ali, also known as the Shrine of Hazrat Ali and the Great Blue Mosque, is a mausoleum and mosque complex located in Mazar-i-Sharif, the capital and largest city of Balkh Province in northern Afghanistan. It is a popular tourist attraction in the middle of the city, which is visited all year long by all people regardless of religion or sect."
+    },
+    {
+        "day": 10,
+        "country": "South Africa",
+        "title": "Table Mountain View",
+        "wikiSearch": "Table Mountain",
+        "wiki": "https://en.wikipedia.org/wiki/Table_Mountain",
+        "localImage": "/images/stories/month1/day10-table-mountain.webp",
+        "imageTitle": "Table Mountain",
+        "imageDescription": "Table Mountain is a flat-topped mountain forming a prominent landmark overlooking the city of Cape Town in South Africa."
+    },
+    {
+        "day": 11,
+        "country": "Indonesia",
+        "title": "Rain in Bogor",
+        "wikiSearch": "Bogor Botanical Gardens",
+        "wiki": "https://en.wikipedia.org/wiki/Bogor",
+        "localImage": "/images/stories/month1/day11-bogor-botanical-gardens.webp",
+        "imageTitle": "Bogor Botanical Gardens",
+        "imageDescription": "The Bogor Botanical Gardens is a botanical garden located in Bogor, Indonesia, 60 km south of central Jakarta. It is currently operated by the National Research and Innovation Agency. The garden is located in the city center and adjoin the presidential palace compound of Istana Bogor. It covers an area of 87 hectares and contains 13,983 different kinds of trees and plants of various origin. The geographic position of Bogor means it rains almost daily, even in the dry season. This makes the garden an advantageous location for the cultivation of tropical plants."
+    },
+    {
+        "day": 12,
+        "country": "Ghana",
+        "title": "The Rhythm of Highlife",
+        "wikiSearch": "Afrobeat",
+        "wiki": "https://en.wikipedia.org/wiki/Highlife",
+        "localImage": "/images/stories/month1/day12-afrobeat.webp",
+        "imageTitle": "Afrobeat",
+        "imageDescription": "Afrobeat is a West African music genre, fusing influences from Nigerian and Ghanaian music with American funk, jazz, and soul influences. With a focus on chanted vocals, complex intersecting rhythms, and percussion, the style was pioneered in the 1960s by Nigerian multi-instrumentalist and bandleader Fela Kuti, who popularised it both within and outside Nigeria. At the height of his popularity, he was referred to as one of Africa's most \"challenging and charismatic music performers.\""
+    },
+    {
+        "day": 13,
+        "country": "Pakistan",
+        "title": "Cricket Fever",
+        "wikiSearch": "cricket",
+        "wiki": "https://en.wikipedia.org/wiki/Cricket_in_Pakistan",
+        "localImage": "/images/stories/month1/day13-cricket.webp",
+        "imageTitle": "Cricket",
+        "imageDescription": "Cricket is a bat-and-ball game that is played between two teams of eleven players on a field, at the centre of which is a 22-yard pitch with a wicket at each end, each comprising two bails balanced on three stumps. Two players from the batting team, the striker and nonstriker, stand in front of either wicket holding bats, while one player from the fielding team, the bowler, bowls the ball toward the striker's wicket from the opposite end of the pitch. The striker's goal is to hit the bowled ball with the bat and then switch places with the nonstriker, with the batting team scoring one run for each of these swaps. Runs are also scored when the ball reaches the boundary of the field or when the ball is bowled illegally."
+    },
+    {
+        "day": 14,
+        "country": "Ethiopia",
+        "title": "The Coffee Ceremony",
+        "wikiSearch": "Ethiopian coffee",
+        "wiki": "https://en.wikipedia.org/wiki/Coffee_ceremony",
+        "localImage": "/images/stories/month1/day14-ethiopian-coffee.webp",
+        "imageTitle": "Coffee production in Ethiopia",
+        "imageDescription": "Coffee production in Ethiopia is a longstanding tradition which dates back dozens of centuries. Ethiopia is where Coffea arabica, the coffee plant, originates. The plant is now grown in various parts of the world; Ethiopia itself accounts for around 17% of the global coffee market. Coffee is important to the economy of Ethiopia; around 30-35% of foreign income comes from coffee, with an estimated 15 million of the population relying on some aspect of coffee production for their livelihood. In 2013, coffee exports brought in $300 million, equivalent to 24% of that year's total exports."
+    },
+    {
+        "day": 15,
+        "country": "Afghanistan",
+        "title": "Red Pomegranates",
+        "wikiSearch": "Pomegranate",
+        "wiki": "https://en.wikipedia.org/wiki/Pomegranate",
+        "localImage": "/images/stories/month1/day15-pomegranate.webp",
+        "imageTitle": "Pomegranate",
+        "imageDescription": "The pomegranate is a fruit-bearing, deciduous shrub in the family Lythraceae, subfamily Punicoideae, that grows to between 1.5–5 metres (5–16 ft) tall. Rich in symbolic and mythological associations in many cultures. It originated from the Iranian plateau including Iran, the Caucasus, Turkmenistan, Afghanistan and Pakistan. Pomegranate was first domesticated by ancient Iranians in the Persian plateau and nearby regions about 5,000 years ago. It is extensively cultivated for its fruit."
+    },
+    {
+        "day": 16,
+        "country": "Indonesia",
+        "title": "Jakarta Energy",
+        "wikiSearch": "Jakarta",
+        "wiki": "https://en.wikipedia.org/wiki/Jakarta",
+        "localImage": "/images/stories/month1/day16-jakarta.webp",
+        "imageTitle": "Jakarta",
+        "imageDescription": "Jakarta, officially the Special Capital Region of Jakarta, is the largest city in the world by population and the de facto capital and largest city of Indonesia and an autonomous region at the provincial level. Lying on the northwest coast of Java, the world's most populous island, Jakarta is the largest metropole in Southeast Asia and serves as the Headquarters of ASEAN. The Special Region has a status equivalent to that of a province and is bordered by the province of West Java to the south and east and Banten to the west. Its coastline faces the Java Sea to the north, and it shares a maritime border with Lampung to the west. Jakarta's metropolitan area has an estimated population of 41.9 million as of 2025, making it the largest urban area in Indonesia and the world; in addition of being ASEAN's second largest economy after Singapore."
+    },
+    {
+        "day": 17,
+        "country": "Morocco",
+        "title": "The Blue City",
+        "wikiSearch": "Chefchaouen",
+        "wiki": "https://en.wikipedia.org/wiki/Chefchaouen",
+        "localImage": "/images/stories/month1/day17-chefchaouen.webp",
+        "imageTitle": "Chefchaouen",
+        "imageDescription": "Chefchaouen is a city in northwest Morocco. It is the chief town of the province of the same name and is noted for its buildings in shades of blue, for which it is nicknamed the \"Blue City\". It is situated in a mountainous region in northern Morocco, between Tétouan and Ouazzane."
+    },
+    {
+        "day": 18,
+        "country": "Pakistan",
+        "title": "Mango Season",
+        "wikiSearch": "Mango",
+        "wiki": "https://en.wikipedia.org/wiki/Chaunsa",
+        "localImage": "/images/stories/month1/day18-mango.webp",
+        "imageTitle": "Mango",
+        "imageDescription": "A mango is an edible stone fruit produced by the tropical tree Mangifera indica. It originated in the northeastern part of the Indian subcontinent, in what is now Bangladesh, northeastern India and Myanmar. M. indica has been cultivated in South and Southeast Asia since ancient times, resulting in two modern mango cultivars: the \"Indian\" and the \"Southeast Asian\" types. Other species in the genus Mangifera also produce edible fruits called \"mangoes,\" most of which are found in the Malesian ecoregion."
+    },
+    {
+        "day": 19,
+        "country": "Tanzania",
+        "title": "Snow on the Equator",
+        "wikiSearch": "Mount Kilimanjaro",
+        "wiki": "https://en.wikipedia.org/wiki/Mount_Kilimanjaro",
+        "localImage": "/images/stories/month1/day19-mount-kilimanjaro.webp",
+        "imageTitle": "Mount Kilimanjaro",
+        "imageDescription": "Mount Kilimanjaro is a large dormant volcano in Tanzania. It is the highest mountain in Africa and the highest free-standing mountain above sea level in the world, at 5,895 m (19,341 ft) above sea level and 4,900 m (16,100 ft) above its plateau base. It is also the highest volcano in the Eastern Hemisphere and the fourth most prominent peak on Earth."
+    },
+    {
+        "day": 20,
+        "country": "Indonesia",
+        "title": "Wearing Batik",
+        "wikiSearch": "Batik",
+        "wiki": "https://en.wikipedia.org/wiki/Batik",
+        "localImage": "/images/stories/month1/day20-batik.webp",
+        "imageTitle": "Batik",
+        "imageDescription": "Batik is a dyeing technique using wax resist. The term is also used to describe patterned textiles created with that technique. Batik is made by drawing or stamping wax on a cloth to prevent colour absorption during the dyeing process. This creates a patterned negative when the wax is removed from the dyed cloth. Artisans may create intricate coloured patterns with multiple cycles of wax application and dyeing. Patterns and motifs vary widely even within countries. Some patterns hold symbolic significance and are used only in certain occasions, while others were created to satisfy market demand and fashion trends."
+    },
+    {
+        "day": 21,
+        "country": "India",
+        "title": "The Symbol of Love",
+        "wikiSearch": "Taj Mahal",
+        "wiki": "https://en.wikipedia.org/wiki/Taj_Mahal",
+        "localImage": "/images/stories/month1/day21-taj-mahal.webp",
+        "imageTitle": "Taj Mahal",
+        "imageDescription": "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the river Yamuna in Agra, Uttar Pradesh, India. It was commissioned in 1631 by the fifth Mughal emperor, Shah Jahan, to house the tomb of his beloved wife, Mumtaz Mahal; it also houses the tomb of Shah Jahan himself. The tomb is the centrepiece of a 17-hectare (42-acre) complex, which includes a mosque and a guest house, and is set in formal gardens bounded on three sides by a crenellated wall."
+    },
+    {
+        "day": 22,
+        "country": "Senegal",
+        "title": "The Pink Lake",
+        "wikiSearch": "Pink Lake",
+        "wiki": "https://en.wikipedia.org/wiki/Lake_Retba",
+        "localImage": "/images/stories/month1/day22-pink-lake.webp",
+        "imageTitle": "Pink lake",
+        "imageDescription": "A pink lake is a lake that has a red or pink colour. This is often caused by the presence of salt-tolerant algae that produces carotenoids, such as Dunaliella salina, usually in conjunction with specific bacteria and archaea, which may vary from lake to lake. The most common archaeon is Halobacterium salinarum."
+    },
+    {
+        "day": 23,
+        "country": "Pakistan",
+        "title": "Lahore Fort",
+        "wikiSearch": "Lahore Fort",
+        "wiki": "https://en.wikipedia.org/wiki/Lahore_Fort",
+        "localImage": "/images/stories/month1/day23-lahore-fort.webp",
+        "imageTitle": "Lahore Fort",
+        "imageDescription": "The Lahore Fort is a citadel in the walled interior of Lahore in Punjab, Pakistan. The fortress is located at the northern end of the Walled City and is spread over an area greater than 20 hectares. It contains 21 notable monuments, some of which date to the era of Emperor Akbar. The Lahore Fort is notable for having been almost entirely rebuilt in the 17th century, when the Mughal Empire was at the height of its splendour and opulence."
+    },
+    {
+        "day": 24,
+        "country": "Zimbabwe",
+        "title": "The Smoke that Thunders",
+        "wikiSearch": "Victoria Falls",
+        "wiki": "https://en.wikipedia.org/wiki/Victoria_Falls",
+        "localImage": "/images/stories/month1/day24-victoria-falls.webp",
+        "imageTitle": "Victoria Falls",
+        "imageDescription": "Victoria Falls is a waterfall on the Zambezi River, located on the border between Zambia and Zimbabwe. It is one of the world's largest waterfalls, with a width of 1,708 m (5,604 ft). The region around it has a high degree of biodiversity in both plants and animals."
+    },
+    {
+        "day": 25,
+        "country": "Afghanistan",
+        "title": "Bamiyan Valley",
+        "wikiSearch": "Buddhas of Bamiyan",
+        "wiki": "https://en.wikipedia.org/wiki/Buddhas_of_Bamiyan",
+        "localImage": "/images/stories/month1/day25-buddhas-of-bamiyan.webp",
+        "imageTitle": "Buddhas of Bamiyan",
+        "imageDescription": "The Buddhas of Bamiyan were two monumental Buddhist reliefs in the Bamiyan Valley of Afghanistan, carved possibly around the 6th-century. Located 130 kilometres (81 mi) to the northwest of Kabul, at an elevation of 2,500 metres (8,200 ft), carbon dating of the structural components of the Buddhas has determined that the smaller 38 m (125 ft) \"Eastern Buddha\" was built around 570 CE, and the larger 55 m (180 ft) \"Western Buddha\" was built around 618 CE, which would date both to the time when the Hephthalites ruled the region."
+    },
+    {
+        "day": 26,
+        "country": "Indonesia",
+        "title": "Gamelan Sounds",
+        "wikiSearch": "Gamelan",
+        "wiki": "https://en.wikipedia.org/wiki/Gamelan",
+        "localImage": "/images/stories/month1/day26-gamelan.webp",
+        "imageTitle": "Gamelan",
+        "imageDescription": "Gamelan is the traditional ensemble music of the Javanese, Sundanese, and Balinese peoples of Indonesia, made up predominantly of percussive instruments. The most common instruments used are metallophones and a set of hand-drums called kendang, which keep the beat. The kemanak, a banana-shaped idiophone, and the gangsa, another metallophone, are also commonly used gamelan instruments on Bali. Other notable instruments include xylophones, bamboo flutes, a bowed string instrument called a rebab, and a zither-like instrument called a siter, used in Javanese gamelan. Additionally, vocalists may be featured, being referred to as sindhen for females or gerong for males."
+    },
+    {
+        "day": 27,
+        "country": "Madagascar",
+        "title": "Baobab Avenue",
+        "wikiSearch": "Avenue of the Baobabs",
+        "wiki": "https://en.wikipedia.org/wiki/Adansonia_grandidieri",
+        "localImage": "/images/stories/month1/day27-avenue-of-the-baobabs.webp",
+        "imageTitle": "Avenue of the Baobabs",
+        "imageDescription": "The Avenue of the Baobabs, or Alley of the Baobabs, is a prominent group of Grandidier's baobabs lining the unpaved Road No.8 between Morondava and Belon'i Tsiribihina in the Menabe region of western Madagascar. Its striking landscape draws travelers from around the world, making it one of the most visited locations in the region. It has been a center of local conservation efforts, and was granted temporary protected status in July 2007 by the Ministry of Environment, Water and Forestry – a step toward making it Madagascar's first natural monument."
+    },
+    {
+        "day": 28,
+        "country": "Pakistan",
+        "title": "Hunza Valley",
+        "wikiSearch": "Hunza Valley",
+        "wiki": "https://en.wikipedia.org/wiki/Hunza_Valley",
+        "localImage": "/images/stories/month1/day28-hunza-valley.webp",
+        "imageTitle": "Hunza Valley",
+        "imageDescription": "The Hunza Valley is a mountainous valley located in the region of Gilgit-Baltistan in Pakistan administered Kashmir."
+    },
+    {
+        "day": 29,
+        "country": "Mali",
+        "title": "Timbuktu Libraries",
+        "wikiSearch": "Timbuktu",
+        "wiki": "https://en.wikipedia.org/wiki/Timbuktu_Manuscripts",
+        "localImage": "/images/stories/month1/day29-timbuktu.webp",
+        "imageTitle": "Timbuktu",
+        "imageDescription": "Timbuktu is an ancient city in Mali, situated 20 kilometres north of the Niger River. It is the capital of the Tombouctou Region, one of the eight administrative regions of Mali, having a population of 32,460 in the 2018 census."
+    },
+    {
+        "day": 30,
+        "country": "Global",
+        "title": "Reflection",
+        "wikiSearch": "Globe",
+        "wiki": "https://en.wikipedia.org/wiki/Second-language_acquisition",
+        "localImage": "/images/stories/month1/day30-globe.webp",
+        "imageTitle": "Globe",
+        "imageDescription": "A globe is a spherical model of Earth, of some other celestial body, or of the celestial sphere. Globes serve purposes similar to maps, but, unlike maps, they do not distort the surface that they portray except to scale it down. A model globe of Earth is called a terrestrial globe. A model globe of the celestial sphere is called a celestial globe."
+    }
+]
