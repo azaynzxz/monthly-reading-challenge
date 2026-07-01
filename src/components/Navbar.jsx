@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { BookOpen, BarChart3, CreditCard, Sparkles, Heart, Menu, X, Scroll } from 'lucide-react';
+import { BookOpen, BarChart3, CreditCard, Sparkles, Heart, Menu, X, Scroll, Mic } from 'lucide-react';
 
 const Navbar = ({
     activeSection,
@@ -34,6 +34,7 @@ const Navbar = ({
         activeSection === 'reading'
             ? { icon: Scroll, label: 'Poems', to: '/poem' }
             : { icon: BookOpen, label: 'Reading', to: '/m1-day1' },
+        { icon: Mic, label: 'Transcribe', to: '/transcribe' },
         { icon: BarChart3, label: 'Stats', onClick: () => setShowDashboard(true) },
         { icon: CreditCard, label: 'Cards', onClick: () => setShowFlashcards(true) },
         { icon: Sparkles, label: 'Review', onClick: () => setShowMistakeCards(true) }
@@ -127,7 +128,7 @@ const Navbar = ({
 
                         <div className="p-4 space-y-6">
                             {/* Quick Actions - Swiss Grid */}
-                            <div className="grid grid-cols-4 gap-0 border border-slate-200">
+                            <div className="grid grid-cols-5 gap-0 border border-slate-200">
                                 {navItems.map((item, i) => {
                                     const content = (
                                         <>
@@ -135,7 +136,7 @@ const Navbar = ({
                                             <span className="text-[10px] font-bold uppercase tracking-wider mt-1.5">{item.label}</span>
                                         </>
                                     );
-                                    const className = `flex flex-col items-center justify-center py-4 text-slate-600 hover:bg-slate-50 hover:text-[#880000] transition-all cursor-pointer ${i < 3 ? 'border-r border-slate-200' : ''}`;
+                                    const className = `flex flex-col items-center justify-center py-4 text-slate-600 hover:bg-slate-50 hover:text-[#880000] transition-all cursor-pointer ${i < 4 ? 'border-r border-slate-200' : ''}`;
                                     
                                     if (item.to) {
                                         return (

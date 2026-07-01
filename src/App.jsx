@@ -8,6 +8,7 @@ import Donate from './components/Donate';
 import NotFound from './components/NotFound';
 import ReviewPage from './components/ReviewPage';
 import StoryRoulette from './components/StoryRoulette';
+import Transcribe from './components/Transcribe';
 
 // Wrapper to check if path matches reading challenge pattern
 const ReadingChallengeWrapper = () => {
@@ -48,6 +49,7 @@ function App() {
             <Route path="/roulette" element={<StoryRoulette />} />
             <Route path="/poem" element={<PoemChallenge />} />
             <Route path="/poem/:id" element={<PoemChallenge />} />
+            <Route path="/transcribe" element={<Transcribe />} />
             {/* Match any path - ReadingChallengeWrapper will check if it's valid */}
             <Route path="/*" element={<ReadingChallengeWrapper />} />
         </Routes>
