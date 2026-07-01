@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Mic, 
-    MicOff, 
-    Settings, 
-    X, 
-    Trash2, 
-    Copy, 
-    Download, 
-    Check, 
-    Globe, 
+import {
+    Mic,
+    MicOff,
+    Settings,
+    X,
+    Trash2,
+    Copy,
+    Download,
+    Check,
+    Globe,
     Clock,
     RefreshCw
 } from 'lucide-react';
@@ -74,13 +74,14 @@ const Transcribe = () => {
     });
     const [autoScroll, setAutoScroll] = useState(true);
     const [isControlsExpanded, setIsControlsExpanded] = useState(false);
-    
+
     // Transcription States
     const [isListening, setIsListening] = useState(false);
     const [countdown, setCountdown] = useState(null);
     const [finalizedTranscripts, setFinalizedTranscripts] = useState([]);
     const [interimTranscript, setInterimTranscript] = useState('');
     const [isCopied, setIsCopied] = useState(false);
+    const [aboveCenterIndices, setAboveCenterIndices] = useState(new Set());
 
     // Refs for speech recognition sync
     const recognitionRef = useRef(null);
@@ -130,7 +131,7 @@ const Transcribe = () => {
     useEffect(() => {
         if (!autoScroll || !scrollContainerRef.current) return;
         const container = scrollContainerRef.current;
-        
+
         if (finalizedTranscripts.length === 0 && !interimTranscript) {
             container.scrollTop = 0;
             return;
@@ -211,7 +212,7 @@ const Transcribe = () => {
             if (recognitionRef.current) {
                 try {
                     recognitionRef.current.stop();
-                } catch (e) {}
+                } catch (e) { }
             }
             stopVisualizer();
         };
@@ -228,7 +229,7 @@ const Transcribe = () => {
 
             if (e.code === 'Space') {
                 e.preventDefault(); // Stop page scrolling
-                
+
                 if (countdown !== null) {
                     // Cancel countdown
                     setCountdown(null);
@@ -267,6 +268,57 @@ const Transcribe = () => {
 
         return () => clearInterval(interval);
     }, [isListening, finalizedTranscripts]);
+
+    // Check vertical positions of paragraphs to auto-grey out text above center line
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const checkPositions = () => {
+            const containerRect = container.getBoundingClientRect();
+            // The center line is at 50% height of the container
+            const centerPoint = containerRect.top + containerRect.height / 2;
+
+            const paragraphs = container.querySelectorAll('.transcribe-paragraph');
+            const newAboveCenter = new Set();
+
+            paragraphs.forEach((p) => {
+                const indexAttr = p.getAttribute('data-index');
+                if (indexAttr === null) return;
+                const index = parseInt(indexAttr, 10);
+                const rect = p.getBoundingClientRect();
+
+                // If the center of the paragraph is above the center point
+                const pCenter = rect.top + rect.height / 2;
+                if (pCenter < centerPoint) {
+                    newAboveCenter.add(index);
+                }
+            });
+
+            setAboveCenterIndices((prev) => {
+                // Prevent state updates if the set contents are unchanged
+                if (prev.size === newAboveCenter.size && [...prev].every(x => newAboveCenter.has(x))) {
+                    return prev;
+                }
+                return newAboveCenter;
+            });
+        };
+
+        container.addEventListener('scroll', checkPositions);
+
+        // Initial position check with layout delays
+        checkPositions();
+        const frameId = requestAnimationFrame(checkPositions);
+        const timer = setTimeout(checkPositions, 60);
+        const timer2 = setTimeout(checkPositions, 300);
+
+        return () => {
+            container.removeEventListener('scroll', checkPositions);
+            cancelAnimationFrame(frameId);
+            clearTimeout(timer);
+            clearTimeout(timer2);
+        };
+    }, [finalizedTranscripts, interimTranscript, isListening]);
 
     // Handle Countdown ticks
     useEffect(() => {
@@ -373,7 +425,7 @@ const Transcribe = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `transcript-${new Date().toISOString().slice(0,10)}.txt`;
+        link.download = `transcript-${new Date().toISOString().slice(0, 10)}.txt`;
         link.click();
         URL.revokeObjectURL(url);
     };
@@ -457,7 +509,7 @@ const Transcribe = () => {
                     }
                     canvasCtx.stroke();
                 });
-                
+
                 canvasCtx.shadowBlur = 0; // Reset shadow
             };
             draw();
@@ -481,6 +533,37 @@ const Transcribe = () => {
 
     return (
         <div className="fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col animate-slideUp">
+            <style>{`
+                @keyframes expandSpacer {
+                    from { height: 0; }
+                    to { height: 20vh; }
+                }
+                @keyframes fadeInWord {
+                    from {
+                        opacity: 0;
+                        transform: translateY(6px) scale(0.98);
+                        filter: blur(2px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                        filter: blur(0);
+                    }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .animate-expand-spacer {
+                    animation: expandSpacer 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                .animate-fade-in-word {
+                    animation: fadeInWord 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                .animate-fade-in {
+                    animation: fadeIn 0.25s ease-out forwards;
+                }
+            `}</style>
             {/* Countdown Overlay */}
             {countdown !== null && (
                 <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md">
@@ -599,7 +682,7 @@ const Transcribe = () => {
                                                 className={`py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${timerDuration === preset.value
                                                     ? 'bg-[#880000] text-white'
                                                     : 'text-white/50 hover:text-white hover:bg-white/5'
-                                                } ${i < 2 ? 'border-r border-white/10' : ''}`}
+                                                    } ${i < 2 ? 'border-r border-white/10' : ''}`}
                                             >
                                                 {preset.label}
                                             </button>
@@ -633,7 +716,7 @@ const Transcribe = () => {
                                                 className={`py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${fontSize === preset.value
                                                     ? 'bg-white text-slate-950'
                                                     : 'text-white/50 hover:text-white hover:bg-white/5'
-                                                } ${i < 3 ? 'border-r border-white/10' : ''}`}
+                                                    } ${i < 3 ? 'border-r border-white/10' : ''}`}
                                             >
                                                 {preset.label}
                                             </button>
@@ -655,11 +738,10 @@ const Transcribe = () => {
                                     <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.15em]">Auto-scroll to Bottom</span>
                                     <button
                                         onClick={() => setAutoScroll(!autoScroll)}
-                                        className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider transition-all border ${
-                                            autoScroll 
-                                                ? 'bg-[#880000] border-[#880000] text-white' 
-                                                : 'border-white/20 text-white/40 hover:text-white hover:bg-white/5'
-                                        }`}
+                                        className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider transition-all border ${autoScroll
+                                            ? 'bg-[#880000] border-[#880000] text-white'
+                                            : 'border-white/20 text-white/40 hover:text-white hover:bg-white/5'
+                                            }`}
                                     >
                                         {autoScroll ? 'Enabled' : 'Disabled'}
                                     </button>
@@ -670,71 +752,83 @@ const Transcribe = () => {
                 </div>
             </div>
 
-            {/* Reading/Transcription Area */}
-            <div
-                ref={scrollContainerRef}
-                className="flex-1 overflow-y-auto relative no-scrollbar"
-                style={{ scrollBehavior: 'smooth' }}
-            >
-                {/* Center Guide Line */}
-                <div className="fixed left-0 right-0 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
-                    <div className="flex items-center justify-center gap-4 opacity-20">
-                        <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/50"></div>
-                        <div className="w-3 h-3 border-2 border-[#880000] transform rotate-45"></div>
-                        <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/50"></div>
-                    </div>
-                </div>
+            {/* Reading/Transcription Area Container */}
+            <div className="flex-1 relative overflow-hidden flex flex-col">
+                {/* Top Fading Mask Overlay */}
+                <div className="absolute top-0 left-0 right-0 h-[25vh] bg-gradient-to-b from-slate-950 via-slate-950/70 to-transparent pointer-events-none z-20" />
 
-                {/* Centered Scroll Wrapper */}
-                <div className={`min-h-full flex flex-col pt-[15vh] pb-[15vh] ${
-                    (finalizedTranscripts.length > 0 || interimTranscript) ? 'justify-end' : 'justify-center'
-                }`}>
-                    {/* Content */}
-                    <div
-                        className="max-w-4xl mx-auto px-6 md:px-10 text-center transition-all duration-300"
-                        style={{ fontSize: `${fontSize}px` }}
-                    >
-                        {finalizedTranscripts.length === 0 && !interimTranscript ? (
-                            <div className="text-white/20 font-normal leading-relaxed text-center px-4 max-w-2xl mx-auto">
-                                <p style={{ fontSize: `${Math.max(fontSize * 0.45, 14)}px` }} className="mb-4 uppercase tracking-wider font-semibold">
-                                    Microphones ready.
-                                </p>
-                                <p style={{ fontSize: `${Math.max(fontSize * 0.4, 12)}px` }} className="leading-relaxed">
-                                    {isSpeechSupported 
-                                        ? "Press Space or tap the record button to trigger the countdown. Start speaking and your transcription will scroll in real-time."
-                                        : "Speech recognition is not supported on this browser. Please open in Google Chrome or Microsoft Edge."}
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="font-normal leading-[1.6] text-white/90 tracking-tighter text-center flex flex-col gap-6">
-                                {(() => {
-                                    const latestSpacerIndex = finalizedTranscripts.lastIndexOf('');
-                                    return finalizedTranscripts.map((text, i) => {
+                {/* Reading/Transcription Scroll Area */}
+                <div
+                    ref={scrollContainerRef}
+                    className="flex-1 overflow-y-auto no-scrollbar relative"
+                    style={{ scrollBehavior: 'smooth' }}
+                >
+                    {/* Center Guide Line */}
+                    <div className="fixed left-0 right-0 top-1/2 transform -translate-y-1/2 pointer-events-none z-10">
+                        <div className="flex items-center justify-center gap-4 opacity-20">
+                            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/50"></div>
+                            <div className="w-3 h-3 border-2 border-[#880000] transform rotate-45"></div>
+                            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/50"></div>
+                        </div>
+                    </div>
+
+                    {/* Centered Scroll Wrapper */}
+                    <div className={`min-h-full flex flex-col pt-[15vh] pb-[15vh] ${(finalizedTranscripts.length > 0 || interimTranscript) ? 'justify-end' : 'justify-center'
+                        }`}>
+                        {/* Content */}
+                        <div
+                            className="max-w-4xl mx-auto px-6 md:px-10 text-center transition-all duration-300"
+                            style={{ fontSize: `${fontSize}px` }}
+                        >
+                            {finalizedTranscripts.length === 0 && !interimTranscript ? (
+                                <div className="text-white/20 font-normal leading-relaxed text-center px-4 max-w-2xl mx-auto">
+                                    <p style={{ fontSize: `${Math.max(fontSize * 0.45, 14)}px` }} className="mb-4 uppercase tracking-wider font-semibold">
+                                        Microphones ready.
+                                    </p>
+                                    <p style={{ fontSize: `${Math.max(fontSize * 0.4, 12)}px` }} className="leading-relaxed">
+                                        {isSpeechSupported
+                                            ? "Press Space or tap the record button to trigger the countdown. Start speaking and your transcription will scroll in real-time."
+                                            : "Speech recognition is not supported on this browser. Please open in Google Chrome or Microsoft Edge."}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="font-normal leading-[1.6] text-white/90 tracking-tighter text-center flex flex-col gap-6">
+                                    {finalizedTranscripts.map((text, i) => {
                                         if (text === '') {
-                                            return <div key={i} className="h-[20vh]" />;
+                                            return <div key={i} className="animate-expand-spacer" />;
                                         }
-                                        const isOld = latestSpacerIndex !== -1 && i < latestSpacerIndex;
+
+                                        const isOld = aboveCenterIndices.has(i);
+
                                         return (
-                                            <p 
-                                                key={i} 
-                                                className={`break-words transition-all duration-500 ${
-                                                    isOld 
-                                                        ? 'text-white/20 font-light italic' 
-                                                        : 'text-white font-medium'
-                                                }`}
+                                            <p
+                                                key={i}
+                                                data-index={i}
+                                                className={`transcribe-paragraph break-words transition-all duration-[1000ms] ease-in-out font-bold ${isOld
+                                                    ? 'text-slate-500 blur-[2px] opacity-40'
+                                                    : 'text-white blur-none opacity-100'
+                                                    }`}
                                             >
                                                 {text}
                                             </p>
                                         );
-                                    });
-                                })()}
-                                {interimTranscript && (
-                                    <p className="text-white/40 italic font-light break-words animate-pulse">
-                                        {interimTranscript}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                                    })}
+                                    {interimTranscript && (
+                                        <p className="text-white font-bold break-words">
+                                            {interimTranscript.split(' ').filter(Boolean).map((word, wordIndex) => (
+                                                <span
+                                                    key={wordIndex}
+                                                    className="inline-block mr-[0.22em] animate-fade-in-word opacity-0"
+                                                    style={{ animationDelay: '0s' }}
+                                                >
+                                                    {word}
+                                                </span>
+                                            ))}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -744,10 +838,10 @@ const Transcribe = () => {
                 {/* Audio Visualizer */}
                 {isListening && (
                     <div className="absolute top-0 transform -translate-y-full w-full flex justify-center pointer-events-none pb-2">
-                        <canvas 
-                            ref={canvasRef} 
-                            width="380" 
-                            height="60" 
+                        <canvas
+                            ref={canvasRef}
+                            width="380"
+                            height="60"
                             className="bg-transparent"
                         />
                     </div>
@@ -758,11 +852,10 @@ const Transcribe = () => {
                     {/* Timer Duration Cycle Button */}
                     <button
                         onClick={cycleTimer}
-                        className={`relative w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border transition-all ${
-                            timerDuration > 0
-                                ? 'bg-amber-600/10 border-amber-600/30 text-amber-500 hover:bg-amber-600/20 hover:border-amber-600/50'
-                                : 'border-white/10 text-white/40 hover:text-white hover:bg-white/5 hover:border-white/20'
-                        }`}
+                        className={`relative w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border transition-all ${timerDuration > 0
+                            ? 'bg-amber-600/10 border-amber-600/30 text-amber-500 hover:bg-amber-600/20 hover:border-amber-600/50'
+                            : 'border-white/10 text-white/40 hover:text-white hover:bg-white/5 hover:border-white/20'
+                            }`}
                         title={`Pre-talk Timer (Current: ${timerDuration === 0 ? 'Off' : `${timerDuration}s`})`}
                     >
                         <Clock size={16} />
@@ -787,13 +880,12 @@ const Transcribe = () => {
                     <div className="relative flex flex-col items-center">
                         <button
                             onClick={handlePlayPause}
-                            className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-2xl transition-all ${
-                                countdown !== null
-                                    ? 'bg-amber-600 text-white hover:bg-amber-700 animate-pulse'
-                                    : isListening
-                                        ? 'bg-[#880000] text-white hover:bg-red-800 scale-105'
-                                        : 'bg-white text-slate-950 hover:bg-white/90'
-                            }`}
+                            className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-2xl transition-all ${countdown !== null
+                                ? 'bg-amber-600 text-white hover:bg-amber-700 animate-pulse'
+                                : isListening
+                                    ? 'bg-[#880000] text-white hover:bg-red-800 scale-105'
+                                    : 'bg-white text-slate-950 hover:bg-white/90'
+                                }`}
                             title={isListening ? "Stop Transcribing (Space)" : "Start Transcribing (Space)"}
                         >
                             {countdown !== null ? (
@@ -810,11 +902,10 @@ const Transcribe = () => {
                     <button
                         onClick={handleCopy}
                         disabled={finalizedTranscripts.length === 0}
-                        className={`w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border transition-all ${
-                            isCopied 
-                                ? 'bg-green-600 border-green-600 text-white' 
-                                : 'border-white/10 text-white/40 hover:text-white hover:bg-white/5 hover:border-white/20'
-                        } disabled:opacity-20 disabled:pointer-events-none`}
+                        className={`w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border transition-all ${isCopied
+                            ? 'bg-green-600 border-green-600 text-white'
+                            : 'border-white/10 text-white/40 hover:text-white hover:bg-white/5 hover:border-white/20'
+                            } disabled:opacity-20 disabled:pointer-events-none`}
                         title="Copy to Clipboard"
                     >
                         {isCopied ? <Check size={16} /> : <Copy size={16} />}
@@ -832,10 +923,10 @@ const Transcribe = () => {
                 </div>
 
                 <div className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">
-                    {countdown !== null 
-                        ? 'Counting down... Tap to cancel' 
-                        : isListening 
-                            ? 'Transcribing. Press Space to pause' 
+                    {countdown !== null
+                        ? 'Counting down... Tap to cancel'
+                        : isListening
+                            ? 'Transcribing. Press Space to pause'
                             : 'Press Space to start recording'}
                 </div>
             </div>
