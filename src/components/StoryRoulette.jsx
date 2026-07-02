@@ -3,7 +3,7 @@ import { Plus, X, Dices, ChevronLeft, BookOpen, Trash2, Volume2, AlertCircle, Ro
 import MistakeCards from './MistakeCards';
 
 // Import data
-import { allMonthsDataObj } from '../data/index';
+import { allMonthsDataObj, poemsData } from '../data/index';
 import { useNavigate } from 'react-router-dom';
 
 const allStories = [
@@ -12,8 +12,18 @@ const allStories = [
     ...allMonthsDataObj[3].map(s => ({ ...s, month: 3 }))
 ];
 
+const allPoems = poemsData.map(p => ({ ...p, isPoem: true }));
+
+const getItemSubtitle = (item) => {
+    if (!item) return '';
+    if (item.isPoem || item.author) {
+        return `Poem ${item.id} · ${item.author}`;
+    }
+    return `Month ${item.month} · Day ${item.day}${item.country ? ` · ${item.country}` : ''}`;
+};
+
 // ─── Slot machine reel component ─────────────────────────────
-const SlotReel = ({ isSpinning, finalStory, onDone }) => {
+const SlotReel = ({ isSpinning, finalStory, onDone, rouletteMode }) => {
     const reelRef = useRef(null);
     const [displayStories, setDisplayStories] = useState([]);
     const [settled, setSettled] = useState(false);
@@ -30,8 +40,9 @@ const SlotReel = ({ isSpinning, finalStory, onDone }) => {
 
         const sequence = [];
         const totalItems = 20;
+        const pool = rouletteMode === 'poems' ? allPoems : allStories;
         for (let i = 0; i < totalItems; i++) {
-            sequence.push(allStories[Math.floor(Math.random() * allStories.length)]);
+            sequence.push(pool[Math.floor(Math.random() * pool.length)]);
         }
         if (finalStory) {
             sequence.push(finalStory);
@@ -44,14 +55,14 @@ const SlotReel = ({ isSpinning, finalStory, onDone }) => {
         }, 2400);
 
         return () => clearTimeout(timer);
-    }, [isSpinning, finalStory]);
+    }, [isSpinning, finalStory, rouletteMode]);
 
     if (settled && finalStory) {
         return (
             <div className="overflow-hidden h-[72px] flex items-center">
                 <div className="animate-fade-in">
                     <div className="text-[10px] font-bold text-[#880000] uppercase tracking-[0.15em] mb-0.5">
-                        Month {finalStory.month} · Day {finalStory.day} · {finalStory.country}
+                        {getItemSubtitle(finalStory)}
                     </div>
                     <div className="text-base sm:text-lg font-bold text-slate-900 leading-tight truncate">
                         {finalStory.title}
@@ -74,7 +85,7 @@ const SlotReel = ({ isSpinning, finalStory, onDone }) => {
                         <div key={i} className="h-[72px] flex items-center shrink-0">
                             <div>
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">
-                                    Month {story.month} · Day {story.day}
+                                    {getItemSubtitle(story)}
                                 </div>
                                 <div className="text-base sm:text-lg font-bold text-slate-600 leading-tight truncate">
                                     {story.title}
@@ -89,7 +100,9 @@ const SlotReel = ({ isSpinning, finalStory, onDone }) => {
 
     return (
         <div className="h-[72px] flex items-center">
-            <span className="text-sm text-slate-300 italic">Press spin to assign a story</span>
+            <span className="text-sm text-slate-300 italic">
+                Press spin to assign a {rouletteMode === 'poems' ? 'poem' : 'story'}
+            </span>
         </div>
     );
 };
@@ -252,11 +265,17 @@ const StoryModal = ({ story, onClose }) => {
     };
 
     // Build text chunks
-    const sentences = story.text.match(/[^.!?]+[.!?]+/g) || [story.text];
-    const chunks = [];
-    for (let i = 0; i < sentences.length; i += 2) {
-        chunks.push(sentences.slice(i, i + 2).join(' ').trim());
-    }
+    const isPoem = story.isPoem || story.author;
+    const chunks = isPoem
+        ? story.text.split(/\n\n+/).filter(s => s.trim())
+        : (() => {
+            const sentences = story.text.match(/[^.!?]+[.!?]+/g) || [story.text];
+            const arr = [];
+            for (let i = 0; i < sentences.length; i += 2) {
+                arr.push(sentences.slice(i, i + 2).join(' ').trim());
+            }
+            return arr;
+        })();
 
     const mistakeWordsString = [...mistakes].join(', ');
 
@@ -277,8 +296,8 @@ const StoryModal = ({ story, onClose }) => {
                                 <ChevronLeft size={20} />
                             </button>
                             <div className="w-6 h-0.5 bg-[#880000] hidden sm:block flex-shrink-0"></div>
-                            <span className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-[0.1em] truncate">
-                                M{story.month} · Day {story.day}
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-[0.15em] truncate">
+                                {isPoem ? `Poem ${story.id}` : `M${story.month} · Day ${story.day}`}
                             </span>
                         </div>
 
@@ -325,7 +344,7 @@ const StoryModal = ({ story, onClose }) => {
                                 <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 z-10">
                                     <div className="flex items-center gap-1.5 mb-2">
                                         <Globe size={10} className="text-white/60" />
-                                        <span className="text-[10px] text-white/60 uppercase tracking-[0.15em]">{story.country}</span>
+                                        <span className="text-[10px] text-white/60 uppercase tracking-[0.15em]">{isPoem ? `Poem · ${story.author}` : story.country}</span>
                                     </div>
                                     <div className="w-8 h-0.5 bg-white/40 mb-2"></div>
                                     <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-tight tracking-tight">
@@ -340,7 +359,7 @@ const StoryModal = ({ story, onClose }) => {
                             <div className="bg-slate-50 border-b border-slate-100 px-4 sm:px-6 py-4">
                                 <div className="flex items-center gap-1.5 mb-2">
                                     <Globe size={10} className="text-slate-400" />
-                                    <span className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">{story.country}</span>
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">{isPoem ? `Poem · ${story.author}` : story.country}</span>
                                 </div>
                                 <div className="w-8 h-0.5 bg-[#880000] mb-2"></div>
                                 <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">{story.title}</h2>
@@ -395,8 +414,59 @@ const StoryModal = ({ story, onClose }) => {
                             {/* Text Chunks */}
                             <div className="space-y-4 sm:space-y-6">
                                 {chunks.map((chunk, chunkIndex) => {
-                                    const words = chunk.split(' ');
+                                    if (isPoem) {
+                                        const lines = chunk.split('\n');
+                                        return (
+                                            <div
+                                                key={chunkIndex}
+                                                className="relative animate-wipe-reveal space-y-1"
+                                                style={{ animationDelay: `${chunkIndex * 150}ms` }}
+                                            >
+                                                <div className="absolute -left-1 sm:-left-2 md:-left-4 top-0 text-[9px] sm:text-[10px] font-bold text-slate-200">
+                                                    {String(chunkIndex + 1).padStart(2, '0')}
+                                                </div>
+                                                <div className={`${fontSizeClasses[fontSize]} font-normal pl-3 sm:pl-4 md:pl-6 border-l border-transparent text-slate-700`}>
+                                                    {lines.map((line, lIdx) => (
+                                                        <div key={lIdx} className="block min-h-[1.5em]">
+                                                            {line.split(' ').map((word, wIdx) => {
+                                                                const clean = word.toLowerCase().replace(/[.,!?;:()"'\-]/g, '').trim();
+                                                                const isMistake = mistakes.has(clean);
+                                                                const isDictActive = dictWord === clean;
 
+                                                                return (
+                                                                    <React.Fragment key={wIdx}>
+                                                                        <span
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                e.stopPropagation();
+                                                                                handleWordClick(word, e);
+                                                                            }}
+                                                                            className={`transition-all duration-150 cursor-pointer select-none inline-block ${mode === 'review'
+                                                                                ? isMistake
+                                                                                    ? 'bg-[#880000] text-white px-0.5 sm:px-1 py-0.5 rounded-sm mistake-word-pulse'
+                                                                                    : 'hover:bg-slate-100 active:bg-slate-200'
+                                                                                : isDictActive
+                                                                                    ? 'bg-slate-900 text-white px-0.5'
+                                                                                    : isMistake
+                                                                                        ? 'underline decoration-[#880000] decoration-2 underline-offset-2 hover:bg-[#880000]/10'
+                                                                                        : 'hover:bg-slate-100'
+                                                                                }`}
+                                                                            title={mode === 'review' ? (isMistake ? 'Tap to unmark' : 'Tap to mark') : 'Tap for definition'}
+                                                                        >
+                                                                            {word}
+                                                                        </span>
+                                                                        {' '}
+                                                                    </React.Fragment>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    const words = chunk.split(' ');
                                     return (
                                         <div
                                             key={chunkIndex}
@@ -522,22 +592,32 @@ const loadFromStorage = () => {
     return null;
 };
 
-const saveToStorage = (participants, assignments) => {
+const saveToStorage = (participants, assignments, mode) => {
     try {
-        // Store only serializable story identifiers, then rehydrate
+        // Store only serializable story/poem identifiers, then rehydrate
         const assignmentKeys = {};
-        Object.entries(assignments).forEach(([name, story]) => {
-            assignmentKeys[name] = { month: story.month, day: story.day };
+        Object.entries(assignments).forEach(([name, item]) => {
+            if (item.isPoem || item.author) {
+                assignmentKeys[name] = { id: item.id, isPoem: true };
+            } else {
+                assignmentKeys[name] = { month: item.month, day: item.day };
+            }
         });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ participants, assignments: assignmentKeys }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ participants, assignments: assignmentKeys, mode }));
     } catch (e) { /* ignore */ }
 };
 
 const rehydrateAssignments = (assignmentKeys) => {
     const result = {};
-    Object.entries(assignmentKeys).forEach(([name, { month, day }]) => {
-        const story = allStories.find(s => s.month === month && s.day === day);
-        if (story) result[name] = story;
+    if (!assignmentKeys) return result;
+    Object.entries(assignmentKeys).forEach(([name, key]) => {
+        if (key.isPoem) {
+            const poem = allPoems.find(p => p.id === key.id);
+            if (poem) result[name] = poem;
+        } else {
+            const story = allStories.find(s => s.month === key.month && s.day === key.day);
+            if (story) result[name] = story;
+        }
     });
     return result;
 };
@@ -554,6 +634,10 @@ const StoryRoulette = () => {
         const saved = loadFromStorage();
         return saved?.assignments ? rehydrateAssignments(saved.assignments) : {};
     });
+    const [rouletteMode, setRouletteMode] = useState(() => {
+        const saved = loadFromStorage();
+        return saved?.mode || 'stories';
+    });
     const [spinningNames, setSpinningNames] = useState(new Set());
     const [selectedStory, setSelectedStory] = useState(null);
     const [settledCount, setSettledCount] = useState(0);
@@ -561,10 +645,10 @@ const StoryRoulette = () => {
     const [copied, setCopied] = useState(false);
     const inputRef = useRef(null);
 
-    // Persist to localStorage whenever participants or assignments change
+    // Persist to localStorage whenever participants, assignments, or rouletteMode change
     useEffect(() => {
-        saveToStorage(participants, assignments);
-    }, [participants, assignments]);
+        saveToStorage(participants, assignments, rouletteMode);
+    }, [participants, assignments, rouletteMode]);
 
     const handleAdd = useCallback((e) => {
         e.preventDefault();
@@ -592,6 +676,21 @@ const StoryRoulette = () => {
         localStorage.removeItem(STORAGE_KEY);
     };
 
+    const handleModeChange = (newMode) => {
+        if (newMode === rouletteMode) return;
+        
+        // Show confirmation if we have assignments to avoid accidental loss
+        if (Object.keys(assignments).length > 0) {
+            if (window.confirm("Switching modes will clear current assignments. Continue?")) {
+                setRouletteMode(newMode);
+                setAssignments({});
+                setSettledCount(0);
+            }
+        } else {
+            setRouletteMode(newMode);
+        }
+    };
+
     const executeSpin = () => {
         if (participants.length === 0) return;
 
@@ -599,12 +698,12 @@ const StoryRoulette = () => {
         const shuffledParticipants = shuffleArray(participants);
         setParticipants(shuffledParticipants);
 
-        // Shuffle stories and deal unique ones (no duplicates)
-        const shuffledStories = shuffleArray(allStories);
+        // Shuffle pool (stories or poems) and deal unique ones (no duplicates)
+        const pool = rouletteMode === 'poems' ? allPoems : allStories;
+        const shuffledPool = shuffleArray(pool);
         const newAssignments = {};
         shuffledParticipants.forEach((name, i) => {
-            // Wrap around if more participants than stories
-            newAssignments[name] = shuffledStories[i % shuffledStories.length];
+            newAssignments[name] = shuffledPool[i % shuffledPool.length];
         });
         setAssignments(newAssignments);
         setSettledCount(0);
@@ -643,6 +742,9 @@ const StoryRoulette = () => {
             .filter(name => assignments[name])
             .map(name => {
                 const s = assignments[name];
+                if (s.isPoem || s.author) {
+                    return `${name} → ${s.title} (Poem ${s.id}, by ${s.author})`;
+                }
                 return `${name} → ${s.title} (M${s.month} Day ${s.day}, ${s.country})`;
             });
         const text = `📖 Story Roulette Results\n${'─'.repeat(30)}\n${lines.join('\n')}`;
@@ -685,6 +787,26 @@ const StoryRoulette = () => {
 
             {/* Main Content */}
             <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
+
+                {/* Mode Selection Tabs */}
+                <div className="flex justify-center mb-6 animate-fade-in">
+                    <div className="bg-white shadow-md p-1 border border-slate-100 flex gap-1 rounded-sm">
+                        <button
+                            onClick={() => handleModeChange('stories')}
+                            className={`flex items-center gap-2 px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${rouletteMode === 'stories' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                        >
+                            <BookOpen size={14} />
+                            <span>Stories Mode</span>
+                        </button>
+                        <button
+                            onClick={() => handleModeChange('poems')}
+                            className={`flex items-center gap-2 px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${rouletteMode === 'poems' ? 'bg-[#880000] text-white' : 'text-slate-400 hover:text-[#880000] hover:bg-slate-50'}`}
+                        >
+                            <Sparkles size={14} />
+                            <span>Poems Mode</span>
+                        </button>
+                    </div>
+                </div>
 
                 {/* Add Participant */}
                 <div className="bg-white shadow-xl border-l-4 border-[#880000] mb-6 animate-fade-in">
@@ -773,6 +895,7 @@ const StoryRoulette = () => {
                                                 isSpinning={isSpinning}
                                                 finalStory={story}
                                                 onDone={() => setSettledCount(prev => prev + 1)}
+                                                rouletteMode={rouletteMode}
                                             />
                                         </div>
                                     </div>

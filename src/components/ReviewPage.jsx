@@ -4,7 +4,7 @@ import { Upload, Play, Pause, ChevronDown, ChevronLeft, AlertCircle, Sparkles, M
 import MistakeCards from './MistakeCards';
 
 // Import reading data
-import { allMonthsDataObj } from '../data/index';
+import { allMonthsDataObj, poemsData } from '../data/index';
 
 const allMonths = allMonthsDataObj;
 
@@ -45,8 +45,12 @@ const ReviewPage = () => {
     const [showMistakeCards, setShowMistakeCards] = useState(false);
 
     // Get active data
-    const monthData = allMonths[selectedMonth] || [];
-    const activeData = monthData.find(d => d.day === selectedDay) || monthData[0];
+    const monthData = selectedMonth === 'poems'
+        ? [...poemsData].sort((a, b) => a.id - b.id).map(p => ({ day: p.id }))
+        : (allMonths[selectedMonth] || []);
+    const activeData = selectedMonth === 'poems'
+        ? poemsData.find(p => p.id === selectedDay) || poemsData[0]
+        : (monthData.find(d => d.day === selectedDay) || monthData[0]);
 
     // Reset mistakes when changing text
     useEffect(() => {
@@ -228,7 +232,7 @@ const ReviewPage = () => {
                                 onClick={() => setShowDayPicker(!showDayPicker)}
                                 className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.1em] bg-slate-900 text-white hover:bg-[#880000] transition-all"
                             >
-                                <span>M{selectedMonth}·D{selectedDay}</span>
+                                <span>{selectedMonth === 'poems' ? `Poem ${selectedDay}` : `M${selectedMonth}·D${selectedDay}`}</span>
                                 <ChevronDown size={10} />
                             </button>
                             {showDayPicker && (
@@ -236,18 +240,18 @@ const ReviewPage = () => {
                                     <div className="fixed inset-0 z-40" onClick={() => setShowDayPicker(false)} />
                                     <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 shadow-xl z-50 p-3 sm:p-4 w-[240px] sm:w-[280px] animate-modal-in">
                                         <div className="flex gap-0 border border-slate-200 mb-3">
-                                            {[1, 2, 3, 4].map(m => (
+                                            {[1, 2, 3, 4, 'poems'].map(m => (
                                                 <button
                                                     key={m}
                                                     onClick={() => { setSelectedMonth(m); setSelectedDay(1); }}
                                                     className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${selectedMonth === m ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
                                                 >
-                                                    M{m}
+                                                    {m === 'poems' ? 'Poems' : `M${m}`}
                                                 </button>
                                             ))}
                                         </div>
                                         <div className="grid grid-cols-6 gap-1">
-                                            {(allMonths[selectedMonth] || []).map(d => (
+                                            {monthData.map(d => (
                                                 <button
                                                     key={d.day}
                                                     onClick={() => { setSelectedDay(d.day); setShowDayPicker(false); }}
@@ -317,7 +321,7 @@ const ReviewPage = () => {
                                     <div className="w-8 h-0.5 bg-[#880000] mb-1.5"></div>
                                     <h2 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 tracking-tight leading-tight truncate">{activeData.title}</h2>
                                     <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-[0.15em]">
-                                        M{selectedMonth} · Day {selectedDay} · {activeData.country}
+                                        {selectedMonth === 'poems' ? `Poem ${selectedDay} · ${activeData.author}` : `M${selectedMonth} · Day ${selectedDay} · ${activeData.country}`}
                                     </span>
                                 </div>
                                 {/* Mistake Counter */}
@@ -381,6 +385,56 @@ const ReviewPage = () => {
                                 <div className="space-y-4 sm:space-y-6">
                                     {(() => {
                                         const text = activeData.text;
+                                        const isPoem = selectedMonth === 'poems';
+
+                                        if (isPoem) {
+                                            const chunks = text.split(/\n\n+/).filter(s => s.trim());
+                                            return chunks.map((chunk, chunkIndex) => {
+                                                const lines = chunk.split('\n');
+                                                return (
+                                                    <div
+                                                        key={chunkIndex}
+                                                        className="relative animate-wipe-reveal space-y-1"
+                                                        style={{ animationDelay: `${chunkIndex * 150}ms` }}
+                                                    >
+                                                        <div className="absolute -left-1 sm:-left-2 md:-left-4 top-0 text-[9px] sm:text-[10px] font-bold text-slate-200">
+                                                            {String(chunkIndex + 1).padStart(2, '0')}
+                                                        </div>
+                                                        <div className={`${fontSizeClasses[readingFontSize]} font-normal pl-3 sm:pl-4 md:pl-6 border-l border-transparent text-slate-700`}>
+                                                            {lines.map((line, lIdx) => (
+                                                                <div key={lIdx} className="block min-h-[1.5em]">
+                                                                    {line.split(' ').map((word, wIdx) => {
+                                                                        const cleanWord = word.toLowerCase().replace(/[.,!?;:()\"'\-]/g, '').trim();
+                                                                        const isMistake = mistakes.has(cleanWord);
+
+                                                                        return (
+                                                                            <React.Fragment key={wIdx}>
+                                                                                <span
+                                                                                    onClick={(e) => {
+                                                                                        e.preventDefault();
+                                                                                        e.stopPropagation();
+                                                                                        toggleMistake(word);
+                                                                                    }}
+                                                                                    className={`transition-all duration-150 cursor-pointer select-none inline-block ${isMistake
+                                                                                        ? 'bg-[#880000] text-white px-0.5 sm:px-1 py-0.5 rounded-sm mistake-word-pulse'
+                                                                                        : 'hover:bg-slate-100 active:bg-slate-200'
+                                                                                        }`}
+                                                                                    title={isMistake ? 'Tap to unmark' : 'Tap to mark mistake'}
+                                                                                >
+                                                                                    {word}
+                                                                                </span>
+                                                                                {' '}
+                                                                            </React.Fragment>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            });
+                                        }
+
                                         const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
                                         const chunks = [];
                                         for (let i = 0; i < sentences.length; i += 2) {
