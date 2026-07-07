@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Play, Pause, ChevronDown, ChevronLeft, AlertCircle, Sparkles, Minus, Plus, Type, X, Music, FolderOpen, RotateCcw } from 'lucide-react';
+import { Upload, Play, Pause, ChevronDown, ChevronLeft, AlertCircle, Sparkles, Minus, Plus, Type, X, Music, FolderOpen, RotateCcw, Edit, Check } from 'lucide-react';
 import MistakeCards from './MistakeCards';
 
 // Import reading data
@@ -15,6 +15,27 @@ const ReviewPage = () => {
     const [selectedMonth, setSelectedMonth] = useState(1);
     const [selectedDay, setSelectedDay] = useState(1);
     const [showDayPicker, setShowDayPicker] = useState(false);
+
+    // Custom Text state
+    const [customTitle, setCustomTitle] = useState(() => {
+        return localStorage.getItem('review_custom_title') || 'Custom Paragraph';
+    });
+    const [customText, setCustomText] = useState(() => {
+        return localStorage.getItem('review_custom_text') || '';
+    });
+    const [isEditingCustom, setIsEditingCustom] = useState(() => {
+        const savedText = localStorage.getItem('review_custom_text') || '';
+        return !savedText;
+    });
+
+    // Persist custom text updates
+    useEffect(() => {
+        localStorage.setItem('review_custom_title', customTitle);
+    }, [customTitle]);
+
+    useEffect(() => {
+        localStorage.setItem('review_custom_text', customText);
+    }, [customText]);
 
     // Audio state
     const [audioFile, setAudioFile] = useState(null);
@@ -47,15 +68,17 @@ const ReviewPage = () => {
     // Get active data
     const monthData = selectedMonth === 'poems'
         ? [...poemsData].sort((a, b) => a.id - b.id).map(p => ({ day: p.id }))
-        : (allMonths[selectedMonth] || []);
+        : (selectedMonth === 'custom' ? [] : (allMonths[selectedMonth] || []));
     const activeData = selectedMonth === 'poems'
         ? poemsData.find(p => p.id === selectedDay) || poemsData[0]
-        : (monthData.find(d => d.day === selectedDay) || monthData[0]);
+        : (selectedMonth === 'custom'
+            ? { title: customTitle || 'Custom Paragraph', text: customText || '', country: 'Custom Content' }
+            : (monthData.find(d => d.day === selectedDay) || monthData[0]));
 
-    // Reset mistakes when changing text
+    // Reset mistakes when changing text or editing
     useEffect(() => {
         setMistakes(new Set());
-    }, [selectedMonth, selectedDay]);
+    }, [selectedMonth, selectedDay, isEditingCustom]);
 
     // Cleanup audio URL on unmount
     useEffect(() => {
@@ -232,35 +255,37 @@ const ReviewPage = () => {
                                 onClick={() => setShowDayPicker(!showDayPicker)}
                                 className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-[0.1em] bg-slate-900 text-white hover:bg-[#880000] transition-all"
                             >
-                                <span>{selectedMonth === 'poems' ? `Poem ${selectedDay}` : `M${selectedMonth}·D${selectedDay}`}</span>
+                                <span>{selectedMonth === 'poems' ? `Poem ${selectedDay}` : selectedMonth === 'custom' ? 'Custom' : `M${selectedMonth}·D${selectedDay}`}</span>
                                 <ChevronDown size={10} />
                             </button>
                             {showDayPicker && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setShowDayPicker(false)} />
                                     <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 shadow-xl z-50 p-3 sm:p-4 w-[240px] sm:w-[280px] animate-modal-in">
-                                        <div className="flex gap-0 border border-slate-200 mb-3">
-                                            {[1, 2, 3, 4, 'poems'].map(m => (
+                                        <div className="grid grid-cols-3 gap-1 border border-slate-200 mb-3">
+                                            {[1, 2, 3, 4, 'poems', 'custom'].map(m => (
                                                 <button
                                                     key={m}
                                                     onClick={() => { setSelectedMonth(m); setSelectedDay(1); }}
-                                                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${selectedMonth === m ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                                                    className={`py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${selectedMonth === m ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
                                                 >
-                                                    {m === 'poems' ? 'Poems' : `M${m}`}
+                                                    {m === 'poems' ? 'Poems' : m === 'custom' ? 'Custom' : `M${m}`}
                                                 </button>
                                             ))}
                                         </div>
-                                        <div className="grid grid-cols-6 gap-1">
-                                            {monthData.map(d => (
-                                                <button
-                                                    key={d.day}
-                                                    onClick={() => { setSelectedDay(d.day); setShowDayPicker(false); }}
-                                                    className={`py-1.5 sm:py-2 text-xs font-bold transition-all ${selectedDay === d.day ? 'bg-[#880000] text-white' : 'text-slate-600 hover:bg-slate-100'}`}
-                                                >
-                                                    {d.day}
-                                                </button>
-                                            ))}
-                                        </div>
+                                        {selectedMonth !== 'custom' && (
+                                            <div className="grid grid-cols-6 gap-1">
+                                                {monthData.map(d => (
+                                                    <button
+                                                        key={d.day}
+                                                        onClick={() => { setSelectedDay(d.day); setShowDayPicker(false); }}
+                                                        className={`py-1.5 sm:py-2 text-xs font-bold transition-all ${selectedDay === d.day ? 'bg-[#880000] text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                                                    >
+                                                        {d.day}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </>
                             )}
@@ -312,7 +337,59 @@ const ReviewPage = () => {
 
             {/* ========== MAIN CONTENT ========== */}
             <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-                {activeData && (
+                {selectedMonth === 'custom' && isEditingCustom ? (
+                    <div className="bg-white shadow-xl overflow-hidden border-l-4 border-[#880000] animate-fade-in p-6 sm:p-8">
+                        <div className="w-8 h-0.5 bg-[#880000] mb-3"></div>
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight mb-6">Enter Custom Paragraph</h2>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Paragraph Title</label>
+                                <input
+                                    type="text"
+                                    value={customTitle}
+                                    onChange={(e) => setCustomTitle(e.target.value)}
+                                    placeholder="e.g., My Custom Practice Text"
+                                    className="w-full px-3 py-2 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#880000] focus:border-[#880000] transition-all"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Paragraph Text</label>
+                                <textarea
+                                    value={customText}
+                                    onChange={(e) => setCustomText(e.target.value)}
+                                    placeholder="Paste or type your custom text here..."
+                                    rows={8}
+                                    className="w-full px-3 py-2 border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-[#880000] focus:border-[#880000] transition-all font-sans leading-relaxed text-slate-700"
+                                />
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        if (customText.trim()) {
+                                            setIsEditingCustom(false);
+                                        }
+                                    }}
+                                    disabled={!customText.trim()}
+                                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-[#880000] text-white font-bold text-[10px] uppercase tracking-[0.2em] transition-all disabled:opacity-30"
+                                >
+                                    <Check size={14} />
+                                    <span>Save & Review</span>
+                                </button>
+                                {localStorage.getItem('review_custom_text') && (
+                                    <button
+                                        onClick={() => setIsEditingCustom(false)}
+                                        className="px-4 py-2.5 border border-slate-200 text-slate-500 hover:bg-slate-50 text-[10px] font-bold uppercase tracking-[0.2em] transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ) : activeData && (
                     <div className="bg-white shadow-xl overflow-hidden border-l-4 border-[#880000] animate-fade-in">
                         {/* Header */}
                         <div className="bg-slate-50 border-b border-slate-100 px-4 sm:px-6 py-3 sm:py-4">
@@ -321,11 +398,26 @@ const ReviewPage = () => {
                                     <div className="w-8 h-0.5 bg-[#880000] mb-1.5"></div>
                                     <h2 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 tracking-tight leading-tight truncate">{activeData.title}</h2>
                                     <span className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-[0.15em]">
-                                        {selectedMonth === 'poems' ? `Poem ${selectedDay} · ${activeData.author}` : `M${selectedMonth} · Day ${selectedDay} · ${activeData.country}`}
+                                        {selectedMonth === 'poems' 
+                                            ? `Poem ${selectedDay} · ${activeData.author}` 
+                                            : selectedMonth === 'custom' 
+                                                ? 'Custom Text' 
+                                                : `M${selectedMonth} · Day ${selectedDay} · ${activeData.country}`}
                                     </span>
                                 </div>
-                                {/* Mistake Counter */}
+                                {/* Mistake Counter & Custom Edit Action */}
                                 <div className="flex items-center gap-2 flex-shrink-0">
+                                    {selectedMonth === 'custom' && (
+                                        <button
+                                            onClick={() => setIsEditingCustom(true)}
+                                            className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-[#880000] transition-all uppercase tracking-wider"
+                                            title="Edit text"
+                                        >
+                                            <Edit size={12} />
+                                            <span className="hidden sm:inline">Edit Text</span>
+                                            <span className="sm:hidden">Edit</span>
+                                        </button>
+                                    )}
                                     {mistakes.size > 0 && (
                                         <button
                                             onClick={() => setMistakes(new Set())}
@@ -384,8 +476,58 @@ const ReviewPage = () => {
                                 {/* Text Chunks */}
                                 <div className="space-y-4 sm:space-y-6">
                                     {(() => {
-                                        const text = activeData.text;
+                                        const text = activeData.text || '';
                                         const isPoem = selectedMonth === 'poems';
+                                        const isCustom = selectedMonth === 'custom';
+
+                                        if (isCustom) {
+                                            const chunks = text.split(/\n\n+/).filter(s => s.trim());
+                                            let globalWordIndex = 0;
+                                            return chunks.map((chunk, chunkIndex) => {
+                                                const chunkWords = chunk.split(/\s+/).filter(Boolean);
+                                                const startWordIndex = globalWordIndex;
+                                                globalWordIndex += chunkWords.length;
+
+                                                return (
+                                                    <div
+                                                        key={chunkIndex}
+                                                        className="relative animate-wipe-reveal"
+                                                        style={{ animationDelay: `${chunkIndex * 150}ms` }}
+                                                    >
+                                                        <div className="absolute -left-1 sm:-left-2 md:-left-4 top-0 text-[9px] sm:text-[10px] font-bold text-slate-200">
+                                                            {String(chunkIndex + 1).padStart(2, '0')}
+                                                        </div>
+                                                        <p className={`${fontSizeClasses[readingFontSize]} font-normal pl-3 sm:pl-4 md:pl-6 border-l border-transparent text-slate-700`}>
+                                                            {chunkWords.map((word, wordIndexInChunk) => {
+                                                                const index = startWordIndex + wordIndexInChunk;
+                                                                const cleanWord = word.toLowerCase().replace(/[.,!?;:()\"'\-]/g, '').trim();
+                                                                const isMistake = mistakes.has(cleanWord);
+
+                                                                return (
+                                                                    <React.Fragment key={index}>
+                                                                        <span
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                e.stopPropagation();
+                                                                                toggleMistake(word);
+                                                                            }}
+                                                                            className={`transition-all duration-150 cursor-pointer select-none inline-block ${isMistake
+                                                                                ? 'bg-[#880000] text-white px-0.5 sm:px-1 py-0.5 rounded-sm mistake-word-pulse'
+                                                                                : 'hover:bg-slate-100 active:bg-slate-200'
+                                                                                }`}
+                                                                            title={isMistake ? 'Tap to unmark' : 'Tap to mark mistake'}
+                                                                        >
+                                                                            {word}
+                                                                        </span>
+                                                                        {' '}
+                                                                    </React.Fragment>
+                                                                );
+                                                            })}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            });
+                                        }
 
                                         if (isPoem) {
                                             const chunks = text.split(/\n\n+/).filter(s => s.trim());
