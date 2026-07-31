@@ -1,6 +1,4 @@
-# Serve static SEO files directly (don't redirect to SPA)
-/sitemap.xml    /sitemap.xml    200
-/robots.txt     /robots.txt     200
+# Static files like sitemap.xml and robots.txt are served automatically
 
 # Discord domain verification
 /.well-known/discord    /.well-known/discord    200
