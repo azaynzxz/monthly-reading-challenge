@@ -1,0 +1,26 @@
+[
+  {
+    "icon": "MessageCircle",
+    "label": "Join WhatsApp Community",
+    "description": "Get notified about new drops & free resources",
+    "href": "https://chat.whatsapp.com/G1Khd9Ul9AT6tH7zqldu5E",
+    "external": true,
+    "accent": true
+  },
+  {
+    "icon": "Gift",
+    "label": "Free Resources",
+    "description": "PDF worksheets, vocabulary packs & more",
+    "href": "/hello/freebies",
+    "external": false,
+    "accent": false
+  },
+  {
+    "icon": "ShoppingBag",
+    "label": "Browse Shop Catalogue",
+    "description": "Premium digital products for English learners",
+    "href": "/hello/shop",
+    "external": false,
+    "accent": false
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "name": "Mr. Zayn",
+  "handle": "@azaynzxz",
+  "bio": "English Teacher • Creator • Digital Products",
+  "avatar": "/images/avatar.jpg",
+  "website": "https://myenglish.my.id",
+  "whatsapp": "https://chat.whatsapp.com/G1Khd9Ul9AT6tH7zqldu5E",
+  "socials": [
+    {
+      "platform": "Instagram",
+      "slug": "instagram",
+      "url": "https://instagram.com/azaynzxz"
+    },
+    {
+      "platform": "TikTok",
+      "slug": "tiktok",
+      "url": "https://tiktok.com/@azaynzxz"
+    },
+    {
+      "platform": "YouTube",
+      "slug": "youtube",
+      "url": "https://youtube.com/@azaynzxz"
+    },
+    {
+      "platform": "Facebook",
+      "slug": "facebook",
+      "url": "https://facebook.com/azaynzxz"
+    },
+    {
+      "platform": "WhatsApp",
+      "slug": "whatsapp",
+      "url": "https://chat.whatsapp.com/G1Khd9Ul9AT6tH7zqldu5E"
+    }
+  ]
+}

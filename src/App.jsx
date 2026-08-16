@@ -9,6 +9,11 @@ import NotFound from './components/NotFound';
 import ReviewPage from './components/ReviewPage';
 import StoryRoulette from './components/StoryRoulette';
 import Transcribe from './components/Transcribe';
+// Hello microsite pages
+import HelloLayout from './pages/hello/HelloLayout';
+import HelloPage from './pages/hello/HelloPage';
+import ShopPage from './pages/hello/ShopPage';
+import FreebiesPage from './pages/hello/FreebiesPage';
 
 // Wrapper to check if path matches reading challenge pattern
 const ReadingChallengeWrapper = () => {
@@ -50,6 +55,12 @@ function App() {
             <Route path="/poem" element={<PoemChallenge />} />
             <Route path="/poem/:id" element={<PoemChallenge />} />
             <Route path="/transcribe" element={<Transcribe />} />
+            {/* Hello microsite — nested inside HelloLayout for shared language context */}
+            <Route element={<HelloLayout />}>
+                <Route path="/hello" element={<HelloPage />} />
+                <Route path="/hello/shop" element={<ShopPage />} />
+                <Route path="/hello/freebies" element={<FreebiesPage />} />
+            </Route>
             {/* Match any path - ReadingChallengeWrapper will check if it's valid */}
             <Route path="/*" element={<ReadingChallengeWrapper />} />
         </Routes>
