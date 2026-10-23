@@ -142,7 +142,7 @@ const Footer = () => {
                                 <span className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Navigate</span>
                             </div>
                             <div className="space-y-3">
-                                <Link to="/" className="block text-sm text-white/50 hover:text-white transition-colors">Home</Link>
+                                <Link to="/?home=true" className="block text-sm text-white/50 hover:text-white transition-colors">Home</Link>
                                 <Link to="/about" className="block text-sm text-white/50 hover:text-white transition-colors">About</Link>
                                 <Link to="/donate" className="block text-sm text-white/50 hover:text-white transition-colors">Donate</Link>
                                 <Link to="/m1-day1" className="block text-sm text-white/50 hover:text-white transition-colors">Start Challenge</Link>

@@ -48,7 +48,7 @@ const Navbar = ({
                     <div className="flex items-center justify-between h-14 md:h-16">
                         {/* Logo */}
                         <Link
-                            to="/"
+                            to="/?home=true"
                             className="cursor-pointer group block"
                         >
                             <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-8 md:h-10" />

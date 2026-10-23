@@ -9,7 +9,9 @@ export const StorageKeys = {
     SETTINGS: 'english_practice_settings',
     POEM_PRACTICED: 'english_practice_poem_practiced',
     POEM_STATISTICS: 'english_practice_poem_statistics',
-    POEM_PROGRESS: 'english_practice_poem_progress'
+    POEM_PROGRESS: 'english_practice_poem_progress',
+    LAST_STORY: 'english_practice_last_story',
+    HAS_VISITED: 'english_practice_has_visited'
 };
 
 export const getStorage = (key, defaultValue = null) => {

@@ -2,10 +2,31 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { BookOpen, Target, TrendingUp, Globe, ArrowRight, Users, Award, HeadphonesIcon, Github, Instagram, Mail, Heart } from 'lucide-react';
 import SEO from './SEO';
+import { getStorage, StorageKeys } from '../utils/storage';
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Auto-resume for returning users: forward directly to their last story
+    useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        // Allow intentional visits to homepage via ?home=true or ?welcome=true
+        if (searchParams.get('home') === 'true' || searchParams.get('welcome') === 'true') {
+            return;
+        }
+
+        const hasVisited = getStorage(StorageKeys.HAS_VISITED, false);
+        const lastStory = getStorage(StorageKeys.LAST_STORY, null);
+        const progress = getStorage(StorageKeys.PROGRESS, null);
+        const hasCompletedDays = progress?.completedDays && Object.keys(progress.completedDays).length > 0;
+
+        if (hasVisited || lastStory || hasCompletedDays) {
+            const target = lastStory || '/m1-day1';
+            navigate(target, { replace: true });
+        }
+    }, [navigate, location.search]);
+
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroSlides, setHeroSlides] = useState([]);
     const [isHovered, setIsHovered] = useState(false);

@@ -258,8 +258,8 @@ const ReadingChallenge = () => {
         if (pathMatch) {
             const monthParam = parseInt(pathMatch[1]);
             const dayParam = parseInt(pathMatch[2]);
-            if (monthParam && monthParam >= 1 && monthParam <= 3) setCurrentMonth(monthParam);
-            if (dayParam && dayParam >= 1 && dayParam <= 30) setCurrentDay(dayParam);
+            if (monthParam && monthParam >= 1 && monthParam <= 4) setCurrentMonth(monthParam);
+            if (dayParam && dayParam >= 1 && dayParam <= 31) setCurrentDay(dayParam);
 
             // Check for quiz parameter
             const urlParams = new URLSearchParams(window.location.search);
@@ -378,6 +378,8 @@ const ReadingChallenge = () => {
         if (window.location.pathname !== newPath) {
             navigate(newPath, { replace: true });
         }
+        setStorage(StorageKeys.LAST_STORY, newPath);
+        setStorage(StorageKeys.HAS_VISITED, true);
     }, [currentMonth, currentDay, navigate, isInitialized]);
 
     const isDayPracticed = (month, day) => {
@@ -606,7 +608,7 @@ const ReadingChallenge = () => {
             if (activeData.localImage || activeData.wikiSearch) {
                 ctx.fillStyle = 'rgba(255,255,255,0.35)';
                 ctx.font = 'bold 18px Arial, sans-serif';
-                ctx.fillText(`📷 ${activeData.wikiSearch || activeData.title} · Wikipedia`, sidePadding, imageHeight - 20);
+                ctx.fillText(`Photo: ${activeData.wikiSearch || activeData.title} · Wikipedia`, sidePadding, imageHeight - 20);
             }
 
             // === RED ACCENT BAR ===
@@ -655,7 +657,7 @@ const ReadingChallenge = () => {
             // Chunk number indicator
             ctx.fillStyle = '#DDDDDD';
             ctx.font = 'bold 18px Arial, sans-serif';
-            ctx.fillText('✦', contentPadding + 5, yPos + textFontSize * 0.3);
+            ctx.fillText('•', contentPadding + 5, yPos + textFontSize * 0.3);
 
             // Note text
             ctx.fillStyle = '#444444';
