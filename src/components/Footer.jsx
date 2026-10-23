@@ -177,13 +177,13 @@ const Footer = () => {
                                 <div className="w-4 h-0.5 bg-[#880000]"></div>
                                 <span className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Action</span>
                             </div>
-                            <button
-                                onClick={() => navigate('/m1-day1')}
+                            <Link
+                                to="/m1-day1"
                                 className="group flex items-center gap-2 text-[#ff6b6b] hover:text-white transition-colors mb-4"
                             >
                                 <span className="text-sm font-medium">Start Challenge</span>
                                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
+                            </Link>
                             <p className="text-[10px] text-white/30 leading-relaxed">
                                 Begin your 90-day journey to English fluency today.
                             </p>

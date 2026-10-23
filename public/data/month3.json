@@ -1,272 +1,332 @@
 [
-    {
-        "day": 1,
-        "country": "Indonesia",
-        "title": "Morning Market in Yogyakarta",
-        "wikiSearch": "Yogyakarta",
-        "localImage": "/images/stories/month3/day1-yogyakarta.webp",
-        "imageTitle": "Yogyakarta",
-        "imageDescription": "Yogyakarta is the capital city of the Special Region of Yogyakarta in Indonesia, in the south-central part of the island of Java. As the only Indonesian royal city still ruled by a monarchy, Yogyakarta is regarded as an important centre for classical Javanese fine arts and culture such as ballet, batik textiles, drama, literature, music, poetry, silversmithing, visual arts, and wayang puppetry. Renowned as a centre of Indonesian education, Yogyakarta is home to a large student population and dozens of schools and universities, including Gadjah Mada University, the country's largest institute of higher education and one of its most prestigious."
-    },
-    {
-        "day": 2,
-        "country": "Tanzania",
-        "title": "Grinding Coffee in Arusha",
-        "wikiSearch": "Tanzania coffee",
-        "localImage": "/images/stories/month3/day2-tanzania-coffee.webp",
-        "imageTitle": "Coffee production in Tanzania",
-        "imageDescription": "Coffee production in Tanzania is a significant aspect of its economy as it is Tanzania's largest export crop. Tanzanian coffee production averages between 30,000 and 40,000 metric tons annually of which approximately 70% is Arabica and 30% is Robusta."
-    },
-    {
-        "day": 3,
-        "country": "Myanmar",
-        "title": "Monk's Alms in Yangon",
-        "wikiSearch": "Shwedagon Pagoda",
-        "localImage": "/images/stories/month3/day3-shwedagon-pagoda.webp",
-        "imageTitle": "Shwedagon Pagoda",
-        "imageDescription": "The Shwedagon Pagoda, officially named Shwedagon Zedi Daw, and also known as the Great Dagon Pagoda and the Golden Pagoda, is a gilded stupa located in Yangon, Myanmar."
-    },
-    {
-        "day": 4,
-        "country": "India",
-        "title": "Street Food in Chandni Chowk",
-        "wikiSearch": "Chandni Chowk",
-        "localImage": "/images/stories/month3/day4-jalebi.webp",
-        "imageTitle": "Jalebi",
-        "imageDescription": "Jalebi is a common sweet snack in the Indian subcontinent, West Asia and some parts of Africa. It goes by many names, including jilapi, zelepi, jilebi,  jilipi, zulbia, zoolbia, jerry, mushabak, z'labia, or zalabia."
-    },
-    {
-        "day": 5,
-        "country": "Pakistan",
-        "title": "Winter in the Swat Valley",
-        "wikiSearch": "Swat District",
-        "localImage": "/images/stories/month3/day5-swat-district.webp",
-        "imageTitle": "Swat Valley",
-        "imageDescription": "Swat is a valley and an administrative district in the Khyber Pakhtunkhwa province of Pakistan. It is the upper valley of the Swat River, which rises in the Hindu Kush range. The valley was a major centre of early Buddhism and was known in ancient times as Uddiyana. The region is known for its lush forests, alpine meadows, and snow-capped peaks. Malam Jabba, located within the valley, hosts Pakistan's only ski resort and receives heavy snowfall during winter months from November through March."
-    },
-    {
-        "day": 6,
-        "country": "Afghanistan",
-        "title": "Carpet Weaving in Herat",
-        "wikiSearch": "Afghan rug",
-        "localImage": "/images/stories/month3/day6-herat.webp",
-        "imageTitle": "Herat",
-        "imageDescription": "Herat, also written as Harat or Hirat, and historically known as Haraiva, Horeiva and Hires, is a city in western Afghanistan, serving as the capital and largest city of Herat Province. It has long been the third-largest city of Afghanistan. The city is within the jurisdiction of Herat District and has an estimated population of 673,273 settled residents. Mullah Nematullah Hassan is the current mayor of the city. His predecessor was Haji Abdulraziq Rashed."
-    },
-    {
-        "day": 7,
-        "country": "Indonesia",
-        "title": "Phinisi Boats of Bulukumba",
-        "wikiSearch": "Pinisi",
-        "localImage": "/images/stories/month3/day7-pinisi.webp",
-        "imageTitle": "Pinisi",
-        "imageDescription": "Pinisi or Phinisi is a traditional Indonesian two-masted sailing ship. It was mainly built by the Konjo tribe, a sub-ethnic group of Bugis-Makassar in Bulukumba regency, South Sulawesi, and largely used by the Buginese and Makassarese as a cargo vessel and for transport purposes. In December 2017, UNESCO recognised the art of boatbuilding in South Sulawesi as a Masterpiece of Oral and Intangible Heritage of Humanity."
-    },
-    {
-        "day": 8,
-        "country": "Australia",
-        "title": "The Magic of Sydney Harbour",
-        "wikiSearch": "Sydney Opera House",
-        "localImage": "/images/stories/month3/day8-sydney-opera-house.webp",
-        "imageTitle": "Sydney Opera House",
-        "imageDescription": "The Sydney Opera House is a multi-venue performing arts centre in Sydney. Located on the banks of Sydney Harbour, it is widely regarded as one of the world's most famous and distinctive buildings and a masterpiece of 20th-century architecture. Designed by Danish architect Jorn Utzon, the building's roof structure consists of a series of interlocking shell-shaped sections covered with over one million self-cleaning tiles. It was designated a UNESCO World Heritage Site in 2007."
-    },
-    {
-        "day": 9,
-        "country": "Bangladesh",
-        "title": "Rickshaw Art in Dhaka",
-        "wikiSearch": "Rickshaw art",
-        "localImage": "/images/stories/month3/day9-rickshaw-art.webp",
-        "imageTitle": "Rickshaw art",
-        "imageDescription": "Rickshaw art is a form of urban folk art originating in Bangladesh. It is primarily found on cycle rickshaws in Dhaka, where artists paint elaborate scenes on the back panels and mudguards of the vehicles. Common subjects include movie scenes, landscapes, animals, and political figures. The tradition dates back to the 1950s and has become a defining visual characteristic of Dhaka's streets. Dhaka has been called the Rickshaw Capital of the World, with an estimated 800,000 rickshaws operating in the city."
-    },
-    {
-        "day": 10,
-        "country": "Madagascar",
-        "title": "Rice Fields in Antananarivo",
-        "wikiSearch": "Rice",
-        "localImage": "/images/stories/month3/day10-rice.webp",
-        "imageTitle": "Rice",
-        "imageDescription": "Rice is a cereal grain and in its domesticated form is the staple food of over half of the world's population, particularly in Asia and Africa. Rice is the seed of the grass species Oryza sativa —or, much less commonly, Oryza glaberrima. Asian rice was domesticated in China some 13,500 to 8,200 years ago; African rice was domesticated in Africa about 3,000 years ago. Rice has become commonplace in many cultures worldwide; in 2023, 800 million tons were produced, placing it third after sugarcane and maize. Only some 8% of rice is traded internationally. China, India, and Indonesia are the largest consumers of rice. A substantial amount of the rice produced in developing nations is lost after harvest through factors such as poor transport and storage. Rice yields can be reduced by pests including insects, rodents, and birds, as well as by weeds, and by diseases such as rice blast. Traditional rice polycultures such as rice-duck farming, and modern integrated pest management seek to control damage from pests in a sustainable way."
-    },
-    {
-        "day": 11,
-        "country": "Laos",
-        "title": "Morning Alms in Luang Prabang",
-        "wikiSearch": "Luang Prabang",
-        "localImage": "/images/stories/month3/day11-luang-prabang.webp",
-        "imageTitle": "Luang Prabang",
-        "imageDescription": "Luang Prabang, historically known as Xieng Thong (ຊຽງທອງ) and alternatively spelled Luang Phabang or Louangphabang, is the capital of Luang Prabang Province in north-central Laos. Its name, meaning “Royal Buddha Image,” derives from the Phra Bang, a statue symbolizing Lao sovereignty. Designated a UNESCO World Heritage Site in 1995, the city is recognized for blending traditional Lao architecture, European colonial buildings, and over 30 Buddhist temples. The protected area encompasses 33 of its 58 villages, where daily rituals like the morning alms-giving ceremony persist."
-    },
-    {
-        "day": 12,
-        "country": "Honduras",
-        "title": "Making Tortillas in Tegucigalpa",
-        "wikiSearch": "Tortilla",
-        "localImage": "/images/stories/month3/day12-tortilla.webp",
-        "imageTitle": "Tortilla",
-        "imageDescription": "A tortilla is a thin, circular unleavened flatbread from Mesoamerica originally made from masa, and now also from wheat flour."
-    },
-    {
-        "day": 13,
-        "country": "Mozambique",
-        "title": "Fishing Net Repair in Maputo",
-        "wikiSearch": "Maputo",
-        "localImage": "/images/stories/month3/day13-maputo.webp",
-        "imageTitle": "Maputo",
-        "imageDescription": "Maputo is the capital and largest city of Mozambique. Located near the southern end of the country, it is within 120 kilometres of the borders with Eswatini and South Africa. The city has a population of 1,088,449 distributed over a land area of 347.69 km2 (134.24 sq mi). The Maputo metropolitan area includes the neighbouring city of Matola, and has a total population of 2,717,437. Maputo is a port city, with an economy centered on commerce. It is noted for its vibrant cultural scene and distinctive, eclectic architecture. Maputo was formerly named Lourenço Marques."
-    },
-    {
-        "day": 14,
-        "country": "Albania",
-        "title": "Coffee in Tirana",
-        "wikiSearch": "Turkish coffee",
-        "localImage": "/images/stories/month3/day14-turkish-coffee.webp",
-        "imageTitle": "Turkish coffee",
-        "imageDescription": "Turkish coffee is a style of coffee prepared in a cezve using very finely ground coffee beans without filtering or settling to remove the grounds. Similar beverages go under different names in the Middle and Near East and eastern Europe."
-    },
-    {
-        "day": 15,
-        "country": "Papua New Guinea",
-        "title": "Sago Processing in Port Moresby",
-        "wikiSearch": "Sago",
-        "localImage": "/images/stories/month3/day15-sago.webp",
-        "imageTitle": "Sago",
-        "imageDescription": "Sago is a starch extracted from the pith, or spongy core tissue, of various tropical palm stems, especially those of Metroxylon sagu. It is a major staple food for the lowland peoples of New Guinea and the Maluku Islands, where it is called saksak, rabia and sagu. The largest supply of sago comes from Melanesia region, particularly Eastern Indonesia. Large quantities of sago are sent to Europe and North America for cooking purposes. It is traditionally cooked and eaten in various forms, such as rolled into balls, mixed with boiling water to form a glue-like paste (papeda), or as a pancake."
-    },
-    {
-        "day": 16,
-        "country": "Tunisia",
-        "title": "Bread from the Communal Oven",
-        "wikiSearch": "Wood-fired oven",
-        "localImage": "/images/stories/month3/day16-wood-fired-oven.webp",
-        "imageTitle": "Oven",
-        "imageDescription": "An oven is a tool that is used to expose materials to a hot environment. Ovens contain a hollow chamber and provide a means of heating the chamber in a controlled way. In use since antiquity, they have been used to accomplish a wide variety of tasks requiring controlled heating. Because they are used for a variety of purposes, there are many different types of ovens. These types differ depending on their intended purpose and based upon how they generate heat."
-    },
-    {
-        "day": 17,
-        "country": "Kyrgyzstan",
-        "title": "Yurt Life in the Mountains",
-        "wikiSearch": "Tian Shan",
-        "localImage": "/images/stories/month3/day17-tian-shan.webp",
-        "imageTitle": "Tian Shan",
-        "imageDescription": "The Tian Shan, also known as the Tengri Tagh or Tengir-Too, is a large system of mountain ranges in Central Asia. The highest peak is Jengish Chokusu at 7,439 metres (24,406 ft) high and located in Kyrgyzstan. Its lowest point is at the Turpan Depression, which is 154 m (505 ft) below sea level."
-    },
-    {
-        "day": 18,
-        "country": "Haiti",
-        "title": "Street Art in Port-au-Prince",
-        "wikiSearch": "Haitian art",
-        "localImage": "/images/stories/month3/day18-haitian-art.webp",
-        "imageTitle": "Haitian art",
-        "imageDescription": "Haitian art is a complex tradition, reflecting African roots with strong Indigenous, American and European aesthetic and religious influences. It is an important expression of Haitian culture and history.\nMany artists cluster in \"schools\" of painting, such as the Cap-Haïtien school, which features depictions of daily life in the city, the Jacmel School, which reflects the steep mountains and bays of that coastal town, or the Saint-Soleil School, which is characterized by abstracted human forms and is heavily influenced by \"Vaudou\" symbolism."
-    },
-    {
-        "day": 19,
-        "country": "Bhutan",
-        "title": "Archery in Thimphu",
-        "wikiSearch": "Thimphu",
-        "localImage": "/images/stories/month3/day19-thimphu.webp",
-        "imageTitle": "Thimphu",
-        "imageDescription": "Thimphu is the capital and largest city of Bhutan. It is situated in the western central part of Bhutan, and the surrounding valley is one of Bhutan's dzongkhags, the Thimphu District. The ancient capital city of Punakha was replaced by Thimphu as the capital in 1955, and in 1961 Thimphu was officially declared the capital of the Kingdom of Bhutan by the 3rd Druk Gyalpo Jigme Dorji Wangchuck."
-    },
-    {
-        "day": 20,
-        "country": "Nicaragua",
-        "title": "Gallo Pinto for Breakfast",
-        "wikiSearch": "Managua",
-        "localImage": "/images/stories/month3/day20-managua.webp",
-        "imageTitle": "Managua",
-        "imageDescription": "Managua is the capital and largest city of Nicaragua, and one of the largest cities in Central America. Located on the shores of Lake Managua, the city had an estimated population of 1,055,247 as of 2020, and a population of 1,401,687 in its metropolitan area. The city also serves as the seat of Managua Department."
-    },
-    {
-        "day": 21,
-        "country": "Mauritania",
-        "title": "Camel Caravan in the Desert",
-        "wikiSearch": "Camel",
-        "localImage": "/images/stories/month3/day21-camel.webp",
-        "imageTitle": "Camel",
-        "imageDescription": "A camel is an even-toed ungulate in the genus Camelus that bears distinctive fatty deposits known as \"humps\" on its back. Camels have long been domesticated and, as livestock, they provide food and textiles. Camels are working animals especially suited to their desert habitat and are a vital means of transport for passengers and cargo. There are three surviving species of camel. The one-humped dromedary makes up 94% of the world's camel population, and the two-humped Bactrian camel makes up 6%. The wild Bactrian camel is a distinct species that is not ancestral to the domestic Bactrian camel, and is now critically endangered, with fewer than 1,000 individuals."
-    },
-    {
-        "day": 22,
-        "country": "East Timor",
-        "title": "Coffee Harvest in the Hills",
-        "wikiSearch": "Coffee",
-        "localImage": "/images/stories/month3/day22-coffee.webp",
-        "imageTitle": "Coffee",
-        "imageDescription": "Coffee is a beverage brewed from roasted, ground coffee beans. Darkly colored, bitter, and slightly acidic, coffee has a stimulating effect on humans, primarily due to its caffeine content, but decaffeinated coffee is also commercially available. There are also various coffee substitutes."
-    },
-    {
-        "day": 23,
-        "country": "Paraguay",
-        "title": "TererÃ© Circle in AsunciÃ³n",
-        "wikiSearch": "Asuncion",
-        "localImage": "/images/stories/month3/day23-asuncion.webp",
-        "imageTitle": "Asunción",
-        "imageDescription": "Asunción is the capital and the largest city of Paraguay. The city stands on the eastern bank of the Paraguay River, almost at the confluence of this river with the Pilcomayo River. The Paraguay River and the Bay of Asunción in the northwest separate the city from the Occidental Region of Paraguay and from Argentina in the south part of the city. The rest of the city is surrounded by the Central Department."
-    },
-    {
-        "day": 24,
-        "country": "Maldives",
-        "title": "Fishing at Sunset",
-        "wikiSearch": "Malé",
-        "localImage": "/images/stories/month3/day24-mal.webp",
-        "imageTitle": "Malé",
-        "imageDescription": "Malé is the capital and most populous city of the Maldives. With a population of 211,908 in 2022 within its administrative area and coterminous geographical area of 8.30 square kilometres (3.20 sq mi), Malé is one of the most densely populated cities in the world. The city is geographically located in the southern edge of North Malé Atoll. Administratively, the city consists of a central island, an airport island, and five other islands presided over by the Malé City Council."
-    },
-    {
-        "day": 25,
-        "country": "Mali",
-        "title": "Mud Mosque in DjennÃ©",
-        "wikiSearch": "Great Mosque of Djenné",
-        "localImage": "/images/stories/month3/day25-great-mosque-of-djenn.webp",
-        "imageTitle": "Great Mosque of Djenné",
-        "imageDescription": "The Great Mosque of Djenné in the Sudano-Sahelian architectural style is the largest adobe brick building in the world. The mosque is located in the city of Djenné, Mali, on the flood plain of the Bani River. The first mosque on the site was built around the 13th century, but the current structure dates from 1907. As well as being the centre of the community of Djenné, it is one of the most famous landmarks in Africa. Along with the \"Old Towns of Djenné\", it was designated a World Heritage Site by UNESCO in 1988."
-    },
-    {
-        "day": 26,
-        "country": "El Salvador",
-        "title": "Pupusas in San Salvador",
-        "wikiSearch": "San Salvador",
-        "localImage": "/images/stories/month3/day26-san-salvador.webp",
-        "imageTitle": "San Salvador",
-        "imageDescription": "San Salvador is the capital and largest city of El Salvador and its eponymous department. It is the country's largest agglomeration, serving as the country's political, cultural, educational and financial center. The municipality of San Salvador has 525,990 inhabitants (2024). The Metropolitan Area of San Salvador, which comprises the capital itself and 13 of its municipalities, has a population of 2,404,097. The urban area of San Salvador has a population of 1,600,000 inhabitants."
-    },
-    {
-        "day": 27,
-        "country": "Burkina Faso",
-        "title": "Djembe Circle in Ouagadougou",
-        "wikiSearch": "Djembe",
-        "localImage": "/images/stories/month3/day27-djembe.webp",
-        "imageTitle": "Djembe",
-        "imageDescription": "A djembe or jembe is a rope-tuned, skin-covered goblet drum played with bare hands, originally from West Africa.\nAccording to the Bambara people in Mali, the name \"djembe\" comes from the saying \"Anke djé, anke bé,\" which translates to \"everyone gather together in peace\" and defines the drum's purpose. In the Bambara language, \"djé\" is the verb for \"gather\" and \"bé\" translates as \"peace.\""
-    },
-    {
-        "day": 28,
-        "country": "Vanuatu",
-        "title": "Kava Ceremony in Port Vila",
-        "wikiSearch": "Port Vila",
-        "localImage": "/images/stories/month3/day28-port-vila.webp",
-        "imageTitle": "Port Vila",
-        "imageDescription": "Port Vila, or simply Vila, is the capital of Vanuatu and its largest city. It is on the island of Efate, in Shefa Province."
-    },
-    {
-        "day": 29,
-        "country": "Armenia",
-        "title": "Bread Making in Yerevan",
-        "wikiSearch": "Yerevan",
-        "localImage": "/images/stories/month3/day29-yerevan.webp",
-        "imageTitle": "Yerevan",
-        "imageDescription": "Yerevan is the capital and largest city of Armenia, as well as one of the world's oldest continuously inhabited cities. Situated along the Hrazdan River, Yerevan is the administrative, cultural, and industrial centre of the country, as its primate city. It has been the capital since 1918, the fourteenth in the history of Armenia and the seventh located in or around the Ararat Plain. The city also serves as the seat of the Araratian Pontifical Diocese, which is the largest diocese of the Armenian Apostolic Church and one of the oldest dioceses in the world."
-    },
-    {
-        "day": 30,
-        "country": "Global",
-        "title": "Finding Home Everywhere",
-        "wikiSearch": "Home",
-        "localImage": "/images/stories/month3/day30-home.webp",
-        "imageTitle": "Home",
-        "imageDescription": "A home, or domicile, is a space used as a permanent or semi-permanent residence for one or more human occupants, and sometimes various companion animals. Homes provide sheltered spaces, for instance rooms, where domestic activity can be performed such as sleeping, preparing food, eating and hygiene as well as providing spaces for work and leisure such as remote working, studying and playing."
-    }
+  {
+    "day": 1,
+    "country": "Indonesia",
+    "title": "Morning Market in Yogyakarta",
+    "wikiSearch": "Yogyakarta",
+    "localImage": "/images/stories/month3/day1-yogyakarta.webp",
+    "imageTitle": "Yogyakarta",
+    "imageDescription": "Yogyakarta is the capital city of the Special Region of Yogyakarta in Indonesia, in the south-central part of the island of Java. As the only Indonesian royal city still ruled by a monarchy, Yogyakarta is regarded as an important centre for classical Javanese fine arts and culture such as ballet, batik textiles, drama, literature, music, poetry, silversmithing, visual arts, and wayang puppetry. Renowned as a centre of Indonesian education, Yogyakarta is home to a large student population and dozens of schools and universities, including Gadjah Mada University, the country's largest institute of higher education and one of its most prestigious.",
+    "text": "I am walking through the Pasar Beringharjo market in Yogyakarta, right next to an old Banyan tree that has been here for generations. The morning air is already warm and sticky. I can hear the sound of vendors calling out prices, their voices mixing with the clatter of motorbikes. I stop at a small stall to buy fried tempeh. The seller hands it to me, still warm from the pan. I eat it standing there, watching people rush by with their baskets full of vegetables. This simple breakfast connects me to my city's heartbeat.",
+    "story": "I am walking through the Pasar Beringharjo market in Yogyakarta, right next to an old Banyan tree that has been here for generations. The morning air is already warm and sticky. I can hear the sound of vendors calling out prices, their voices mixing with the clatter of motorbikes. I stop at a small stall to buy fried tempeh. The seller hands it to me, still warm from the pan. I eat it standing there, watching people rush by with their baskets full of vegetables. This simple breakfast connects me to my city's heartbeat."
+  },
+  {
+    "day": 2,
+    "country": "Tanzania",
+    "title": "Grinding Coffee in Arusha",
+    "wikiSearch": "Tanzania coffee",
+    "localImage": "/images/stories/month3/day2-tanzania-coffee.webp",
+    "imageTitle": "Coffee production in Tanzania",
+    "imageDescription": "Coffee production in Tanzania is a significant aspect of its economy as it is Tanzania's largest export crop. Tanzanian coffee production averages between 30,000 and 40,000 metric tons annually of which approximately 70% is Arabica and 30% is Robusta.",
+    "text": "I am sitting on a wooden bench outside my neighbor's house in Arusha, shaded by a tall Mango tree. The morning sun is just starting to warm the ground. I am helping to roast green coffee beans over a small charcoal fire. The beans crackle and pop, filling the air with a rich, smoky smell. Then we grind them by hand using a heavy stone. My hands are getting tired, but the smell is amazing! Later, we will brew it strong and share it with everyone. This is how coffee should taste, made with patience and care.",
+    "story": "I am sitting on a wooden bench outside my neighbor's house in Arusha, shaded by a tall Mango tree. The morning sun is just starting to warm the ground. I am helping to roast green coffee beans over a small charcoal fire. The beans crackle and pop, filling the air with a rich, smoky smell. Then we grind them by hand using a heavy stone. My hands are getting tired, but the smell is amazing! Later, we will brew it strong and share it with everyone. This is how coffee should taste, made with patience and care."
+  },
+  {
+    "day": 3,
+    "country": "Myanmar",
+    "title": "Monk's Alms in Yangon",
+    "wikiSearch": "Shwedagon Pagoda",
+    "localImage": "/images/stories/month3/day3-shwedagon-pagoda.webp",
+    "imageTitle": "Shwedagon Pagoda",
+    "imageDescription": "The Shwedagon Pagoda, officially named Shwedagon Zedi Daw, and also known as the Great Dagon Pagoda and the Golden Pagoda, is a gilded stupa located in Yangon, Myanmar.",
+    "text": "I am kneeling on the sidewalk near Shwedagon Pagoda in Yangon, just before sunrise. The golden pagoda towers above us, catching the first light. I have prepared a small bowl of rice and curry. Soon, the monks in their saffron robes will walk past in a silent line. I place the food into their bowls as they pass. They do not speak, but their eyes show gratitude. This daily ritual reminds me that giving is as important as receiving. The quiet morning feels sacred and peaceful.",
+    "story": "I am kneeling on the sidewalk near Shwedagon Pagoda in Yangon, just before sunrise. The golden pagoda towers above us, catching the first light. I have prepared a small bowl of rice and curry. Soon, the monks in their saffron robes will walk past in a silent line. I place the food into their bowls as they pass. They do not speak, but their eyes show gratitude. This daily ritual reminds me that giving is as important as receiving. The quiet morning feels sacred and peaceful."
+  },
+  {
+    "day": 4,
+    "country": "India",
+    "title": "Street Food in Chandni Chowk",
+    "wikiSearch": "Chandni Chowk",
+    "localImage": "/images/stories/month3/day4-jalebi.webp",
+    "imageTitle": "Jalebi",
+    "imageDescription": "Jalebi is a common sweet snack in the Indian subcontinent, West Asia and some parts of Africa. It goes by many names, including jilapi, zelepi, jilebi,  jilipi, zulbia, zoolbia, jerry, mushabak, z'labia, or zalabia.",
+    "text": "I am walking through the narrow lanes of Chandni Chowk, which is one of the oldest markets in Delhi. The air is thick with the smell of hot oil and sugary syrup. A vendor is frying bright orange spirals of Jalebi in a huge pan. He squeezes the batter through a cloth, making perfect circles in the bubbling oil. I take one and bite into it. It is crunchy on the outside and soaked in warm sugar syrup on the inside. Then I move to a Pani Puri stall, where the seller cracks open a crispy hollow ball and fills it with spicy tamarind water and mashed potatoes. I put the whole thing in my mouth at once because that is the only proper way to eat it. The burst of sour, spicy, and sweet flavors all at once makes my eyes water, but I immediately ask for another one.",
+    "story": "I am walking through the narrow lanes of Chandni Chowk, which is one of the oldest markets in Delhi. The air is thick with the smell of hot oil and sugary syrup. A vendor is frying bright orange spirals of Jalebi in a huge pan. He squeezes the batter through a cloth, making perfect circles in the bubbling oil. I take one and bite into it. It is crunchy on the outside and soaked in warm sugar syrup on the inside. Then I move to a Pani Puri stall, where the seller cracks open a crispy hollow ball and fills it with spicy tamarind water and mashed potatoes. I put the whole thing in my mouth at once because that is the only proper way to eat it. The burst of sour, spicy, and sweet flavors all at once makes my eyes water, but I immediately ask for another one."
+  },
+  {
+    "day": 5,
+    "country": "Pakistan",
+    "title": "Winter in the Swat Valley",
+    "wikiSearch": "Swat District",
+    "localImage": "/images/stories/month3/day5-swat-district.webp",
+    "imageTitle": "Swat Valley",
+    "imageDescription": "Swat is a valley and an administrative district in the Khyber Pakhtunkhwa province of Pakistan. It is the upper valley of the Swat River, which rises in the Hindu Kush range. The valley was a major centre of early Buddhism and was known in ancient times as Uddiyana. The region is known for its lush forests, alpine meadows, and snow-capped peaks. Malam Jabba, located within the valley, hosts Pakistan's only ski resort and receives heavy snowfall during winter months from November through March.",
+    "text": "I am sitting by the window of a small wooden guesthouse in Malam Jabba, which is a hill station nestled in the Hindu Kush mountains of Khyber Pakhtunkhwa, the northwestern province of Pakistan. Outside, the entire valley has turned white. The northern zone of KP, meaning everything from the Koh Hindu Kush range down to the valley of Peshawar, receives heavy snowfall each winter, and today is no different. Thick snow covers the tall Deodar cedar and pine trees, bending their branches under the weight. The mountains behind them look enormous and silent. I hold a cup of Kashmiri chai, called Noon Chai here, which is a pink tea made with salt, milk, and crushed almonds. It warms my chest with every sip. Children outside are throwing snowballs and sliding down slopes on plastic sheets, their laughter echoing across the valley. Malam Jabba also has a ski resort, making it one of the very few places in South Asia where people can ski. Looking at these peaceful white peaks, I feel grateful to witness this magical and often overlooked side of Pakistan.",
+    "story": "I am sitting by the window of a small wooden guesthouse in Malam Jabba, which is a hill station nestled in the Hindu Kush mountains of Khyber Pakhtunkhwa, the northwestern province of Pakistan. Outside, the entire valley has turned white. The northern zone of KP, meaning everything from the Koh Hindu Kush range down to the valley of Peshawar, receives heavy snowfall each winter, and today is no different. Thick snow covers the tall Deodar cedar and pine trees, bending their branches under the weight. The mountains behind them look enormous and silent. I hold a cup of Kashmiri chai, called Noon Chai here, which is a pink tea made with salt, milk, and crushed almonds. It warms my chest with every sip. Children outside are throwing snowballs and sliding down slopes on plastic sheets, their laughter echoing across the valley. Malam Jabba also has a ski resort, making it one of the very few places in South Asia where people can ski. Looking at these peaceful white peaks, I feel grateful to witness this magical and often overlooked side of Pakistan."
+  },
+  {
+    "day": 6,
+    "country": "Afghanistan",
+    "title": "Carpet Weaving in Herat",
+    "wikiSearch": "Afghan rug",
+    "localImage": "/images/stories/month3/day6-herat.webp",
+    "imageTitle": "Herat",
+    "imageDescription": "Herat, also written as Harat or Hirat, and historically known as Haraiva, Horeiva and Hires, is a city in western Afghanistan, serving as the capital and largest city of Herat Province. It has long been the third-largest city of Afghanistan. The city is within the jurisdiction of Herat District and has an estimated population of 673,273 settled residents. Mullah Nematullah Hassan is the current mayor of the city. His predecessor was Haji Abdulraziq Rashed.",
+    "text": "I am sitting on the floor of my family's workshop in Herat, a city in western Afghanistan known for its centuries-old tradition of carpet making. A large wooden loom stands in front of me, strung with hundreds of white cotton threads. My grandmother sits beside me, guiding my hands as I tie tiny knots of dyed wool around each thread. The carpet we are making is called a Qalin, and it follows a geometric pattern in deep reds and dark blues. She tells me that each pattern has a meaning, and some designs have been passed down for five or six generations. The wool smells earthy, and the room is quiet except for the soft clicking of our knives cutting the thread after each knot. One carpet can take six months to complete, so patience is the most important skill. My grandmother always says that every knot carries a prayer for the family who will eventually sit on it. This craft is how our people have told their stories for hundreds of years.",
+    "story": "I am sitting on the floor of my family's workshop in Herat, a city in western Afghanistan known for its centuries-old tradition of carpet making. A large wooden loom stands in front of me, strung with hundreds of white cotton threads. My grandmother sits beside me, guiding my hands as I tie tiny knots of dyed wool around each thread. The carpet we are making is called a Qalin, and it follows a geometric pattern in deep reds and dark blues. She tells me that each pattern has a meaning, and some designs have been passed down for five or six generations. The wool smells earthy, and the room is quiet except for the soft clicking of our knives cutting the thread after each knot. One carpet can take six months to complete, so patience is the most important skill. My grandmother always says that every knot carries a prayer for the family who will eventually sit on it. This craft is how our people have told their stories for hundreds of years."
+  },
+  {
+    "day": 7,
+    "country": "Indonesia",
+    "title": "Phinisi Boats of Bulukumba",
+    "wikiSearch": "Pinisi",
+    "localImage": "/images/stories/month3/day7-pinisi.webp",
+    "imageTitle": "Pinisi",
+    "imageDescription": "Pinisi or Phinisi is a traditional Indonesian two-masted sailing ship. It was mainly built by the Konjo tribe, a sub-ethnic group of Bugis-Makassar in Bulukumba regency, South Sulawesi, and largely used by the Buginese and Makassarese as a cargo vessel and for transport purposes. In December 2017, UNESCO recognised the art of boatbuilding in South Sulawesi as a Masterpiece of Oral and Intangible Heritage of Humanity.",
+    "text": "I am standing on the white sandy shore of Tanjung Bira in Bulukumba, South Sulawesi, watching a team of master builders shape the hull of a Phinisi. A Phinisi is a traditional two-masted wooden sailing ship, and the Konjo people of this coast have built them for centuries. The air smells of fresh sawdust and ocean salt. What amazes me is that these builders work without any blueprints or written plans. They measure everything by eye and hand, relying on knowledge passed from father to son. The wood they use is ironwood, called Ulin, which is so dense and strong that it sinks in water. Hammers ring out in a steady rhythm as planks are fitted together with wooden pegs. In 2017, UNESCO recognized this boatbuilding tradition as a Masterpiece of Intangible Cultural Heritage. Watching these men turn raw timber into a ship that will sail across oceans makes me proud of our ancestral wisdom.",
+    "story": "I am standing on the white sandy shore of Tanjung Bira in Bulukumba, South Sulawesi, watching a team of master builders shape the hull of a Phinisi. A Phinisi is a traditional two-masted wooden sailing ship, and the Konjo people of this coast have built them for centuries. The air smells of fresh sawdust and ocean salt. What amazes me is that these builders work without any blueprints or written plans. They measure everything by eye and hand, relying on knowledge passed from father to son. The wood they use is ironwood, called Ulin, which is so dense and strong that it sinks in water. Hammers ring out in a steady rhythm as planks are fitted together with wooden pegs. In 2017, UNESCO recognized this boatbuilding tradition as a Masterpiece of Intangible Cultural Heritage. Watching these men turn raw timber into a ship that will sail across oceans makes me proud of our ancestral wisdom."
+  },
+  {
+    "day": 8,
+    "country": "Australia",
+    "title": "The Magic of Sydney Harbour",
+    "wikiSearch": "Sydney Opera House",
+    "localImage": "/images/stories/month3/day8-sydney-opera-house.webp",
+    "imageTitle": "Sydney Opera House",
+    "imageDescription": "The Sydney Opera House is a multi-venue performing arts centre in Sydney. Located on the banks of Sydney Harbour, it is widely regarded as one of the world's most famous and distinctive buildings and a masterpiece of 20th-century architecture. Designed by Danish architect Jorn Utzon, the building's roof structure consists of a series of interlocking shell-shaped sections covered with over one million self-cleaning tiles. It was designated a UNESCO World Heritage Site in 2007.",
+    "text": "I am standing at Circular Quay in Sydney, and the view in front of me feels like something from a dream. To my left, the Sydney Opera House rises from the edge of the water. Its roof is made of enormous white shells, covered in over one million ceramic tiles that catch the sunlight and glow. The Danish architect Jorn Utzon designed it to look like sails on the harbor, and it truly does. To my right, the Sydney Harbour Bridge stretches across the water in a massive steel arch, so tall that it reaches 134 meters above sea level. Locals call it the Coathanger because of its shape. Ferries glide underneath it while tourists climb its arch for views of the whole city. Standing here between these two landmarks, I feel the magic of what humans can create when imagination meets the sea. This is architecture that makes the ordinary world feel extraordinary.",
+    "story": "I am standing at Circular Quay in Sydney, and the view in front of me feels like something from a dream. To my left, the Sydney Opera House rises from the edge of the water. Its roof is made of enormous white shells, covered in over one million ceramic tiles that catch the sunlight and glow. The Danish architect Jorn Utzon designed it to look like sails on the harbor, and it truly does. To my right, the Sydney Harbour Bridge stretches across the water in a massive steel arch, so tall that it reaches 134 meters above sea level. Locals call it the Coathanger because of its shape. Ferries glide underneath it while tourists climb its arch for views of the whole city. Standing here between these two landmarks, I feel the magic of what humans can create when imagination meets the sea. This is architecture that makes the ordinary world feel extraordinary."
+  },
+  {
+    "day": 9,
+    "country": "Bangladesh",
+    "title": "Rickshaw Art in Dhaka",
+    "wikiSearch": "Rickshaw art",
+    "localImage": "/images/stories/month3/day9-rickshaw-art.webp",
+    "imageTitle": "Rickshaw art",
+    "imageDescription": "Rickshaw art is a form of urban folk art originating in Bangladesh. It is primarily found on cycle rickshaws in Dhaka, where artists paint elaborate scenes on the back panels and mudguards of the vehicles. Common subjects include movie scenes, landscapes, animals, and political figures. The tradition dates back to the 1950s and has become a defining visual characteristic of Dhaka's streets. Dhaka has been called the Rickshaw Capital of the World, with an estimated 800,000 rickshaws operating in the city.",
+    "text": "I am riding through the streets of Old Dhaka in a cycle rickshaw, and the whole vehicle is a work of art. The back panel is painted with a scene of a Bollywood hero standing in front of a waterfall, surrounded by bright flowers and green parrots. The tin mudguards have paintings of the Royal Bengal Tiger, which is the national animal of Bangladesh. Even the seat has a velvet cover with golden tassels hanging from it. Dhaka is called the Rickshaw Capital of the World because nearly 800,000 of these three-wheeled vehicles fill its streets. Each one is decorated differently by local artists who use house paint and simple brushes to create these moving masterpieces. The art style is called Rickshaw Art, and it has been a tradition since the 1950s. As we weave through honking traffic and narrow alleys, I realize that these painted rickshaws transform the chaos of Dhaka into a traveling open-air gallery.",
+    "story": "I am riding through the streets of Old Dhaka in a cycle rickshaw, and the whole vehicle is a work of art. The back panel is painted with a scene of a Bollywood hero standing in front of a waterfall, surrounded by bright flowers and green parrots. The tin mudguards have paintings of the Royal Bengal Tiger, which is the national animal of Bangladesh. Even the seat has a velvet cover with golden tassels hanging from it. Dhaka is called the Rickshaw Capital of the World because nearly 800,000 of these three-wheeled vehicles fill its streets. Each one is decorated differently by local artists who use house paint and simple brushes to create these moving masterpieces. The art style is called Rickshaw Art, and it has been a tradition since the 1950s. As we weave through honking traffic and narrow alleys, I realize that these painted rickshaws transform the chaos of Dhaka into a traveling open-air gallery."
+  },
+  {
+    "day": 10,
+    "country": "Madagascar",
+    "title": "Rice Fields in Antananarivo",
+    "wikiSearch": "Rice",
+    "localImage": "/images/stories/month3/day10-rice.webp",
+    "imageTitle": "Rice",
+    "imageDescription": "Rice is a cereal grain and in its domesticated form is the staple food of over half of the world's population, particularly in Asia and Africa. Rice is the seed of the grass species Oryza sativa —or, much less commonly, Oryza glaberrima. Asian rice was domesticated in China some 13,500 to 8,200 years ago; African rice was domesticated in Africa about 3,000 years ago. Rice has become commonplace in many cultures worldwide; in 2023, 800 million tons were produced, placing it third after sugarcane and maize. Only some 8% of rice is traded internationally. China, India, and Indonesia are the largest consumers of rice. A substantial amount of the rice produced in developing nations is lost after harvest through factors such as poor transport and storage. Rice yields can be reduced by pests including insects, rodents, and birds, as well as by weeds, and by diseases such as rice blast. Traditional rice polycultures such as rice-duck farming, and modern integrated pest management seek to control damage from pests in a sustainable way.",
+    "text": "I am wading through muddy rice paddies on the outskirts of Antananarivo, my feet sinking into the soft earth. The green rice plants are tall and swaying in the breeze. I can see other farmers working in the distance, their backs bent under the sun. We are planting new seedlings today. My back is starting to ache, but I keep going. This rice will feed our families for months. A heron stands perfectly still in the water nearby, waiting for fish. Working the land connects me to my ancestors who did the same work.",
+    "story": "I am wading through muddy rice paddies on the outskirts of Antananarivo, my feet sinking into the soft earth. The green rice plants are tall and swaying in the breeze. I can see other farmers working in the distance, their backs bent under the sun. We are planting new seedlings today. My back is starting to ache, but I keep going. This rice will feed our families for months. A heron stands perfectly still in the water nearby, waiting for fish. Working the land connects me to my ancestors who did the same work."
+  },
+  {
+    "day": 11,
+    "country": "Laos",
+    "title": "Morning Alms in Luang Prabang",
+    "wikiSearch": "Luang Prabang",
+    "localImage": "/images/stories/month3/day11-luang-prabang.webp",
+    "imageTitle": "Luang Prabang",
+    "imageDescription": "Luang Prabang, historically known as Xieng Thong (ຊຽງທອງ) and alternatively spelled Luang Phabang or Louangphabang, is the capital of Luang Prabang Province in north-central Laos. Its name, meaning “Royal Buddha Image,” derives from the Phra Bang, a statue symbolizing Lao sovereignty. Designated a UNESCO World Heritage Site in 1995, the city is recognized for blending traditional Lao architecture, European colonial buildings, and over 30 Buddhist temples. The protected area encompasses 33 of its 58 villages, where daily rituals like the morning alms-giving ceremony persist.",
+    "text": "I am sitting on a mat on the sidewalk in Luang Prabang, just before dawn. The street is quiet except for the sound of my own breathing. I have prepared sticky rice in small baskets. Soon, the monks will walk past in their orange robes, carrying their bowls. I will place a small ball of rice into each bowl as they pass silently. The ritual is peaceful and meditative. This daily practice teaches me about giving without expecting anything back. The morning light makes everything glow softly.",
+    "story": "I am sitting on a mat on the sidewalk in Luang Prabang, just before dawn. The street is quiet except for the sound of my own breathing. I have prepared sticky rice in small baskets. Soon, the monks will walk past in their orange robes, carrying their bowls. I will place a small ball of rice into each bowl as they pass silently. The ritual is peaceful and meditative. This daily practice teaches me about giving without expecting anything back. The morning light makes everything glow softly."
+  },
+  {
+    "day": 12,
+    "country": "Honduras",
+    "title": "Making Tortillas in Tegucigalpa",
+    "wikiSearch": "Tortilla",
+    "localImage": "/images/stories/month3/day12-tortilla.webp",
+    "imageTitle": "Tortilla",
+    "imageDescription": "A tortilla is a thin, circular unleavened flatbread from Mesoamerica originally made from masa, and now also from wheat flour.",
+    "text": "I am standing in my aunt's small kitchen in Tegucigalpa, which opens to a courtyard with a big Avocado tree. The smell of corn masa fills the air. My aunt is showing me how to pat the dough into perfect circles. Clap, clap, clap, her hands move so fast! I try to copy her, but mine come out lopsided. She laughs and helps me fix it. We cook them on a hot griddle until they puff up. Eating a fresh tortilla with beans is the best breakfast in the world, really!",
+    "story": "I am standing in my aunt's small kitchen in Tegucigalpa, which opens to a courtyard with a big Avocado tree. The smell of corn masa fills the air. My aunt is showing me how to pat the dough into perfect circles. Clap, clap, clap, her hands move so fast! I try to copy her, but mine come out lopsided. She laughs and helps me fix it. We cook them on a hot griddle until they puff up. Eating a fresh tortilla with beans is the best breakfast in the world, really!"
+  },
+  {
+    "day": 13,
+    "country": "Mozambique",
+    "title": "Fishing Net Repair in Maputo",
+    "wikiSearch": "Maputo",
+    "localImage": "/images/stories/month3/day13-maputo.webp",
+    "imageTitle": "Maputo",
+    "imageDescription": "Maputo is the capital and largest city of Mozambique. Located near the southern end of the country, it is within 120 kilometres of the borders with Eswatini and South Africa. The city has a population of 1,088,449 distributed over a land area of 347.69 km2 (134.24 sq mi). The Maputo metropolitan area includes the neighbouring city of Matola, and has a total population of 2,717,437. Maputo is a port city, with an economy centered on commerce. It is noted for its vibrant cultural scene and distinctive, eclectic architecture. Maputo was formerly named Lourenço Marques.",
+    "text": "I am sitting on the beach in Maputo, under the shade of a Casuarina tree, mending a fishing net. The ocean waves crash nearby, and I can taste salt in the air. My fingers work the needle and twine, repairing the holes. This net belongs to my father, and it has caught fish for our family for years. The work is repetitive, but it requires focus. A fisherman walks by and gives me advice. When I finish, the net will be strong again. This simple skill connects me to the sea and my community.",
+    "story": "I am sitting on the beach in Maputo, under the shade of a Casuarina tree, mending a fishing net. The ocean waves crash nearby, and I can taste salt in the air. My fingers work the needle and twine, repairing the holes. This net belongs to my father, and it has caught fish for our family for years. The work is repetitive, but it requires focus. A fisherman walks by and gives me advice. When I finish, the net will be strong again. This simple skill connects me to the sea and my community."
+  },
+  {
+    "day": 14,
+    "country": "Albania",
+    "title": "Coffee in Tirana",
+    "wikiSearch": "Turkish coffee",
+    "localImage": "/images/stories/month3/day14-turkish-coffee.webp",
+    "imageTitle": "Turkish coffee",
+    "imageDescription": "Turkish coffee is a style of coffee prepared in a cezve using very finely ground coffee beans without filtering or settling to remove the grounds. Similar beverages go under different names in the Middle and Near East and eastern Europe.",
+    "text": "I am sitting at a small metal table on a sidewalk in Tirana, near an old Plane tree. The morning traffic is loud, but here it feels calm. I am drinking Turkish coffee, thick and strong, from a tiny cup. The coffee grounds settle at the bottom. My friend reads my fortune from the leftover grounds, turning the cup upside down. It is all in fun, but we believe it anyway! This slow coffee ritual is how we start our day. We don't rush; we sit and talk. Time moves differently here.",
+    "story": "I am sitting at a small metal table on a sidewalk in Tirana, near an old Plane tree. The morning traffic is loud, but here it feels calm. I am drinking Turkish coffee, thick and strong, from a tiny cup. The coffee grounds settle at the bottom. My friend reads my fortune from the leftover grounds, turning the cup upside down. It is all in fun, but we believe it anyway! This slow coffee ritual is how we start our day. We don't rush; we sit and talk. Time moves differently here."
+  },
+  {
+    "day": 15,
+    "country": "Papua New Guinea",
+    "title": "Sago Processing in Port Moresby",
+    "wikiSearch": "Sago",
+    "localImage": "/images/stories/month3/day15-sago.webp",
+    "imageTitle": "Sago",
+    "imageDescription": "Sago is a starch extracted from the pith, or spongy core tissue, of various tropical palm stems, especially those of Metroxylon sagu. It is a major staple food for the lowland peoples of New Guinea and the Maluku Islands, where it is called saksak, rabia and sagu. The largest supply of sago comes from Melanesia region, particularly Eastern Indonesia. Large quantities of sago are sent to Europe and North America for cooking purposes. It is traditionally cooked and eaten in various forms, such as rolled into balls, mixed with boiling water to form a glue-like paste (papeda), or as a pancake.",
+    "text": "I am standing by a river outside Port Moresby, helping to process sago palm. The tall palm trees sway above us, their leaves rustling in the wind. We cut down the trunk and pound the pith to extract the starch. It is hard, sweaty work! The white paste will become our staple food. My arms are tired, but everyone is working together, laughing and talking. This traditional method has been used for generations. Eating food we made ourselves from the land makes it taste better, somehow.",
+    "story": "I am standing by a river outside Port Moresby, helping to process sago palm. The tall palm trees sway above us, their leaves rustling in the wind. We cut down the trunk and pound the pith to extract the starch. It is hard, sweaty work! The white paste will become our staple food. My arms are tired, but everyone is working together, laughing and talking. This traditional method has been used for generations. Eating food we made ourselves from the land makes it taste better, somehow."
+  },
+  {
+    "day": 16,
+    "country": "Tunisia",
+    "title": "Bread from the Communal Oven",
+    "wikiSearch": "Wood-fired oven",
+    "localImage": "/images/stories/month3/day16-wood-fired-oven.webp",
+    "imageTitle": "Oven",
+    "imageDescription": "An oven is a tool that is used to expose materials to a hot environment. Ovens contain a hollow chamber and provide a means of heating the chamber in a controlled way. In use since antiquity, they have been used to accomplish a wide variety of tasks requiring controlled heating. Because they are used for a variety of purposes, there are many different types of ovens. These types differ depending on their intended purpose and based upon how they generate heat.",
+    "text": "I am waiting in line outside the neighborhood bakery in the medina of Tunis, holding my dough wrapped in a cloth. The old stone building has a huge wood-fired oven inside. I can feel the heat from here! The baker takes my dough and marks it with my family's symbol. Soon, my bread will come out golden and puffy. The smell of fresh bread fills the whole street. Everyone here knows each other, and we chat while waiting. This shared oven brings our neighborhood together. Nothing tastes better than bread baked this way.",
+    "story": "I am waiting in line outside the neighborhood bakery in the medina of Tunis, holding my dough wrapped in a cloth. The old stone building has a huge wood-fired oven inside. I can feel the heat from here! The baker takes my dough and marks it with my family's symbol. Soon, my bread will come out golden and puffy. The smell of fresh bread fills the whole street. Everyone here knows each other, and we chat while waiting. This shared oven brings our neighborhood together. Nothing tastes better than bread baked this way."
+  },
+  {
+    "day": 17,
+    "country": "Kyrgyzstan",
+    "title": "Yurt Life in the Mountains",
+    "wikiSearch": "Tian Shan",
+    "localImage": "/images/stories/month3/day17-tian-shan.webp",
+    "imageTitle": "Tian Shan",
+    "imageDescription": "The Tian Shan, also known as the Tengri Tagh or Tengir-Too, is a large system of mountain ranges in Central Asia. The highest peak is Jengish Chokusu at 7,439 metres (24,406 ft) high and located in Kyrgyzstan. Its lowest point is at the Turpan Depression, which is 154 m (505 ft) below sea level.",
+    "text": "I am sitting inside our family yurt high in the Tien Shan mountains, near a small stream. The round felt tent is warm and cozy. Outside, I can see horses grazing on the green grass. My grandmother is making tea on a small stove in the center. The smoke rises through the opening at the top. We sit on colorful rugs, sharing stories. Life here is simple but rich. At night, we will sleep under thick blankets, listening to the wind. This traditional home connects us to our nomadic ancestors.",
+    "story": "I am sitting inside our family yurt high in the Tien Shan mountains, near a small stream. The round felt tent is warm and cozy. Outside, I can see horses grazing on the green grass. My grandmother is making tea on a small stove in the center. The smoke rises through the opening at the top. We sit on colorful rugs, sharing stories. Life here is simple but rich. At night, we will sleep under thick blankets, listening to the wind. This traditional home connects us to our nomadic ancestors."
+  },
+  {
+    "day": 18,
+    "country": "Haiti",
+    "title": "Street Art in Port-au-Prince",
+    "wikiSearch": "Haitian art",
+    "localImage": "/images/stories/month3/day18-haitian-art.webp",
+    "imageTitle": "Haitian art",
+    "imageDescription": "Haitian art is a complex tradition, reflecting African roots with strong Indigenous, American and European aesthetic and religious influences. It is an important expression of Haitian culture and history.\nMany artists cluster in \"schools\" of painting, such as the Cap-Haïtien school, which features depictions of daily life in the city, the Jacmel School, which reflects the steep mountains and bays of that coastal town, or the Saint-Soleil School, which is characterized by abstracted human forms and is heavily influenced by \"Vaudou\" symbolism.",
+    "text": "I am walking through the busy streets of Port-au-Prince, past walls covered in bright, colorful murals. The art tells stories of hope and struggle. I stop to watch a local artist painting a new piece on a concrete wall, using brushes and spray cans. People gather around to watch and comment. The artist works quickly, his hands moving with confidence. Art is everywhere here, on walls, on tap-taps, on everything! It transforms our city into a gallery. This creativity shows that beauty can grow anywhere, even in difficult places.",
+    "story": "I am walking through the busy streets of Port-au-Prince, past walls covered in bright, colorful murals. The art tells stories of hope and struggle. I stop to watch a local artist painting a new piece on a concrete wall, using brushes and spray cans. People gather around to watch and comment. The artist works quickly, his hands moving with confidence. Art is everywhere here, on walls, on tap-taps, on everything! It transforms our city into a gallery. This creativity shows that beauty can grow anywhere, even in difficult places."
+  },
+  {
+    "day": 19,
+    "country": "Bhutan",
+    "title": "Archery in Thimphu",
+    "wikiSearch": "Thimphu",
+    "localImage": "/images/stories/month3/day19-thimphu.webp",
+    "imageTitle": "Thimphu",
+    "imageDescription": "Thimphu is the capital and largest city of Bhutan. It is situated in the western central part of Bhutan, and the surrounding valley is one of Bhutan's dzongkhags, the Thimphu District. The ancient capital city of Punakha was replaced by Thimphu as the capital in 1955, and in 1961 Thimphu was officially declared the capital of the Kingdom of Bhutan by the 3rd Druk Gyalpo Jigme Dorji Wangchuck.",
+    "text": "I am standing in an open field in Thimphu, watching a traditional archery match. The targets are tiny, placed far away. The archers wear traditional dress and shoot with long bamboo bows. When someone hits the target, everyone dances and sings! It is more like a celebration than a competition. I am not playing today, just watching, but the energy is infectious. The mountains surround us, their peaks touching the clouds. This ancient sport brings our community together. It is about skill, but also about joy and tradition.",
+    "story": "I am standing in an open field in Thimphu, watching a traditional archery match. The targets are tiny, placed far away. The archers wear traditional dress and shoot with long bamboo bows. When someone hits the target, everyone dances and sings! It is more like a celebration than a competition. I am not playing today, just watching, but the energy is infectious. The mountains surround us, their peaks touching the clouds. This ancient sport brings our community together. It is about skill, but also about joy and tradition."
+  },
+  {
+    "day": 20,
+    "country": "Nicaragua",
+    "title": "Gallo Pinto for Breakfast",
+    "wikiSearch": "Managua",
+    "localImage": "/images/stories/month3/day20-managua.webp",
+    "imageTitle": "Managua",
+    "imageDescription": "Managua is the capital and largest city of Nicaragua, and one of the largest cities in Central America. Located on the shores of Lake Managua, the city had an estimated population of 1,055,247 as of 2020, and a population of 1,401,687 in its metropolitan area. The city also serves as the seat of Managua Department.",
+    "text": "I am sitting at a small plastic table on a sidewalk in Managua, under a big Ceiba tree. The morning is already hot. In front of me is a plate of Gallo Pinto, rice and beans mixed together with onions and spices. It comes with a fried egg on top and a piece of fried plantain. I eat it with a spoon, mixing everything together. The flavors are simple but perfect. This is what we eat every morning, and it gives us energy for the day. A good breakfast doesn't need to be fancy, just honest and filling.",
+    "story": "I am sitting at a small plastic table on a sidewalk in Managua, under a big Ceiba tree. The morning is already hot. In front of me is a plate of Gallo Pinto, rice and beans mixed together with onions and spices. It comes with a fried egg on top and a piece of fried plantain. I eat it with a spoon, mixing everything together. The flavors are simple but perfect. This is what we eat every morning, and it gives us energy for the day. A good breakfast doesn't need to be fancy, just honest and filling."
+  },
+  {
+    "day": 21,
+    "country": "Mauritania",
+    "title": "Camel Caravan in the Desert",
+    "wikiSearch": "Camel",
+    "localImage": "/images/stories/month3/day21-camel.webp",
+    "imageTitle": "Camel",
+    "imageDescription": "A camel is an even-toed ungulate in the genus Camelus that bears distinctive fatty deposits known as \"humps\" on its back. Camels have long been domesticated and, as livestock, they provide food and textiles. Camels are working animals especially suited to their desert habitat and are a vital means of transport for passengers and cargo. There are three surviving species of camel. The one-humped dromedary makes up 94% of the world's camel population, and the two-humped Bactrian camel makes up 6%. The wild Bactrian camel is a distinct species that is not ancestral to the domestic Bactrian camel, and is now critically endangered, with fewer than 1,000 individuals.",
+    "text": "I am walking alongside a camel caravan in the Sahara, near Nouakchott. The camels move slowly, their feet sinking into the sand. The sun is intense, and I wrap my headscarf tighter. We are carrying salt and dates to trade. The desert stretches out endlessly, just sand and sky. At night, we will make a fire and sleep under the stars. The silence here is profound, broken only by the sound of camel bells, jingle, jingle. This ancient way of travel connects me to traders who crossed this desert centuries ago.",
+    "story": "I am walking alongside a camel caravan in the Sahara, near Nouakchott. The camels move slowly, their feet sinking into the sand. The sun is intense, and I wrap my headscarf tighter. We are carrying salt and dates to trade. The desert stretches out endlessly, just sand and sky. At night, we will make a fire and sleep under the stars. The silence here is profound, broken only by the sound of camel bells, jingle, jingle. This ancient way of travel connects me to traders who crossed this desert centuries ago."
+  },
+  {
+    "day": 22,
+    "country": "East Timor",
+    "title": "Coffee Harvest in the Hills",
+    "wikiSearch": "Coffee",
+    "localImage": "/images/stories/month3/day22-coffee.webp",
+    "imageTitle": "Coffee",
+    "imageDescription": "Coffee is a beverage brewed from roasted, ground coffee beans. Darkly colored, bitter, and slightly acidic, coffee has a stimulating effect on humans, primarily due to its caffeine content, but decaffeinated coffee is also commercially available. There are also various coffee substitutes.",
+    "text": "I am picking coffee cherries on a hillside in the mountains of East Timor, my basket hanging from my shoulder. The coffee plants are small trees, covered in red and green berries. I pluck them carefully, choosing only the ripe ones. My fingers are getting stained red! In the distance, I can see the ocean, a blue line on the horizon. Later, we will dry and roast these beans. Coffee is our main crop here, and it supports many families. Working in these hills makes me feel connected to the land and my community.",
+    "story": "I am picking coffee cherries on a hillside in the mountains of East Timor, my basket hanging from my shoulder. The coffee plants are small trees, covered in red and green berries. I pluck them carefully, choosing only the ripe ones. My fingers are getting stained red! In the distance, I can see the ocean, a blue line on the horizon. Later, we will dry and roast these beans. Coffee is our main crop here, and it supports many families. Working in these hills makes me feel connected to the land and my community."
+  },
+  {
+    "day": 23,
+    "country": "Paraguay",
+    "title": "TererÃ© Circle in AsunciÃ³n",
+    "wikiSearch": "Asuncion",
+    "localImage": "/images/stories/month3/day23-asuncion.webp",
+    "imageTitle": "Asunción",
+    "imageDescription": "Asunción is the capital and the largest city of Paraguay. The city stands on the eastern bank of the Paraguay River, almost at the confluence of this river with the Pilcomayo River. The Paraguay River and the Bay of Asunción in the northwest separate the city from the Occidental Region of Paraguay and from Argentina in the south part of the city. The rest of the city is surrounded by the Central Department.",
+    "text": "I am sitting in a circle with my friends in a park in AsunciÃ³n, under a big Lapacho tree. We are sharing a gourd of tererÃ©, cold yerba mate tea. We pass it around, each person taking a sip through a metal straw called a bombilla. The tea is bitter and refreshing, perfect for the hot afternoon. We talk about everything, from football to family. This ritual brings us together. We don't need a fancy cafe; we just need shade, friends, and this simple drink. Time slows down in this circle.",
+    "story": "I am sitting in a circle with my friends in a park in AsunciÃ³n, under a big Lapacho tree. We are sharing a gourd of tererÃ©, cold yerba mate tea. We pass it around, each person taking a sip through a metal straw called a bombilla. The tea is bitter and refreshing, perfect for the hot afternoon. We talk about everything, from football to family. This ritual brings us together. We don't need a fancy cafe; we just need shade, friends, and this simple drink. Time slows down in this circle."
+  },
+  {
+    "day": 24,
+    "country": "Maldives",
+    "title": "Fishing at Sunset",
+    "wikiSearch": "Malé",
+    "localImage": "/images/stories/month3/day24-mal.webp",
+    "imageTitle": "Malé",
+    "imageDescription": "Malé is the capital and most populous city of the Maldives. With a population of 211,908 in 2022 within its administrative area and coterminous geographical area of 8.30 square kilometres (3.20 sq mi), Malé is one of the most densely populated cities in the world. The city is geographically located in the southern edge of North Malé Atoll. Administratively, the city consists of a central island, an airport island, and five other islands presided over by the Malé City Council.",
+    "text": "I am sitting in a small wooden boat called a dhoni, floating on the turquoise water near MalÃ©. The sun is setting, painting the sky orange and pink. I am fishing with a simple line and hook, no fancy equipment needed. The water is so clear I can see fish swimming below. A seagull lands on the edge of the boat, hoping for a snack! The ocean is calm tonight, just gentle waves rocking the boat. Catching fish for dinner feels like a partnership with the sea. This simple life by the water is enough.",
+    "story": "I am sitting in a small wooden boat called a dhoni, floating on the turquoise water near MalÃ©. The sun is setting, painting the sky orange and pink. I am fishing with a simple line and hook, no fancy equipment needed. The water is so clear I can see fish swimming below. A seagull lands on the edge of the boat, hoping for a snack! The ocean is calm tonight, just gentle waves rocking the boat. Catching fish for dinner feels like a partnership with the sea. This simple life by the water is enough."
+  },
+  {
+    "day": 25,
+    "country": "Mali",
+    "title": "Mud Mosque in DjennÃ©",
+    "wikiSearch": "Great Mosque of Djenné",
+    "localImage": "/images/stories/month3/day25-great-mosque-of-djenn.webp",
+    "imageTitle": "Great Mosque of Djenné",
+    "imageDescription": "The Great Mosque of Djenné in the Sudano-Sahelian architectural style is the largest adobe brick building in the world. The mosque is located in the city of Djenné, Mali, on the flood plain of the Bani River. The first mosque on the site was built around the 13th century, but the current structure dates from 1907. As well as being the centre of the community of Djenné, it is one of the most famous landmarks in Africa. Along with the \"Old Towns of Djenné\", it was designated a World Heritage Site by UNESCO in 1988.",
+    "text": "I am standing in the main square of DjennÃ©, looking up at the Great Mosque made entirely of mud and wood. The building is huge and covered in wooden sticks that stick out like spikes. It looks like something from a fairy tale, really! People are gathering for Friday prayers. The mud walls keep the building cool even in the hot sun. This mosque was built by hand, using techniques passed down for centuries. Standing here, I feel connected to generations of builders and worshippers. This architecture shows that simple materials can create something magnificent.",
+    "story": "I am standing in the main square of DjennÃ©, looking up at the Great Mosque made entirely of mud and wood. The building is huge and covered in wooden sticks that stick out like spikes. It looks like something from a fairy tale, really! People are gathering for Friday prayers. The mud walls keep the building cool even in the hot sun. This mosque was built by hand, using techniques passed down for centuries. Standing here, I feel connected to generations of builders and worshippers. This architecture shows that simple materials can create something magnificent."
+  },
+  {
+    "day": 26,
+    "country": "El Salvador",
+    "title": "Pupusas in San Salvador",
+    "wikiSearch": "San Salvador",
+    "localImage": "/images/stories/month3/day26-san-salvador.webp",
+    "imageTitle": "San Salvador",
+    "imageDescription": "San Salvador is the capital and largest city of El Salvador and its eponymous department. It is the country's largest agglomeration, serving as the country's political, cultural, educational and financial center. The municipality of San Salvador has 525,990 inhabitants (2024). The Metropolitan Area of San Salvador, which comprises the capital itself and 13 of its municipalities, has a population of 2,404,097. The urban area of San Salvador has a population of 1,600,000 inhabitants.",
+    "text": "I am standing at a small street stall in San Salvador, watching the cook make pupusas. She takes a ball of masa dough and stuffs it with beans and cheese, then pats it flat between her hands. Clap, clap, clap! She cooks it on a hot griddle until it is golden and crispy. The smell makes my stomach growl! I order two, and she hands them to me wrapped in paper. I eat them standing there, adding spicy curtido from a jar. This simple food is our national treasure, and it costs almost nothing.",
+    "story": "I am standing at a small street stall in San Salvador, watching the cook make pupusas. She takes a ball of masa dough and stuffs it with beans and cheese, then pats it flat between her hands. Clap, clap, clap! She cooks it on a hot griddle until it is golden and crispy. The smell makes my stomach growl! I order two, and she hands them to me wrapped in paper. I eat them standing there, adding spicy curtido from a jar. This simple food is our national treasure, and it costs almost nothing."
+  },
+  {
+    "day": 27,
+    "country": "Burkina Faso",
+    "title": "Djembe Circle in Ouagadougou",
+    "wikiSearch": "Djembe",
+    "localImage": "/images/stories/month3/day27-djembe.webp",
+    "imageTitle": "Djembe",
+    "imageDescription": "A djembe or jembe is a rope-tuned, skin-covered goblet drum played with bare hands, originally from West Africa.\nAccording to the Bambara people in Mali, the name \"djembe\" comes from the saying \"Anke djé, anke bé,\" which translates to \"everyone gather together in peace\" and defines the drum's purpose. In the Bambara language, \"djé\" is the verb for \"gather\" and \"bé\" translates as \"peace.\"",
+    "text": "I am sitting in a circle with my neighbors in Ouagadougou, under a big Baobab tree. The evening is cooling down after a hot day. Someone starts playing a djembe drum, and others join in with different drums. Boom, boom, pat, pat, boom! The rhythm is infectious, and soon people are dancing. I am not a great drummer, but I try to keep the beat. Children run around us, laughing. This music brings our community together. We don't need a concert hall; we just need drums, rhythm, and each other. The music continues until late into the night.",
+    "story": "I am sitting in a circle with my neighbors in Ouagadougou, under a big Baobab tree. The evening is cooling down after a hot day. Someone starts playing a djembe drum, and others join in with different drums. Boom, boom, pat, pat, boom! The rhythm is infectious, and soon people are dancing. I am not a great drummer, but I try to keep the beat. Children run around us, laughing. This music brings our community together. We don't need a concert hall; we just need drums, rhythm, and each other. The music continues until late into the night."
+  },
+  {
+    "day": 28,
+    "country": "Vanuatu",
+    "title": "Kava Ceremony in Port Vila",
+    "wikiSearch": "Port Vila",
+    "localImage": "/images/stories/month3/day28-port-vila.webp",
+    "imageTitle": "Port Vila",
+    "imageDescription": "Port Vila, or simply Vila, is the capital of Vanuatu and its largest city. It is on the island of Efate, in Shefa Province.",
+    "text": "I am sitting on a mat in a nakamal, a traditional meeting house in Port Vila, surrounded by friends. The evening is warm and humid. We are sharing kava, a drink made from the root of a pepper plant. It tastes earthy and slightly bitter, and it makes my tongue tingle a bit! We drink it from coconut shells, passing them around. The conversation flows slowly and peacefully. This ritual has been part of our culture for generations. Drinking kava together creates a bond between us. It is more than a drink; it is a way of connecting.",
+    "story": "I am sitting on a mat in a nakamal, a traditional meeting house in Port Vila, surrounded by friends. The evening is warm and humid. We are sharing kava, a drink made from the root of a pepper plant. It tastes earthy and slightly bitter, and it makes my tongue tingle a bit! We drink it from coconut shells, passing them around. The conversation flows slowly and peacefully. This ritual has been part of our culture for generations. Drinking kava together creates a bond between us. It is more than a drink; it is a way of connecting."
+  },
+  {
+    "day": 29,
+    "country": "Armenia",
+    "title": "Bread Making in Yerevan",
+    "wikiSearch": "Yerevan",
+    "localImage": "/images/stories/month3/day29-yerevan.webp",
+    "imageTitle": "Yerevan",
+    "imageDescription": "Yerevan is the capital and largest city of Armenia, as well as one of the world's oldest continuously inhabited cities. Situated along the Hrazdan River, Yerevan is the administrative, cultural, and industrial centre of the country, as its primate city. It has been the capital since 1918, the fourteenth in the history of Armenia and the seventh located in or around the Ararat Plain. The city also serves as the seat of the Araratian Pontifical Diocese, which is the largest diocese of the Armenian Apostolic Church and one of the oldest dioceses in the world.",
+    "text": "I am helping my grandmother in her kitchen in Yerevan, making lavash bread. We roll out the dough until it is paper-thin, then she slaps it against the hot walls of a tonir, a clay oven in the ground. The bread cooks in seconds, puffing up and turning golden. The smell fills the whole house! We stack the warm bread in a pile. Later, we will eat it with cheese and herbs. Making bread this way is an art, and my grandmother has been doing it for sixty years. This tradition connects me to my heritage and my family.",
+    "story": "I am helping my grandmother in her kitchen in Yerevan, making lavash bread. We roll out the dough until it is paper-thin, then she slaps it against the hot walls of a tonir, a clay oven in the ground. The bread cooks in seconds, puffing up and turning golden. The smell fills the whole house! We stack the warm bread in a pile. Later, we will eat it with cheese and herbs. Making bread this way is an art, and my grandmother has been doing it for sixty years. This tradition connects me to my heritage and my family."
+  },
+  {
+    "day": 30,
+    "country": "Global",
+    "title": "Finding Home Everywhere",
+    "wikiSearch": "Home",
+    "localImage": "/images/stories/month3/day30-home.webp",
+    "imageTitle": "Home",
+    "imageDescription": "A home, or domicile, is a space used as a permanent or semi-permanent residence for one or more human occupants, and sometimes various companion animals. Homes provide sheltered spaces, for instance rooms, where domestic activity can be performed such as sleeping, preparing food, eating and hygiene as well as providing spaces for work and leisure such as remote working, studying and playing.",
+    "text": "I am sitting on my front step, thinking about all the places I have visited through these stories. From the rice fields of Madagascar to the salt flats of Bolivia, I have learned something important. Home is not just a place; it is the feeling you get when you share food, when you work together, when you sit in a circle and talk. Everywhere I went, people showed me that happiness comes from simple things: a warm meal, good company, and traditions passed down through generations. We are all connected by these basic human joys.",
+    "story": "I am sitting on my front step, thinking about all the places I have visited through these stories. From the rice fields of Madagascar to the salt flats of Bolivia, I have learned something important. Home is not just a place; it is the feeling you get when you share food, when you work together, when you sit in a circle and talk. Everywhere I went, people showed me that happiness comes from simple things: a warm meal, good company, and traditions passed down through generations. We are all connected by these basic human joys."
+  }
 ]

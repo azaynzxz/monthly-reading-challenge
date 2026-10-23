@@ -47,12 +47,12 @@ const Navbar = ({
                 <div className="w-full max-w-6xl mx-auto px-4 md:px-6">
                     <div className="flex items-center justify-between h-14 md:h-16">
                         {/* Logo */}
-                        <button
-                            onClick={() => navigate('/')}
-                            className="cursor-pointer group"
+                        <Link
+                            to="/"
+                            className="cursor-pointer group block"
                         >
                             <img src="/logo-horizontal.svg" alt="English Fluency Journey" className="h-8 md:h-10" />
-                        </button>
+                        </Link>
 
                         {/* Desktop Actions */}
                         <div className="hidden sm:flex items-center">

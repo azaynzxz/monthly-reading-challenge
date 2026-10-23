@@ -210,7 +210,17 @@
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <noscript>
+        <style>
+            #loading-screen { display: none !important; }
+        </style>
+    </noscript>
     <script>
+        // Immediately hide loading screen for search crawlers and bots
+        if (/bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent)) {
+            var ls = document.getElementById('loading-screen');
+            if (ls) ls.style.display = 'none';
+        }
         // Hide loading screen when app is ready
         window.addEventListener('load', function () {
             setTimeout(function () {

@@ -243,16 +243,13 @@ const LandingPage = () => {
                             </Link>
 
                             {/* CTA Button */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate('/m1-day1');
-                                }}
+                            <Link
+                                to="/m1-day1"
                                 className="group bg-slate-900 text-white px-5 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-[#880000] transition-all duration-300 flex items-center gap-2 relative z-[102] cursor-pointer"
                             >
                                 Start
                                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                            </button>
+                            </Link>
                         </div>
                     </div>
 
@@ -271,15 +268,12 @@ const LandingPage = () => {
                             >
                                 <Heart size={14} />
                             </Link>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate('/m1-day1');
-                                }}
+                            <Link
+                                to="/m1-day1"
                                 className="bg-slate-900 text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider hover:bg-[#880000] transition-colors"
                             >
                                 Start
-                            </button>
+                            </Link>
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                                 className="w-8 h-8 flex flex-col items-center justify-center gap-1.5"
@@ -1125,13 +1119,13 @@ const LandingPage = () => {
                         <p className="text-white/50 mb-8 max-w-sm mx-auto text-sm">
                             90 days. 30 countries. Unlimited potential. No downloads, no signup—just click and begin.
                         </p>
-                        <button
-                            onClick={() => navigate('/m1-day1')}
+                        <Link
+                            to="/m1-day1"
                             className="inline-flex items-center gap-3 bg-[#880000] text-white px-8 py-4 font-medium text-sm uppercase tracking-wider hover:bg-[#aa0000] transition-colors"
                         >
                             Start Day 1
                             <ArrowRight size={16} />
-                        </button>
+                        </Link>
                         <div className="flex items-center justify-center gap-4 mt-8 text-white/30">
                             <span className="text-[10px] uppercase tracking-wider">Free Forever</span>
                             <span className="w-1 h-1 rounded-full bg-white/30"></span>
@@ -1156,13 +1150,13 @@ const LandingPage = () => {
                             90 days of curated content. 30 countries to explore. Unlimited potential to unlock.
                             No downloads required, no account needed—just click and begin your transformation.
                         </p>
-                        <button
-                            onClick={() => navigate('/m1-day1')}
+                        <Link
+                            to="/m1-day1"
                             className="group inline-flex items-center gap-4 bg-[#880000] text-white px-12 py-5 font-medium uppercase tracking-wider hover:bg-[#aa0000] transition-all duration-300"
                         >
                             Start Day 1 Now
                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        </Link>
                         <div className="flex items-center justify-center gap-6 mt-10 text-white/30">
                             <span className="text-xs uppercase tracking-wider">Free Forever</span>
                             <span className="w-1.5 h-1.5 rounded-full bg-[#880000]"></span>
@@ -1353,13 +1347,13 @@ const LandingPage = () => {
                                     <div className="w-4 h-0.5 bg-[#880000]"></div>
                                     <span className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Action</span>
                                 </div>
-                                <button
-                                    onClick={() => navigate('/m1-day1')}
+                                <Link
+                                    to="/m1-day1"
                                     className="group flex items-center gap-2 text-[#ff6b6b] hover:text-white transition-colors mb-4"
                                 >
                                     <span className="text-sm font-medium">Start Challenge</span>
                                     <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                                </button>
+                                </Link>
                                 <p className="text-[10px] text-white/30 leading-relaxed">
                                     Begin your 90-day journey to English fluency today.
                                 </p>
