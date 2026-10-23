@@ -13,7 +13,7 @@ export default defineConfig({
         react(),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'images/**/*'],
+            includeAssets: ['favicon.ico', 'sitemap.xml', 'robots.txt', 'images/**/*'],
             manifest: {
                 name: 'English Fluency Journey',
                 short_name: 'Fluency Journey',
@@ -36,6 +36,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
+                navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/, /\.xml$/, /\.txt$/],
                 // Cache all static assets
                 globPatterns: ['**/*.{js,css,html,ico,png,jpg,webp,svg,json}'],
                 // Cache API responses and external resources

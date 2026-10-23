@@ -19,6 +19,12 @@ import FreebiesPage from './pages/hello/FreebiesPage';
 const ReadingChallengeWrapper = () => {
     const location = useLocation();
 
+    // If it's a static file request caught by SPA fallback or service worker, force native reload
+    if (location.pathname === '/sitemap.xml' || location.pathname === '/robots.txt') {
+        window.location.replace(location.pathname);
+        return null;
+    }
+
     // If it's the root path, redirect to landing (shouldn't happen but safety check)
     if (location.pathname === '/') {
         return <Navigate to="/" replace />;
